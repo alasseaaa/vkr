@@ -290,7 +290,7 @@ class DoctorPatientsListAPIView(APIView):
         qs = (
             User.objects.filter(id__in=patient_ids)
             .annotate(
-                genotypes_count=Count("usergenotype_set", distinct=True),
+                genotypes_count=Count("usergenotype", distinct=True),
                 vitamin_tests_count=Count("vitamin_tests", distinct=True),
             )
             .order_by("last_name", "first_name", "username")

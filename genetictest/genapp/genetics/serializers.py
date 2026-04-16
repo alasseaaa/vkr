@@ -63,6 +63,15 @@ class UserGenotypeSerializer(serializers.ModelSerializer):
         if qs.exists():
             raise serializers.ValidationError("Этот вариант генотипа уже добавлен пользователем.")
 
+        gene_id = gene_variant.gene_id
+        qs_same_gene = UserGenotype.objects.filter(user=user, gene_variant__gene_id=gene_id)
+        if self.instance is not None:
+            qs_same_gene = qs_same_gene.exclude(pk=self.instance.pk)
+        if qs_same_gene.exists():
+            raise serializers.ValidationError(
+                "Для этого гена у вас уже указан генотип. Измените существующую запись или удалите её."
+            )
+
         return attrs
 
 

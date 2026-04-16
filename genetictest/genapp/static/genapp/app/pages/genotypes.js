@@ -16,15 +16,30 @@ function riskLabel(r) {
   return m[r] || r || "—";
 }
 
-/** В списке и поиске используем только символ гена. */
+/** Подпись опции: символ + кратко имя/rs при наличии. */
 function geneOptionLabel(g) {
-  return (g.symbol || "").trim() || `Ген #${g.id}`;
+  const sym = (g.symbol || "").trim() || `Ген #${g.id}`;
+  const extra = (g.rs_id || "").trim();
+  if (extra) return `${sym} (${extra})`;
+  const fn = (g.full_name || "").trim();
+  if (fn && fn.length <= 48) return `${sym} — ${fn}`;
+  if (fn) return `${sym} — ${fn.slice(0, 45)}…`;
+  return sym;
 }
 
-function filterGenesBySymbol(genes, q) {
-  if (!q?.trim()) return genes;
+function geneMatchesQuery(g, q) {
+  if (!q?.trim()) return true;
   const n = q.trim().toLowerCase();
-  return genes.filter((g) => String(g.symbol || "").toLowerCase().includes(n));
+  return (
+    String(g.symbol || "").toLowerCase().includes(n) ||
+    String(g.full_name || "").toLowerCase().includes(n) ||
+    String(g.rs_id || "").toLowerCase().includes(n)
+  );
+}
+
+function filterGenesByQuery(genes, q) {
+  if (!q?.trim()) return genes;
+  return genes.filter((g) => geneMatchesQuery(g, q));
 }
 
 function geneOptionsHtml(genes, emptyLabel) {
@@ -64,22 +79,98 @@ function fillGeneSelect(selectEl, genes, { preserveId, emptyLabel } = {}) {
   }
 }
 
+function fillGeneDatalist(datalistEl, genes) {
+  if (!datalistEl) return;
+  datalistEl.innerHTML = (genes || [])
+    .map((g) => {
+      const sym = (g.symbol || "").trim();
+      if (!sym) return "";
+      const label = geneOptionLabel(g);
+      return `<option value="${escapeHtml(sym)}">${escapeHtml(label)}</option>`;
+    })
+    .join("");
+}
+
+/** Гены, уже занятые сохранёнными строками или очередью (нельзя добавить второй раз тот же ген). */
+function collectUsedGeneIds(genotypes, pending, allGenes) {
+  const used = new Set();
+  (genotypes || []).forEach((g) => {
+    if (g.gene != null && Number.isFinite(Number(g.gene))) used.add(Number(g.gene));
+  });
+  (pending || []).forEach((p) => {
+    if (p.gene_id != null && Number.isFinite(Number(p.gene_id))) {
+      used.add(Number(p.gene_id));
+    } else if (p.gene_symbol && allGenes?.length) {
+      const sym = String(p.gene_symbol || "").trim().toLowerCase();
+      const gg = allGenes.find((x) => String(x.symbol || "").trim().toLowerCase() === sym);
+      if (gg) used.add(Number(gg.id));
+    }
+  });
+  return used;
+}
+
+function genesAvailableForCreate(allGenes, genotypes, pending) {
+  const used = collectUsedGeneIds(genotypes, pending, allGenes);
+  return (allGenes || []).filter((g) => !used.has(Number(g.id)));
+}
+
+/** Для редактирования: текущий ген + гены, ещё не занятые другими сохранёнными строками. */
+function genesAvailableForEdit(allGenes, genotypes, currentRow) {
+  const curGid = currentRow?.gene != null ? Number(currentRow.gene) : null;
+  const usedElsewhere = new Set();
+  (genotypes || []).forEach((g) => {
+    if (currentRow && Number(g.id) === Number(currentRow.id)) return;
+    if (g.gene != null && Number.isFinite(Number(g.gene))) usedElsewhere.add(Number(g.gene));
+  });
+  return (allGenes || []).filter(
+    (g) => (curGid != null && Number(g.id) === curGid) || !usedElsewhere.has(Number(g.id)),
+  );
+}
+
 async function loadVariantsForGene(api, geneId) {
   if (!geneId) return [];
   const data = await api.patient.listGeneVariantCatalog({ gene: geneId });
   return Array.isArray(data) ? data : [];
 }
 
-function wireGeneSearch({ searchInput, geneSelect, allGenes, onGeneCleared, emptyLabel }) {
+function wireGeneSearch({ searchInput, geneSelect, datalistEl, getGenes, onGeneCleared, emptyLabel }) {
   const applyFilter = () => {
-    const filtered = filterGenesBySymbol(allGenes, searchInput.value);
+    const pool = getGenes();
+    const filtered = filterGenesByQuery(pool, searchInput.value);
     const hadGene = geneSelect.value;
+    fillGeneDatalist(datalistEl, filtered);
     fillGeneSelect(geneSelect, filtered, { preserveId: hadGene, emptyLabel });
     if (!geneSelect.value && hadGene) {
       onGeneCleared?.();
     }
   };
+
+  const syncSearchFromSelect = () => {
+    const gid = geneSelect.value;
+    const g = getGenes().find((x) => String(x.id) === gid);
+    searchInput.value = g ? (g.symbol || "").trim() : "";
+  };
+
+  /** Выбор из подсказки datalist подставляет символ — синхронизируем с select. */
+  const pickGeneBySymbolFromInput = () => {
+    const raw = (searchInput.value || "").trim();
+    if (!raw) return;
+    const pool = getGenes();
+    const n = raw.toLowerCase();
+    const exact = pool.find((g) => String(g.symbol || "").trim().toLowerCase() === n);
+    if (exact) {
+      geneSelect.value = String(exact.id);
+      searchInput.value = (exact.symbol || "").trim();
+      geneSelect.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+  };
+
   searchInput.addEventListener("input", applyFilter);
+  searchInput.addEventListener("change", pickGeneBySymbolFromInput);
+  geneSelect.addEventListener("change", () => {
+    syncSearchFromSelect();
+  });
+
   return applyFilter;
 }
 
@@ -136,6 +227,8 @@ export async function render(pageEl, { api, showAlert }) {
   };
 
   const geneEmpty = "Выберите ген…";
+  const genesForCreate = genesAvailableForCreate(genes, genotypes, pending);
+  let genesForEditList = genes;
 
   const pendingRowsHtml = () =>
     pending.length
@@ -170,14 +263,20 @@ export async function render(pageEl, { api, showAlert }) {
     <div class="card app-card shadow-sm mb-3">
       <div class="card-header bg-white">
         <div class="fw-semibold">Добавить варианты</div>
-        <div class="text-muted small">Ищите ген по <strong>символу</strong>, выберите вариант, нажмите «В список». Когда всё готово — «Сохранить и открыть паспорт».</div>
+        <div class="text-muted small">Введите <strong>символ</strong>, название или rsID — подсказки появятся при вводе; гены, которые уже есть у вас в таблице или в очереди ниже, в списке не показываются. Выберите вариант и нажмите «В список».</div>
       </div>
       <div class="card-body">
+        ${
+          genes.length && !genesForCreate.length
+            ? `<div class="alert alert-light border small mb-3 mb-lg-0">Все доступные гены уже добавлены в сохранённые данные или в очередь на сохранение. Чтобы добавить другой ген, удалите или измените существующую запись.</div>`
+            : ""
+        }
         <div class="row g-3 align-items-end">
           <div class="col-lg-5">
-            <label class="form-label small mb-1">Ген (символ)</label>
-            <input type="search" id="create-gene-search" class="form-control form-control-sm mb-2" placeholder="Например: MTHFR" autocomplete="off" ${genes.length ? "" : "disabled"} />
-            <select id="create-gene-select" class="form-select" ${genes.length ? "" : "disabled"}>${geneOptionsHtml(genes, geneEmpty)}</select>
+            <label class="form-label small mb-1">Ген (поиск)</label>
+            <input type="search" id="create-gene-search" class="form-control form-control-sm mb-2" placeholder="Символ, название или rsID…" autocomplete="off" list="create-gene-datalist" ${genes.length ? "" : "disabled"} />
+            <datalist id="create-gene-datalist"></datalist>
+            <select id="create-gene-select" class="form-select" ${genes.length ? "" : "disabled"}>${geneOptionsHtml(genesForCreate, geneEmpty)}</select>
           </div>
           <div class="col-lg-4">
             <label class="form-label small mb-1">Вариант гена</label>
@@ -269,8 +368,9 @@ export async function render(pageEl, { api, showAlert }) {
               <input type="hidden" name="id" />
               <div class="row g-3">
                 <div class="col-md-6">
-                  <label class="form-label small mb-1">Ген (символ)</label>
-                  <input type="search" id="edit-gene-search" class="form-control form-control-sm mb-2" placeholder="Символ гена" autocomplete="off" />
+                  <label class="form-label small mb-1">Ген (поиск)</label>
+                  <input type="search" id="edit-gene-search" class="form-control form-control-sm mb-2" placeholder="Символ, название или rsID…" autocomplete="off" list="edit-gene-datalist" />
+                  <datalist id="edit-gene-datalist"></datalist>
                   <select id="edit-gene-select" class="form-select"></select>
                 </div>
                 <div class="col-md-6">
@@ -295,10 +395,13 @@ export async function render(pageEl, { api, showAlert }) {
   const btnSavePassport = pageEl.querySelector("#btn-save-passport");
   const btnAddPending = pageEl.querySelector("#btn-add-pending");
 
+  let createApplyFilter = () => {};
+
   const syncPendingUi = () => {
     pending = readPending();
     if (pendingTbody) pendingTbody.innerHTML = pendingRowsHtml();
     if (btnSavePassport) btnSavePassport.disabled = !pending.length;
+    createApplyFilter();
   };
 
   const createGeneSearch = pageEl.querySelector("#create-gene-search");
@@ -315,14 +418,25 @@ export async function render(pageEl, { api, showAlert }) {
     btnAddPending.disabled = !createVariantSelect.value || createVariantSelect.disabled;
   };
 
+  const createGeneDatalist = pageEl.querySelector("#create-gene-datalist");
+
   if (genes.length) {
-    wireGeneSearch({
+    const runCreateFilter = wireGeneSearch({
       searchInput: createGeneSearch,
       geneSelect: createGeneSelect,
-      allGenes: genes,
+      datalistEl: createGeneDatalist,
+      getGenes: () => genesAvailableForCreate(genes, genotypes, readPending()),
       emptyLabel: geneEmpty,
       onGeneCleared: resetCreateVariant,
     });
+    createApplyFilter = () => {
+      runCreateFilter();
+      const pool = genesAvailableForCreate(genes, genotypes, readPending());
+      const allow = pool.length > 0;
+      createGeneSearch.disabled = !allow;
+      createGeneSelect.disabled = !allow;
+    };
+    createApplyFilter();
 
     createGeneSelect.addEventListener("change", async () => {
       const gid = createGeneSelect.value;
@@ -352,6 +466,7 @@ export async function render(pageEl, { api, showAlert }) {
     const vid = Number(createVariantSelect.value);
     if (!vid) return;
 
+    const gid = Number(createGeneSelect.value);
     const sym =
       genes.find((g) => String(g.id) === createGeneSelect.value)?.symbol || createGeneSelect.selectedOptions[0]?.text || "";
     const opt = createVariantSelect.selectedOptions[0];
@@ -365,14 +480,21 @@ export async function render(pageEl, { api, showAlert }) {
       showAlert("warning", "Этот вариант уже в списке.");
       return;
     }
+    if (Number.isFinite(gid) && genotypes.some((g) => Number(g.gene) === gid)) {
+      showAlert("warning", "Ген уже добавлен в сохранённые данные.");
+      return;
+    }
+    if (Number.isFinite(gid) && pending.some((p) => Number(p.gene_id) === gid)) {
+      showAlert("warning", "Ген уже есть в очереди.");
+      return;
+    }
 
-    pending.push({ gene_variant: vid, gene_symbol: sym, line });
+    pending.push({ gene_variant: vid, gene_id: Number.isFinite(gid) ? gid : null, gene_symbol: sym, line });
     writePending(pending);
     syncPendingUi();
     showAlert("success", "Добавлено в список. Продолжайте или сохраните.");
 
     createGeneSearch.value = "";
-    createGeneSelect.innerHTML = geneOptionsHtml(genes, geneEmpty);
     resetCreateVariant();
   });
 
@@ -396,7 +518,12 @@ export async function render(pageEl, { api, showAlert }) {
       return;
     }
 
-    const remaining = failed.map((f) => ({ gene_variant: f.gene_variant, gene_symbol: f.gene_symbol, line: f.line }));
+    const remaining = failed.map((f) => ({
+      gene_variant: f.gene_variant,
+      gene_id: f.gene_id,
+      gene_symbol: f.gene_symbol,
+      line: f.line,
+    }));
     writePending(remaining);
 
     if (remaining.length) {
@@ -430,16 +557,19 @@ export async function render(pageEl, { api, showAlert }) {
     editSubmit.disabled = !editVariantSelect.value || editVariantSelect.disabled;
   };
 
+  const editGeneDatalist = modalEl.querySelector("#edit-gene-datalist");
   let editFilterApply = () => {};
   if (genes.length) {
     editFilterApply = wireGeneSearch({
       searchInput: editGeneSearch,
       geneSelect: editGeneSelect,
-      allGenes: genes,
+      datalistEl: editGeneDatalist,
+      getGenes: () => genesForEditList,
       emptyLabel: geneEmpty,
       onGeneCleared: resetEditVariant,
     });
-    fillGeneSelect(editGeneSelect, genes, { emptyLabel: geneEmpty });
+    fillGeneSelect(editGeneSelect, genesForEditList, { emptyLabel: geneEmpty });
+    fillGeneDatalist(editGeneDatalist, genesForEditList);
 
     editGeneSelect.addEventListener("change", async () => {
       const gid = editGeneSelect.value;
@@ -500,11 +630,13 @@ export async function render(pageEl, { api, showAlert }) {
         return;
       }
 
+      genesForEditList = genesAvailableForEdit(genes, genotypes, row);
       editGeneSearch.value = "";
       editFilterApply();
       const geneId = row?.gene != null ? String(row.gene) : "";
-      if (geneId && genes.some((g) => String(g.id) === geneId)) {
+      if (geneId && genesForEditList.some((g) => String(g.id) === geneId)) {
         editGeneSelect.value = geneId;
+        editGeneSearch.value = (genes.find((g) => String(g.id) === geneId)?.symbol || "").trim();
       } else {
         editGeneSelect.value = "";
       }

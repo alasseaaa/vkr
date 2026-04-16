@@ -48,7 +48,7 @@ async function renderPage(route) {
     articles: () => import("./pages/articles.js"),
     "article-detail": () => import("./pages/articles.js"),
     dashboard: () => import("./pages/dashboard.js?v=2"),
-    genotypes: () => import("./pages/genotypes.js"),
+    genotypes: () => import("./pages/genotypes.js?v=3"),
     "vitamin-tests": () => import("./pages/vitaminTests.js"),
     recommendations: () => import("./pages/recommendations.js"),
     passport: () => import("./pages/passport.js"),
