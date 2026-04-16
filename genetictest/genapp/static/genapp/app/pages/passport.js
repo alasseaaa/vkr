@@ -15,14 +15,21 @@ function riskLabel(r) {
   return m[r] || r || "—";
 }
 
-function textBlock(title, text) {
+function textBlockCompact(title, text) {
   const t = (text || "").trim();
   if (!t) return "";
   return `
-    <div class="mb-3">
-      <div class="text-muted small text-uppercase fw-semibold mb-1">${escapeHtml(title)}</div>
-      <div class="small" style="white-space: pre-wrap;">${escapeHtml(t)}</div>
+    <div class="mb-2 pb-2 border-bottom border-light">
+      <div class="text-muted text-uppercase fw-semibold mb-1" style="font-size: 0.68rem; letter-spacing: 0.04em;">${escapeHtml(title)}</div>
+      <div class="small text-body" style="white-space: pre-wrap; line-height: 1.45;">${escapeHtml(t)}</div>
     </div>`;
+}
+
+function oneLinePreview(text, max = 100) {
+  const t = (text || "").trim().replace(/\s+/g, " ");
+  if (!t) return "";
+  if (t.length <= max) return t;
+  return `${t.slice(0, max - 1)}…`;
 }
 
 export async function render(pageEl, { api, showAlert, route }) {
@@ -50,28 +57,56 @@ export async function render(pageEl, { api, showAlert, route }) {
         ? `<div class="alert alert-light border text-muted">Нет сохранённых генотипов. Добавьте данные в разделе «Генетические данные».</div>`
         : list
             .map((g) => {
-              const head = `${escapeHtml(g.gene_symbol || "")}${g.gene_full_name ? ` — ${escapeHtml(g.gene_full_name)}` : ""}`;
-              const varLine = `${escapeHtml(g.variant_genotype || "—")} · риск: ${escapeHtml(riskLabel(g.risk_type))}`;
+              const sym = escapeHtml((g.gene_symbol || "").trim() || "—");
+              const fullName = (g.gene_full_name || "").trim();
+              const titleTip = fullName ? escapeHtml(fullName) : "";
+              const variant = escapeHtml(g.variant_genotype || "—");
               const markerComments = byGenotype.get(Number(g.id)) || [];
+              const hasDoctorComment = markerComments.length > 0;
               const doctorBlocks = doctorCommentsForMarkerHtml(
                 markerComments,
                 "Комментарий лечащего врача",
               );
+              const teaserSource = (g.gene_effect_description || "").trim() || (g.variant_description || "").trim();
+              const teaser = oneLinePreview(teaserSource, 110);
+              const commentHint = hasDoctorComment
+                ? `<span class="badge rounded-pill text-bg-info bg-opacity-75 small fw-normal ms-1"><i class="bi bi-chat-text me-1" aria-hidden="true"></i>Есть комментарий врача</span>`
+                : "";
+              const detailsInner = [
+                g.risk_type ? textBlockCompact("Уровень риска (вариант)", riskLabel(g.risk_type)) : "",
+                textBlockCompact("Описание гена", g.gene_description),
+                textBlockCompact("Эффект / значение гена", g.gene_effect_description),
+                textBlockCompact("Описание варианта", g.variant_description),
+                doctorBlocks,
+              ]
+                .filter(Boolean)
+                .join("");
+              const hasDetails = detailsInner.replace(/\s/g, "").length > 0;
+              const emptyDetails = `<p class="text-muted small mb-0">Дополнительных текстовых полей нет.</p>`;
               return `
-          <div class="card app-card shadow-sm mb-3" id="passport-genotype-${g.id}">
-            <div class="card-body">
-              <div class="d-flex flex-wrap justify-content-between gap-2 mb-3">
-                <div>
-                  <h2 class="h5 mb-1 fw-semibold">${head}</h2>
-                  <div class="text-muted small">Вариант: ${varLine}</div>
+          <details class="card app-card shadow-sm mb-2 passport-gene-card" id="passport-genotype-${g.id}">
+            <summary class="d-flex align-items-start justify-content-between gap-2 py-2 px-3 user-select-none">
+              <div class="min-w-0 flex-grow-1">
+                <div class="fw-semibold text-truncate" title="${titleTip}">${sym}${fullName ? ` <span class="text-muted fw-normal small">· ${escapeHtml(fullName.length > 48 ? `${fullName.slice(0, 46)}…` : fullName)}</span>` : ""}</div>
+                <div class="mt-1 small text-muted">
+                  <span class="font-monospace text-dark">${variant}</span>
+                  ${commentHint}
                 </div>
+                ${
+                  teaser
+                    ? `<div class="mt-1 small text-body-secondary text-truncate" title="${teaserSource.length > 110 ? escapeHtml(teaserSource) : ""}">${escapeHtml(teaser)}</div>`
+                    : ""
+                }
               </div>
-              ${textBlock("Описание гена", g.gene_description)}
-              ${textBlock("Эффект / значение гена", g.gene_effect_description)}
-              ${textBlock("Описание варианта", g.variant_description)}
-              ${doctorBlocks}
+              <div class="d-flex align-items-center gap-1 flex-shrink-0 text-primary small pt-1">
+                <span class="d-none d-sm-inline">Подробнее</span>
+                <i class="bi bi-chevron-down passport-gene-chev text-primary" aria-hidden="true"></i>
+              </div>
+            </summary>
+            <div class="border-top px-3 py-2 bg-body-tertiary bg-opacity-50">
+              ${hasDetails ? detailsInner : emptyDetails}
             </div>
-          </div>`;
+          </details>`;
             })
             .join("");
 
@@ -86,7 +121,14 @@ export async function render(pageEl, { api, showAlert, route }) {
         <h3 class="mb-0">Генетический паспорт</h3>
         <a class="btn btn-outline-secondary btn-sm" href="#/dashboard">На дашборд</a>
       </div>
-      <p class="text-muted small mb-4">Только ваши маркеры из справочника: ген, вариант и текстовые описания из базы.</p>
+      <p class="text-muted small mb-3">В строке — символ, название, ваш вариант и краткая выдержка из описания. Полные тексты, уровень риска и комментарии врача — после раскрытия карточки.</p>
+      <style>
+        .passport-gene-card > summary { list-style: none; cursor: pointer; }
+        .passport-gene-card > summary::-webkit-details-marker { display: none; }
+        .passport-gene-card[open] > summary .passport-gene-chev { transform: rotate(180deg); }
+        .passport-gene-chev { transition: transform 0.2s ease; display: inline-block; }
+        .passport-gene-card summary:hover { background: rgba(0,0,0,0.02); }
+      </style>
       ${cards}
       </div>
     `;
@@ -94,7 +136,9 @@ export async function render(pageEl, { api, showAlert, route }) {
     const focusId = route?.focusGenotypeId;
     if (focusId != null) {
       requestAnimationFrame(() => {
-        document.getElementById(`passport-genotype-${focusId}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+        const det = document.getElementById(`passport-genotype-${focusId}`);
+        if (det && det.tagName === "DETAILS") det.open = true;
+        det?.scrollIntoView({ behavior: "smooth", block: "start" });
       });
     }
   } catch (err) {

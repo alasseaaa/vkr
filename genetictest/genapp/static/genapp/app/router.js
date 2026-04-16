@@ -14,6 +14,8 @@ export function parseRoute() {
   if (parts[0] === "login") return { name: "login" };
   if (parts[0] === "register") return { name: "register" };
 
+  if (parts[0] === "myth-truth") return { name: "myth-truth" };
+
   if (parts[0] === "articles") {
     if (parts[1] && !Number.isNaN(Number(parts[1]))) {
       return { name: "article-detail", articleId: Number(parts[1]) };

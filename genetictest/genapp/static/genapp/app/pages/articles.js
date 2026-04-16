@@ -79,7 +79,10 @@ async function renderList(pageEl, { api, showAlert, auth }) {
             <h1 class="app-page-title h3 mb-1">Статьи</h1>
             <p class="text-muted small mb-0">Материалы доступны без входа. Поиск по названию и тексту.</p>
           </div>
-          ${auth?.basicToken ? "" : `<a href="#/login" class="btn btn-outline-primary btn-sm">Войти</a>`}
+          <div class="d-flex flex-wrap gap-2 align-items-center">
+            <a href="#/myth-truth" class="btn btn-outline-secondary btn-sm"><i class="bi bi-patch-question me-1"></i>Миф или правда?</a>
+            ${auth?.basicToken ? "" : `<a href="#/login" class="btn btn-outline-primary btn-sm">Войти</a>`}
+          </div>
         </div>
 
         ${

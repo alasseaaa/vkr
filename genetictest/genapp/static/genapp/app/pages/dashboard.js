@@ -1,4 +1,3 @@
-import { mountWeeklyFocus } from "../components/weeklyFocus.js";
 import { requestBrowserNotificationPermission } from "../services/patientNotifications.js";
 
 function escapeHtml(str) {
@@ -82,6 +81,8 @@ export async function render(pageEl, { api, auth, showAlert }) {
   let profileHint = "";
   let patientDisplay = auth.username || "";
   let patientProfile = null;
+  /** Пациент указал дату рождения, пол, рост и вес — блок «Сводка и подсказки» скрываем. */
+  let patientProfileCoreComplete = false;
 
   if (role === "patient" || role === "admin") {
     try {
@@ -94,6 +95,7 @@ export async function render(pageEl, { api, auth, showAlert }) {
       if (!p.gender) miss.push("пол");
       if (!p.height) miss.push("рост");
       if (!p.weight) miss.push("вес");
+      patientProfileCoreComplete = miss.length === 0;
       if (miss.length) {
         profileHint = `<div class="alert alert-light border mb-0 small"><i class="bi bi-info-circle me-2"></i>Для более точной интерпретации укажите в <a href="#/profile">профиле</a>: ${miss.join(", ")}.</div>`;
       } else {
@@ -104,17 +106,25 @@ export async function render(pageEl, { api, auth, showAlert }) {
     }
   }
 
+  const showHintsCard = role !== "patient" || !patientProfileCoreComplete;
+  const mythTruthCta =
+    role === "patient"
+      ? `<div class="mb-3">
+          <a class="btn btn-outline-primary" href="#/myth-truth">
+            <i class="bi bi-patch-question me-2"></i>Тест «Миф или правда?»
+          </a>
+          <span class="text-muted small ms-2 d-none d-md-inline">Короткий образовательный тест без генетики.</span>
+        </div>`
+      : "";
+
   const wellnessMode = role === "patient" && Boolean(patientProfile?.without_genetic_test);
   const wellnessBanner = wellnessMode
     ? `<div class="alert alert-success border-0 bg-success bg-opacity-10 mb-3 small">
         <div class="fw-semibold mb-1">Режим без генетического теста</div>
         <p class="mb-2">Интерфейс упрощён: в меню скрыты разделы с генотипами и паспортом. Персональные рекомендации по ДНК появятся после добавления генотипов — это можно сделать в любой момент, сняв галочку в <a href="#/profile">профиле</a>.</p>
-        <p class="mb-0">Материалы без теста: раздел <a href="#/articles">Статьи</a> (категория «Общее здоровье»), анализы витаминов и привычки ниже.</p>
+        <p class="mb-0">Материалы без теста: раздел <a href="#/articles">Статьи</a> (категория «Общее здоровье») и анализы витаминов.</p>
       </div>`
     : "";
-
-  const weeklyFocusBlock =
-    role === "patient" ? `<div id="weekly-focus-root" class="mb-0"></div>` : "";
 
   let notifBanner = "";
   if (
@@ -156,8 +166,8 @@ export async function render(pageEl, { api, auth, showAlert }) {
     ${appointmentCtaCard}
     ${notifBanner}
     ${pdfToolbar}
+    ${mythTruthCta}
     ${wellnessBanner}
-    ${weeklyFocusBlock}
     <div class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-3">
       <div>
         <h3 class="mb-1">Дашборд</h3>
@@ -171,7 +181,9 @@ export async function render(pageEl, { api, auth, showAlert }) {
 
     ${renderCards({ genotypesCount, vitaminTestsCount, deficiencyCount, normalCount, proficitCount })}
 
-    <div class="card shadow-sm mb-3">
+    ${
+      showHintsCard
+        ? `<div class="card shadow-sm mb-3">
       <div class="card-header bg-white fw-semibold">Сводка и подсказки</div>
       <div class="card-body">
         ${
@@ -195,7 +207,9 @@ export async function render(pageEl, { api, auth, showAlert }) {
           }
         </ul>
       </div>
-    </div>
+    </div>`
+        : ""
+    }
 
     <div class="card shadow-sm">
       <div class="card-header bg-white">
@@ -234,9 +248,6 @@ export async function render(pageEl, { api, auth, showAlert }) {
     </div>
     </div>
   `;
-
-  const wfRoot = pageEl.querySelector("#weekly-focus-root");
-  if (wfRoot) mountWeeklyFocus(wfRoot);
 
   const btnPush = pageEl.querySelector("#btn-enable-push");
   if (btnPush) {

@@ -35,6 +35,7 @@ export function renderSidebar() {
     items.push({ href: "/", label: "Главная", icon: "bi-house-door", external: true });
   }
   items.push({ href: "/articles", label: "Статьи", icon: "bi-newspaper" });
+  items.push({ href: "/myth-truth", label: "Миф или правда?", icon: "bi-patch-question" });
 
   if (role === "patient") {
     const wellness = getWithoutGeneticTestFlag();

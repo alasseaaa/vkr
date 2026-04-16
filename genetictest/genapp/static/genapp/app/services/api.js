@@ -82,6 +82,8 @@ export const api = {
   public: {
     listArticles: (params) => request("get", "/api/articles/", { params: params || {} }),
     getArticle: (id) => request("get", `/api/articles/${id}/`),
+    listMythTruthQuestions: () => request("get", "/api/myth-truth/questions/"),
+    submitMythTruth: (data) => request("post", "/api/myth-truth/submit/", { data }),
   },
   auth: {
     login: ({ email, password }) =>

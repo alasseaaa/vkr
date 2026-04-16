@@ -1,8 +1,8 @@
-import { parseRoute } from "./router.js?v=4";
+import { parseRoute } from "./router.js?v=5";
 import { showAlert, clearAlert } from "./components/alerts.js";
 import { renderSidebar } from "./components/sidebar.js";
 import { getAuth, isAuthed } from "./services/auth.js";
-import { api } from "./services/api.js?v=2";
+import { api } from "./services/api.js?v=3";
 import {
   startPatientNotificationPolling,
   stopPatientNotificationPolling,
@@ -18,7 +18,7 @@ async function renderPage(route) {
   const ctx = { api, auth, showAlert };
 
   const requireAuth = (name) => {
-    const publicRoutes = new Set(["login", "register", "articles", "article-detail"]);
+    const publicRoutes = new Set(["login", "register", "articles", "article-detail", "myth-truth"]);
     return !publicRoutes.has(name);
   };
 
@@ -46,12 +46,13 @@ async function renderPage(route) {
     login: () => import("./pages/login.js"),
     register: () => import("./pages/register.js"),
     articles: () => import("./pages/articles.js"),
+    "myth-truth": () => import("./pages/mythTruth.js?v=1"),
     "article-detail": () => import("./pages/articles.js"),
-    dashboard: () => import("./pages/dashboard.js?v=2"),
+    dashboard: () => import("./pages/dashboard.js?v=5"),
     genotypes: () => import("./pages/genotypes.js?v=3"),
     "vitamin-tests": () => import("./pages/vitaminTests.js"),
     recommendations: () => import("./pages/recommendations.js"),
-    passport: () => import("./pages/passport.js"),
+    passport: () => import("./pages/passport.js?v=3"),
     "patient-consultations": () => import("./pages/patient/consultations.js"),
     "patient-appointments": () => import("./pages/patient/appointments.js?v=2"),
     profile: () => import("./pages/profile.js"),

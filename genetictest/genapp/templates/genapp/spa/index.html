@@ -90,7 +90,7 @@
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     {# В DEBUG query сбрасывает кэш модулей при перезагрузке; в prod меняйте v= после правок JS #}
-    <script type="module" src="{% static 'genapp/app/main.js' %}?{% if debug %}v={% now 'U' %}{% else %}v=6{% endif %}"></script>
+    <script type="module" src="{% static 'genapp/app/main.js' %}?{% if debug %}v={% now 'U' %}{% else %}v=10{% endif %}"></script>
   </body>
 </html>
 

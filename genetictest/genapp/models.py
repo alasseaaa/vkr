@@ -176,6 +176,29 @@ class Article(models.Model):
         verbose_name = "Статья"
         verbose_name_plural = "Статьи"
 
+
+class MythTruthQuestion(models.Model):
+    """Образовательный вопрос «миф / правда» (без привязки к генетике)."""
+
+    statement = models.TextField(verbose_name="Утверждение")
+    correct_is_truth = models.BooleanField(
+        verbose_name='Верный ответ — «Правда»',
+        help_text="Если отмечено: верно выбрать «Правда». Если нет — верно «Миф».",
+    )
+    explanation = models.TextField(verbose_name="Пояснение после ответа")
+    source_url = models.URLField(blank=True, verbose_name="Ссылка на источник (необязательно)")
+    sort_order = models.PositiveIntegerField(default=0, verbose_name="Порядок")
+    is_active = models.BooleanField(default=True, verbose_name="Активен")
+
+    class Meta:
+        ordering = ["sort_order", "id"]
+        verbose_name = "Вопрос «миф / правда»"
+        verbose_name_plural = "Тест «миф / правда» — вопросы"
+
+    def __str__(self):
+        return (self.statement[:80] + "…") if len(self.statement) > 80 else self.statement
+
+
 class Vitamin(models.Model):
     name = models.CharField(max_length=64, verbose_name="Название")
     description = models.TextField(blank=True, verbose_name="Описание")

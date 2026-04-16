@@ -8,6 +8,7 @@ from .models import (
     Article, Vitamin, GeneVitamin, VitaminGenotypeEffect, Vitamin, VitaminTestResult, DoctorComment, DoctorPatient, DoctorCommentHistory,
     InPersonAppointment,
     PatientNotification,
+    MythTruthQuestion,
 )
 
 
@@ -36,6 +37,19 @@ admin.site.register(GeneVariantRecommendation)
 admin.site.register(UserGenotype)
 admin.site.register(UserRecommendation)
 admin.site.register(Article)
+
+
+@admin.register(MythTruthQuestion)
+class MythTruthQuestionAdmin(admin.ModelAdmin):
+    list_display = ("short_statement", "correct_is_truth", "sort_order", "is_active")
+    list_filter = ("is_active", "correct_is_truth")
+    search_fields = ("statement", "explanation")
+    ordering = ("sort_order", "id")
+
+    @admin.display(description="Утверждение")
+    def short_statement(self, obj):
+        s = (obj.statement or "").strip()
+        return (s[:70] + "…") if len(s) > 70 else s or "—"
 admin.site.register(GeneVitamin)
 admin.site.register(VitaminGenotypeEffect)
 admin.site.register(Vitamin)

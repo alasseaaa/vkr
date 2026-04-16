@@ -13,6 +13,7 @@ from genapp.api.appointment_views import (
     PatientInPersonAppointmentListCreateAPIView,
     PatientLinkedDoctorsAPIView,
 )
+from genapp.api.myth_truth import MythTruthQuestionListAPIView, MythTruthSubmitAPIView
 from genapp.api.views import (
     AdminGeneVariantViewSet,
     AdminGeneViewSet,
@@ -47,6 +48,8 @@ router.register(r"admin/recommendations", AdminRecommendationViewSet, basename="
 router.register(r"articles", PublicArticleViewSet, basename="public-articles")
 
 urlpatterns = [
+    path("myth-truth/questions/", MythTruthQuestionListAPIView.as_view()),
+    path("myth-truth/submit/", MythTruthSubmitAPIView.as_view()),
     path("v1/comments/", DoctorCommentListAPIView.as_view()),
     path("auth/register/", RegisterAPIView.as_view()),
     path("auth/login/", LoginAPIView.as_view()),
