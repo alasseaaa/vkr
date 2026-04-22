@@ -1,0 +1,1920 @@
+[
+  {
+    "model": "genapp.gene",
+    "pk": 11,
+    "fields": {
+      "symbol": "FTO",
+      "full_name": "Fat Mass and Obesity Associated",
+      "category": "nutrition",
+      "rs_id": "rs9939609",
+      "description": "Ген, ассоциированный с ожирением и пищевым поведением, влияет на аппетит и предпочтение высококалорийной пищи",
+      "effect_description": "Варианты гена FTO связаны с повышенным риском ожирения, снижением чувства насыщения и предрасположенностью к перееданию"
+    }
+  },
+  {
+    "model": "genapp.gene",
+    "pk": 12,
+    "fields": {
+      "symbol": "APOE",
+      "full_name": "Apolipoprotein E",
+      "category": "metabolism",
+      "rs_id": "rs429358",
+      "description": "Ключевой ген липидного обмена, транспорта холестерина и нейропротекции",
+      "effect_description": "Влияет на уровень холестерина, риск сердечно-сосудистых заболеваний и болезни Альцгеймера"
+    }
+  },
+  {
+    "model": "genapp.gene",
+    "pk": 13,
+    "fields": {
+      "symbol": "VDR",
+      "full_name": "Vitamin D Receptor",
+      "category": "vitamins",
+      "rs_id": "rs2228570",
+      "description": "Рецептор витамина D, участвует в регуляции кальция, иммунитета и клеточного роста",
+      "effect_description": "Полиморфизмы влияют на усвоение витамина D, плотность костной ткани и иммунный ответ"
+    }
+  },
+  {
+    "model": "genapp.gene",
+    "pk": 14,
+    "fields": {
+      "symbol": "TCF7L2",
+      "full_name": "Transcription Factor 7 Like 2",
+      "category": "metabolism",
+      "rs_id": "rs7903146",
+      "description": "Фактор транскрипции, регулирующий секрецию инсулина и метаболизм глюкозы",
+      "effect_description": "Сильно связан с риском развития диабета 2 типа"
+    }
+  },
+  {
+    "model": "genapp.gene",
+    "pk": 15,
+    "fields": {
+      "symbol": "MTRR",
+      "full_name": "5-methyltetrahydrofolate-homocysteine methyltransferase reductase",
+      "category": "vitamins",
+      "rs_id": "rs1801394",
+      "description": "Редуктаза метионинсинтазы, участвует в метаболизме гомоцистеина и регенерации метилкобаламина",
+      "effect_description": "Совместно с MTHFR влияет на уровень гомоцистеина и потребность в витамине B12"
+    }
+  },
+  {
+    "model": "genapp.gene",
+    "pk": 16,
+    "fields": {
+      "symbol": "GSTP1",
+      "full_name": "Glutathione S-transferase Pi 1",
+      "category": "detox",
+      "rs_id": "rs1695",
+      "description": "Ключевой фермент детоксикации и антиоксидантной защиты (глутатион-S-трансфераза)",
+      "effect_description": "Варианты снижают способность нейтрализовывать токсины и окислительный стресс, повышая потребность в антиоксидантах (селен, витамин C, E)"
+    }
+  },
+  {
+    "model": "genapp.gene",
+    "pk": 17,
+    "fields": {
+      "symbol": "COL1A1",
+      "full_name": "Collagen Type I Alpha 1",
+      "category": "skincare",
+      "rs_id": "rs1800012",
+      "description": "Кодирует основной белок коллагена I типа — основу костей, сухожилий, кожи",
+      "effect_description": "Варианты влияют на качество коллагена, эластичность кожи, здоровье костей и суставов"
+    }
+  },
+  {
+    "model": "genapp.gene",
+    "pk": 18,
+    "fields": {
+      "symbol": "MMP1",
+      "full_name": "Matrix Metallopeptidase 1",
+      "category": "skincare",
+      "rs_id": "rs1799750",
+      "description": "Фермент, разрушающий коллаген I, II, III типов. Ключевой игрок в старении кожи",
+      "effect_description": "Варианты с высокой активностью ведут к ускоренному фотостарению, появлению морщин, потере эластичности кожи"
+    }
+  },
+  {
+    "model": "genapp.gene",
+    "pk": 19,
+    "fields": {
+      "symbol": "GPX1",
+      "full_name": "Glutathione Peroxidase 1",
+      "category": "detox",
+      "rs_id": "rs1050450",
+      "description": "Ключевой антиоксидантный фермент, нейтрализует перекись водорода, защищает клетки от окислительного стресса",
+      "effect_description": "Варианты снижают активность глутатионпероксидазы, что ведёт к накоплению свободных радикалов, ускоренному старению кожи и волос"
+    }
+  },
+  {
+    "model": "genapp.gene",
+    "pk": 20,
+    "fields": {
+      "symbol": "CAT",
+      "full_name": "Catalase",
+      "category": "detox",
+      "rs_id": "rs1001179",
+      "description": "Фермент каталаза, расщепляющая перекись водорода на воду и кислород",
+      "effect_description": "Варианты снижают защиту от окислительного стресса, способствуют преждевременному поседению и старению кожи"
+    }
+  },
+  {
+    "model": "genapp.gene",
+    "pk": 21,
+    "fields": {
+      "symbol": "KRT81",
+      "full_name": "Keratin 81",
+      "category": "hair",
+      "rs_id": "rs3660",
+      "description": "Кератин 81 — структурный белок волос, отвечающий за их прочность и эластичность",
+      "effect_description": "Варианты влияют на структуру волос, их ломкость, склонность к сечению и общую толщину волоса"
+    }
+  },
+  {
+    "model": "genapp.gene",
+    "pk": 22,
+    "fields": {
+      "symbol": "EDAR",
+      "full_name": "Ectodysplasin A Receptor",
+      "category": "hair",
+      "rs_id": "rs3827760",
+      "description": "Рецептор, влияющий на развитие волосяных фолликулов и густоту волос",
+      "effect_description": "Варианты определяют густоту волос, их толщину и склонность к выпадению. Азиатский вариант (A) даёт более толстые и прямые волосы"
+    }
+  },
+  {
+    "model": "genapp.gene",
+    "pk": 23,
+    "fields": {
+      "symbol": "TYR",
+      "full_name": "Tyrosinase",
+      "category": "hair",
+      "rs_id": "rs1042602",
+      "description": "Ключевой фермент синтеза меланина — пигмента кожи, волос, глаз",
+      "effect_description": "Варианты влияют на цвет волос, скорость появления седины, риск веснушек и чувствительность к солнцу"
+    }
+  },
+  {
+    "model": "genapp.gene",
+    "pk": 24,
+    "fields": {
+      "symbol": "MC1R",
+      "full_name": "Melanocortin 1 Receptor",
+      "category": "skincare",
+      "rs_id": "rs1805007",
+      "description": "Рецептор меланокортина 1 — главный регулятор типа меланина (эумеланин/феомеланин)",
+      "effect_description": "Варианты отвечают за рыжий цвет волос, веснушки, очень высокую чувствительность к УФ-излучению и риск меланомы"
+    }
+  },
+  {
+    "model": "genapp.gene",
+    "pk": 25,
+    "fields": {
+      "symbol": "SIRT1",
+      "full_name": "Sirtuin 1",
+      "category": "longevity",
+      "rs_id": "rs7896005",
+      "description": "Сиртуин 1 — ключевой регулятор старения, метаболизма и устойчивости к стрессу",
+      "effect_description": "Варианты влияют на скорость старения клеток, эффективность интервального голодания и защиту от возрастных заболеваний"
+    }
+  },
+  {
+    "model": "genapp.gene",
+    "pk": 26,
+    "fields": {
+      "symbol": "FOXO3",
+      "full_name": "Forkhead Box O3",
+      "category": "longevity",
+      "rs_id": "rs2802292",
+      "description": "Фактор транскрипции, связанный с долголетием и защитой от окислительного стресса",
+      "effect_description": "Вариант G ассоциирован с исключительным долголетием, лучшей защитой от возрастных заболеваний"
+    }
+  },
+  {
+    "model": "genapp.gene",
+    "pk": 27,
+    "fields": {
+      "symbol": "CLOCK",
+      "full_name": "Circadian Locomotor Output Cycles Kaput",
+      "category": "circadian",
+      "rs_id": "rs1801260",
+      "description": "Главный регулятор циркадных ритмов, влияет на режим сна, бодрствования и метаболизм",
+      "effect_description": "Варианты связаны с вечерней активностью, склонностью к перееданию ночью, нарушением сна и риском метаболических нарушений"
+    }
+  },
+  {
+    "model": "genapp.gene",
+    "pk": 28,
+    "fields": {
+      "symbol": "BDNF",
+      "full_name": "Brain-Derived Neurotrophic Factor",
+      "category": "nutrition",
+      "rs_id": "rs6265",
+      "description": "Нейротрофический фактор мозга — влияет на нейропластичность, настроение и пищевое поведение",
+      "effect_description": "Вариант Met (A) снижает активность BDNF, связан с повышенным аппетитом, эмоциональным перееданием и депрессией"
+    }
+  },
+  {
+    "model": "genapp.gene",
+    "pk": 29,
+    "fields": {
+      "symbol": "SHBG",
+      "full_name": "Sex Hormone Binding Globulin",
+      "category": "hormones",
+      "rs_id": "rs1799941",
+      "description": "Глобулин, связывающий половые гормоны — регулирует уровень свободного тестостерона и эстрадиола",
+      "effect_description": "Варианты влияют на уровень SHBG, что сказывается на гормональном балансе, здоровье кожи (акне) и либидо"
+    }
+  },
+  {
+    "model": "genapp.gene",
+    "pk": 30,
+    "fields": {
+      "symbol": "ESR1",
+      "full_name": "Estrogen Receptor 1",
+      "category": "hormones",
+      "rs_id": "rs2234693",
+      "description": "Рецептор эстрогена альфа — опосредует действие эстрогенов на кожу, кости, сердечно-сосудистую систему",
+      "effect_description": "Варианты влияют на эластичность кожи в менопаузе, риск остеопороза и гормонозависимые состояния"
+    }
+  },
+  {
+    "model": "genapp.gene",
+    "pk": 31,
+    "fields": {
+      "symbol": "NQO1",
+      "full_name": "NAD(P)H Quinone Dehydrogenase 1",
+      "category": "detox",
+      "rs_id": "rs1800566",
+      "description": "Фермент детоксикации, защищает клетки от окислительного стресса, активирует витамин K",
+      "effect_description": "Варианты снижают способность нейтрализовывать токсины, что ведёт к ускоренному старению и повышенному риску онкологии"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 25,
+    "fields": {
+      "gene": 11,
+      "genotype": "TT",
+      "risk_type": "low",
+      "variant_description": "Нормальный вес, стандартный аппетит, низкий риск ожирения"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 26,
+    "fields": {
+      "gene": 11,
+      "genotype": "AT",
+      "risk_type": "medium",
+      "variant_description": "Умеренно повышенный риск ожирения, некоторое снижение чувства насыщения"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 27,
+    "fields": {
+      "gene": 11,
+      "genotype": "AA",
+      "risk_type": "high",
+      "variant_description": "Высокий риск ожирения, сниженное чувство насыщения, склонность к перееданию"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 28,
+    "fields": {
+      "gene": 12,
+      "genotype": "E2E2",
+      "risk_type": "low",
+      "variant_description": "Низкий уровень холестерина, защита от болезни Альцгеймера, но повышенный риск гиперлипопротеинемии III типа"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 29,
+    "fields": {
+      "gene": 12,
+      "genotype": "E2E3",
+      "risk_type": "medium",
+      "variant_description": "Умеренный риск сердечно-сосудистых заболеваний, средний уровень холестерина"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 30,
+    "fields": {
+      "gene": 12,
+      "genotype": "E3E3",
+      "risk_type": "medium",
+      "variant_description": "Наиболее распространенный вариант, нормальный липидный профиль, средний риск"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 31,
+    "fields": {
+      "gene": 12,
+      "genotype": "E3E4",
+      "risk_type": "high",
+      "variant_description": "Повышенный уровень холестерина, повышенный риск сердечно-сосудистых заболеваний и болезни Альцгеймера"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 32,
+    "fields": {
+      "gene": 12,
+      "genotype": "E4E4",
+      "risk_type": "high",
+      "variant_description": "Очень высокий уровень холестерина, сильно повышенный риск болезни Альцгеймера и сердечно-сосудистых заболеваний"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 33,
+    "fields": {
+      "gene": 13,
+      "genotype": "GG",
+      "risk_type": "low",
+      "variant_description": "Нормальная чувствительность к витамину D, эффективное усвоение кальция"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 34,
+    "fields": {
+      "gene": 13,
+      "genotype": "GA",
+      "risk_type": "medium",
+      "variant_description": "Умеренно сниженная чувствительность к витамину D, требуется больше витамина D для поддержания нормы"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 35,
+    "fields": {
+      "gene": 13,
+      "genotype": "AA",
+      "risk_type": "high",
+      "variant_description": "Сильно сниженная чувствительность к витамину D, высокий риск дефицита, остеопороза, нарушений иммунитета"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 36,
+    "fields": {
+      "gene": 14,
+      "genotype": "CC",
+      "risk_type": "low",
+      "variant_description": "Низкий риск диабета 2 типа, нормальная секреция инсулина"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 37,
+    "fields": {
+      "gene": 14,
+      "genotype": "CT",
+      "risk_type": "medium",
+      "variant_description": "Умеренно повышенный риск диабета 2 типа"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 38,
+    "fields": {
+      "gene": 14,
+      "genotype": "TT",
+      "risk_type": "high",
+      "variant_description": "Высокий риск диабета 2 типа, нарушение секреции инсулина"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 39,
+    "fields": {
+      "gene": 15,
+      "genotype": "GG",
+      "risk_type": "low",
+      "variant_description": "Нормальный метаболизм гомоцистеина и витамина B12"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 40,
+    "fields": {
+      "gene": 15,
+      "genotype": "AG",
+      "risk_type": "medium",
+      "variant_description": "Умеренно сниженная активность MTRR, требует контроля гомоцистеина"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 41,
+    "fields": {
+      "gene": 15,
+      "genotype": "AA",
+      "risk_type": "high",
+      "variant_description": "Высокий риск гипергомоцистеинемии, повышенная потребность в витамине B12"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 42,
+    "fields": {
+      "gene": 16,
+      "genotype": "II",
+      "risk_type": "low",
+      "variant_description": "Нормальная активность GSTP1, хорошая детоксикация"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 43,
+    "fields": {
+      "gene": 16,
+      "genotype": "IV",
+      "risk_type": "medium",
+      "variant_description": "Умеренно сниженная детоксикация, повышенная потребность в антиоксидантах"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 44,
+    "fields": {
+      "gene": 16,
+      "genotype": "VV",
+      "risk_type": "high",
+      "variant_description": "Сильно сниженная детоксикация, высокий риск окислительного стресса, потребность в высоких дозах антиоксидантов"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 45,
+    "fields": {
+      "gene": 17,
+      "genotype": "GG",
+      "risk_type": "low",
+      "variant_description": "Нормальный синтез коллагена, хорошая эластичность кожи и прочность костей"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 46,
+    "fields": {
+      "gene": 17,
+      "genotype": "GT",
+      "risk_type": "medium",
+      "variant_description": "Сниженный синтез коллагена на 20-30%, умеренный риск остеопороза и раннего старения кожи"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 47,
+    "fields": {
+      "gene": 17,
+      "genotype": "TT",
+      "risk_type": "high",
+      "variant_description": "Значительно сниженный синтез коллагена, высокий риск остеопороза, растяжек, ранних морщин"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 48,
+    "fields": {
+      "gene": 18,
+      "genotype": "1G/1G",
+      "risk_type": "low",
+      "variant_description": "Низкая активность MMP1, медленная деградация коллагена, кожа дольше сохраняет молодость"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 49,
+    "fields": {
+      "gene": 18,
+      "genotype": "1G/2G",
+      "risk_type": "medium",
+      "variant_description": "Умеренная активность MMP1, средняя скорость старения кожи"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 50,
+    "fields": {
+      "gene": 18,
+      "genotype": "2G/2G",
+      "risk_type": "high",
+      "variant_description": "Высокая активность MMP1, ускоренное старение кожи, ранние морщины, потеря эластичности"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 51,
+    "fields": {
+      "gene": 19,
+      "genotype": "CC",
+      "risk_type": "low",
+      "variant_description": "Нормальная активность GPX1, хорошая антиоксидантная защита"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 52,
+    "fields": {
+      "gene": 19,
+      "genotype": "CT",
+      "risk_type": "medium",
+      "variant_description": "Умеренно сниженная активность GPX1, повышенная потребность в селене"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 53,
+    "fields": {
+      "gene": 19,
+      "genotype": "TT",
+      "risk_type": "high",
+      "variant_description": "Сниженная активность GPX1 на 40-60%, высокий риск окислительного стресса, ускоренное старение"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 54,
+    "fields": {
+      "gene": 20,
+      "genotype": "CC",
+      "risk_type": "low",
+      "variant_description": "Нормальная активность каталазы, хорошая защита от окислительного стресса"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 55,
+    "fields": {
+      "gene": 20,
+      "genotype": "CT",
+      "risk_type": "medium",
+      "variant_description": "Умеренно сниженная активность каталазы, риск раннего поседения"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 56,
+    "fields": {
+      "gene": 20,
+      "genotype": "TT",
+      "risk_type": "high",
+      "variant_description": "Сниженная активность каталазы, высокий риск раннего поседения, возрастных пятен, дегенерации сетчатки"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 57,
+    "fields": {
+      "gene": 21,
+      "genotype": "GG",
+      "risk_type": "low",
+      "variant_description": "Прочные, эластичные волосы, хорошая структура"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 58,
+    "fields": {
+      "gene": 21,
+      "genotype": "GA",
+      "risk_type": "medium",
+      "variant_description": "Умеренно сниженная прочность волос, склонность к ломкости"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 59,
+    "fields": {
+      "gene": 21,
+      "genotype": "AA",
+      "risk_type": "high",
+      "variant_description": "Тонкие, ломкие волосы, склонность к сечению, медленный рост"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 60,
+    "fields": {
+      "gene": 22,
+      "genotype": "GG",
+      "risk_type": "low",
+      "variant_description": "Европейский вариант — нормальная густота волос"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 61,
+    "fields": {
+      "gene": 22,
+      "genotype": "GA",
+      "risk_type": "medium",
+      "variant_description": "Средняя густота волос, умеренный риск выпадения"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 62,
+    "fields": {
+      "gene": 22,
+      "genotype": "AA",
+      "risk_type": "high",
+      "variant_description": "Азиатский/коренной вариант — очень густые, толстые волосы, но возможна ранняя потеря при стрессе"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 63,
+    "fields": {
+      "gene": 23,
+      "genotype": "CC",
+      "risk_type": "low",
+      "variant_description": "Нормальный синтез меланина, темные волосы, медленное появление седины"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 64,
+    "fields": {
+      "gene": 23,
+      "genotype": "CA",
+      "risk_type": "medium",
+      "variant_description": "Умеренное снижение активности тирозиназы, светлые/русые волосы, седина после 40"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 65,
+    "fields": {
+      "gene": 23,
+      "genotype": "AA",
+      "risk_type": "high",
+      "variant_description": "Сниженная активность тирозиназы, блондины/рыжие, ранняя седина (до 35 лет), веснушки"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 66,
+    "fields": {
+      "gene": 24,
+      "genotype": "CC",
+      "risk_type": "low",
+      "variant_description": "Нормальная пигментация, устойчивость к УФ, низкий риск ожогов"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 67,
+    "fields": {
+      "gene": 24,
+      "genotype": "CT",
+      "risk_type": "medium",
+      "variant_description": "Умеренная чувствительность к солнцу, склонность к веснушкам"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 68,
+    "fields": {
+      "gene": 24,
+      "genotype": "TT",
+      "risk_type": "high",
+      "variant_description": "Рыжие волосы, очень высокая чувствительность к УФ, высокий риск фотостарения и меланомы"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 69,
+    "fields": {
+      "gene": 25,
+      "genotype": "GG",
+      "risk_type": "low",
+      "variant_description": "Высокая активность SIRT1, хорошая защита от старения"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 70,
+    "fields": {
+      "gene": 25,
+      "genotype": "GT",
+      "risk_type": "medium",
+      "variant_description": "Средняя активность SIRT1, умеренный эффект от интервального голодания"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 71,
+    "fields": {
+      "gene": 25,
+      "genotype": "TT",
+      "risk_type": "high",
+      "variant_description": "Сниженная активность SIRT1, ускоренное старение, требуется дополнительная активация (ресвератрол, интервальное голодание)"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 72,
+    "fields": {
+      "gene": 26,
+      "genotype": "TT",
+      "risk_type": "low",
+      "variant_description": "Стандартная продолжительность жизни"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 73,
+    "fields": {
+      "gene": 26,
+      "genotype": "TG",
+      "risk_type": "medium",
+      "variant_description": "Умеренно повышенные шансы на долголетие"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 74,
+    "fields": {
+      "gene": 26,
+      "genotype": "GG",
+      "risk_type": "high",
+      "variant_description": "Аллель долголетия, повышенная устойчивость к окислительному стрессу, выше шанс дожить до 90+"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 75,
+    "fields": {
+      "gene": 27,
+      "genotype": "GG",
+      "risk_type": "low",
+      "variant_description": "Нормальные циркадные ритмы, утренний тип"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 76,
+    "fields": {
+      "gene": 27,
+      "genotype": "GC",
+      "risk_type": "medium",
+      "variant_description": "Склонность к вечерней активности, возможны нарушения сна"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 77,
+    "fields": {
+      "gene": 27,
+      "genotype": "CC",
+      "risk_type": "high",
+      "variant_description": "Сильно выраженный вечерний тип, риск метаболических нарушений, ночные переедания, бессонница"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 78,
+    "fields": {
+      "gene": 28,
+      "genotype": "CC",
+      "risk_type": "low",
+      "variant_description": "Нормальный уровень BDNF, хорошая нейропластичность, стабильный аппетит"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 79,
+    "fields": {
+      "gene": 28,
+      "genotype": "CT",
+      "risk_type": "medium",
+      "variant_description": "Умеренно сниженный BDNF, склонность к эмоциональному перееданию"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 80,
+    "fields": {
+      "gene": 28,
+      "genotype": "TT",
+      "risk_type": "high",
+      "variant_description": "Сниженный BDNF (мет-аллель), высокий риск депрессии, тревожности, эмоционального переедания"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 81,
+    "fields": {
+      "gene": 29,
+      "genotype": "GG",
+      "risk_type": "low",
+      "variant_description": "Нормальный уровень SHBG, хороший гормональный баланс"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 82,
+    "fields": {
+      "gene": 29,
+      "genotype": "GA",
+      "risk_type": "medium",
+      "variant_description": "Умеренно повышенный SHBG, снижение свободного тестостерона"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 83,
+    "fields": {
+      "gene": 29,
+      "genotype": "AA",
+      "risk_type": "high",
+      "variant_description": "Высокий SHBG, низкий свободный тестостерон, риск гипогонадизма, сухость кожи, снижение либидо"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 84,
+    "fields": {
+      "gene": 30,
+      "genotype": "CC",
+      "risk_type": "low",
+      "variant_description": "Нормальная чувствительность к эстрогену, хорошая эластичность кожи"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 85,
+    "fields": {
+      "gene": 30,
+      "genotype": "CT",
+      "risk_type": "medium",
+      "variant_description": "Умеренно сниженная чувствительность к эстрогену"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 86,
+    "fields": {
+      "gene": 30,
+      "genotype": "TT",
+      "risk_type": "high",
+      "variant_description": "Сниженная чувствительность к эстрогену, ускоренное старение кожи в менопаузе, риск остеопороза"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 87,
+    "fields": {
+      "gene": 31,
+      "genotype": "CC",
+      "risk_type": "low",
+      "variant_description": "Нормальная активность NQO1, хорошая детоксикация"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 88,
+    "fields": {
+      "gene": 31,
+      "genotype": "CT",
+      "risk_type": "medium",
+      "variant_description": "Умеренно сниженная детоксикация, повышенная потребность в антиоксидантах"
+    }
+  },
+  {
+    "model": "genapp.genevariant",
+    "pk": 89,
+    "fields": {
+      "gene": 31,
+      "genotype": "TT",
+      "risk_type": "high",
+      "variant_description": "Сильно сниженная детоксикация, высокий риск окислительного стресса, потребность в витамине K2 и антиоксидантах"
+    }
+  },
+  {
+    "model": "genapp.vitamin",
+    "pk": 9,
+    "fields": {
+      "name": "Биотин (B7, H)",
+      "description": "Витамин красоты — критичен для здоровья волос, кожи, ногтей, участвует в синтезе кератина",
+      "daily_norm_value": 30,
+      "upper_limit_value": null,
+      "unit": "мкг",
+      "category": "water-soluble",
+      "ref_min": 200,
+      "ref_max": 800,
+      "created_at": "2026-04-22T10:00:00Z"
+    }
+  },
+  {
+    "model": "genapp.vitamin",
+    "pk": 10,
+    "fields": {
+      "name": "Витамин K2 (менахинон)",
+      "description": "Направляет кальций в кости и зубы, предотвращая его отложение в сосудах, активирует матриксный Gla-белок",
+      "daily_norm_value": 90,
+      "upper_limit_value": null,
+      "unit": "мкг",
+      "category": "fat-soluble",
+      "ref_min": null,
+      "ref_max": null,
+      "created_at": "2026-04-22T10:00:00Z"
+    }
+  },
+  {
+    "model": "genapp.vitamin",
+    "pk": 11,
+    "fields": {
+      "name": "Цинк",
+      "description": "Микроэлемент — кофактор более 300 ферментов, важен для синтеза коллагена, заживления ран, иммунитета, здоровья волос",
+      "daily_norm_value": 11,
+      "upper_limit_value": 40,
+      "unit": "мг",
+      "category": "water-soluble",
+      "ref_min": 70,
+      "ref_max": 120,
+      "created_at": "2026-04-22T10:00:00Z"
+    }
+  },
+  {
+    "model": "genapp.vitamin",
+    "pk": 12,
+    "fields": {
+      "name": "Медь",
+      "description": "Микроэлемент — кофактор лизилоксидазы, необходим для сшивания коллагена и эластина, влияет на пигментацию",
+      "daily_norm_value": 0.9,
+      "upper_limit_value": 10,
+      "unit": "мг",
+      "category": "water-soluble",
+      "ref_min": 70,
+      "ref_max": 140,
+      "created_at": "2026-04-22T10:00:00Z"
+    }
+  },
+  {
+    "model": "genapp.vitamin",
+    "pk": 13,
+    "fields": {
+      "name": "Кремний",
+      "description": "Микроэлемент, необходимый для синтеза коллагена, эластина, укрепления соединительной ткани, волос и ногтей",
+      "daily_norm_value": 15,
+      "upper_limit_value": null,
+      "unit": "мг",
+      "category": "water-soluble",
+      "ref_min": null,
+      "ref_max": null,
+      "created_at": "2026-04-22T10:00:00Z"
+    }
+  },
+  {
+    "model": "genapp.vitamin",
+    "pk": 14,
+    "fields": {
+      "name": "Ликопин",
+      "description": "Мощный каротиноид-антиоксидант, защищает кожу от УФ-повреждений, снижает риск фотостарения",
+      "daily_norm_value": 10,
+      "upper_limit_value": null,
+      "unit": "мг",
+      "category": "fat-soluble",
+      "ref_min": null,
+      "ref_max": null,
+      "created_at": "2026-04-22T10:00:00Z"
+    }
+  },
+  {
+    "model": "genapp.vitamin",
+    "pk": 15,
+    "fields": {
+      "name": "Астаксантин",
+      "description": "Самый мощный природный антиоксидант, защищает кожу от УФ и окислительного стресса, улучшает эластичность",
+      "daily_norm_value": 6,
+      "upper_limit_value": null,
+      "unit": "мг",
+      "category": "fat-soluble",
+      "ref_min": null,
+      "ref_max": null,
+      "created_at": "2026-04-22T10:00:00Z"
+    }
+  },
+  {
+    "model": "genapp.vitamin",
+    "pk": 16,
+    "fields": {
+      "name": "Магний",
+      "description": "Макроэлемент — кофактор синтеза коллагена, важен для сна, нервной системы, мышечной функции",
+      "daily_norm_value": 400,
+      "upper_limit_value": null,
+      "unit": "мг",
+      "category": "water-soluble",
+      "ref_min": 1.7,
+      "ref_max": 2.4,
+      "created_at": "2026-04-22T10:00:00Z"
+    }
+  },
+  {
+    "model": "genapp.vitamin",
+    "pk": 17,
+    "fields": {
+      "name": "Коэнзим Q10 (убихинон)",
+      "description": "Антиоксидант, критичен для производства энергии в митохондриях, защищает кожу от старения",
+      "daily_norm_value": 100,
+      "upper_limit_value": null,
+      "unit": "мг",
+      "category": "fat-soluble",
+      "ref_min": null,
+      "ref_max": null,
+      "created_at": "2026-04-22T10:00:00Z"
+    }
+  },
+  {
+    "model": "genapp.vitamin",
+    "pk": 18,
+    "fields": {
+      "name": "Витамин B6 (пиридоксин)",
+      "description": "Водорастворимый витамин, участвует в синтезе нейромедиаторов, метаболизме гомоцистеина, здоровье кожи",
+      "daily_norm_value": 1.3,
+      "upper_limit_value": 100,
+      "unit": "мг",
+      "category": "water-soluble",
+      "ref_min": 5,
+      "ref_max": 50,
+      "created_at": "2026-04-22T10:00:00Z"
+    }
+  },
+  {
+    "model": "genapp.genavitamin",
+    "pk": 10,
+    "fields": {
+      "gene": 13,
+      "vitamin": 10,
+      "effect_description": "Ген VDR кодирует рецептор витамина D, который регулирует экспрессию генов, связанных с кальцием и иммунитетом"
+    }
+  },
+  {
+    "model": "genapp.genavitamin",
+    "pk": 11,
+    "fields": {
+      "gene": 15,
+      "vitamin": 9,
+      "effect_description": "MTRR участвует в регенерации активной формы B12 (метилкобаламина), влияя на метаболизм гомоцистеина"
+    }
+  },
+  {
+    "model": "genapp.genavitamin",
+    "pk": 12,
+    "fields": {
+      "gene": 17,
+      "vitamin": 2,
+      "effect_description": "COL1A1 требует витамин C как кофактор гидроксилирования пролина и лизина для стабилизации коллагена"
+    }
+  },
+  {
+    "model": "genapp.genavitamin",
+    "pk": 13,
+    "fields": {
+      "gene": 17,
+      "vitamin": 12,
+      "effect_description": "Медь является кофактором лизилоксидазы, которая сшивает молекулы коллагена, придавая прочность"
+    }
+  },
+  {
+    "model": "genapp.genavitamin",
+    "pk": 14,
+    "fields": {
+      "gene": 17,
+      "vitamin": 13,
+      "effect_description": "Кремний необходим для синтеза коллагена и гликозаминогликанов, улучшая эластичность соединительной ткани"
+    }
+  },
+  {
+    "model": "genapp.genavitamin",
+    "pk": 15,
+    "fields": {
+      "gene": 18,
+      "vitamin": 14,
+      "effect_description": "Ликопин ингибирует MMP1, снижая разрушение коллагена УФ-излучением"
+    }
+  },
+  {
+    "model": "genapp.genavitamin",
+    "pk": 16,
+    "fields": {
+      "gene": 19,
+      "vitamin": 8,
+      "effect_description": "GPX1 требует селен как кофактор для нейтрализации перекиси водорода"
+    }
+  },
+  {
+    "model": "genapp.genavitamin",
+    "pk": 17,
+    "fields": {
+      "gene": 20,
+      "vitamin": 15,
+      "effect_description": "Астаксантин активирует каталазу и другие антиоксидантные ферменты"
+    }
+  },
+  {
+    "model": "genapp.genavitamin",
+    "pk": 18,
+    "fields": {
+      "gene": 21,
+      "vitamin": 9,
+      "effect_description": "Биотин необходим для синтеза кератина — основного белка волос"
+    }
+  },
+  {
+    "model": "genapp.genavitamin",
+    "pk": 19,
+    "fields": {
+      "gene": 21,
+      "vitamin": 11,
+      "effect_description": "Цинк участвует в синтезе кератина и работе фолликулов"
+    }
+  },
+  {
+    "model": "genapp.genavitamin",
+    "pk": 20,
+    "fields": {
+      "gene": 23,
+      "vitamin": 12,
+      "effect_description": "Медь — кофактор тирозиназы, необходим для синтеза меланина"
+    }
+  },
+  {
+    "model": "genapp.genavitamin",
+    "pk": 21,
+    "fields": {
+      "gene": 24,
+      "vitamin": 14,
+      "effect_description": "Ликопин защищает меланоциты от УФ-повреждений"
+    }
+  },
+  {
+    "model": "genapp.genavitamin",
+    "pk": 22,
+    "fields": {
+      "gene": 25,
+      "vitamin": 17,
+      "effect_description": "Коэнзим Q10 активирует сиртуины, включая SIRT1"
+    }
+  },
+  {
+    "model": "genapp.genavitamin",
+    "pk": 23,
+    "fields": {
+      "gene": 27,
+      "vitamin": 16,
+      "effect_description": "Магний регулирует циркадные ритмы через NMDA-рецепторы"
+    }
+  },
+  {
+    "model": "genapp.genavitamin",
+    "pk": 24,
+    "fields": {
+      "gene": 28,
+      "vitamin": 18,
+      "effect_description": "Витамин B6 участвует в синтезе серотонина и дофамина, влияя на BDNF"
+    }
+  },
+  {
+    "model": "genapp.genavitamin",
+    "pk": 25,
+    "fields": {
+      "gene": 29,
+      "vitamin": 11,
+      "effect_description": "Цинк регулирует уровень SHBG и свободного тестостерона"
+    }
+  },
+  {
+    "model": "genapp.genavitamin",
+    "pk": 26,
+    "fields": {
+      "gene": 31,
+      "vitamin": 10,
+      "effect_description": "NQO1 активирует витамин K2, необходимый для здоровья сосудов и костей"
+    }
+  },
+  {
+    "model": "genapp.genavitamin",
+    "pk": 27,
+    "fields": {
+      "gene": 31,
+      "vitamin": 17,
+      "effect_description": "Коэнзим Q10 является субстратом для NQO1, улучшая митохондриальную функцию"
+    }
+  },
+  {
+    "model": "genapp.vitamingenotypeeffect",
+    "pk": 11,
+    "fields": {
+      "gene_variant": 35,
+      "vitamin": 10,
+      "impact_level": "high",
+      "effect_text": "Генотип AA (VDR) сильно снижает чувствительность к витамину D. Рекомендуется поддерживать уровень 25(OH)D 50-80 нг/мл, принимать 2000-4000 МЕ/сут"
+    }
+  },
+  {
+    "model": "genapp.vitamingenotypeeffect",
+    "pk": 12,
+    "fields": {
+      "gene_variant": 34,
+      "vitamin": 10,
+      "impact_level": "medium",
+      "effect_text": "Генотип GA требует увеличения потребления витамина D на 30-50% от нормы, целевой уровень 40-60 нг/мл"
+    }
+  },
+  {
+    "model": "genapp.vitamingenotypeeffect",
+    "pk": 13,
+    "fields": {
+      "gene_variant": 41,
+      "vitamin": 9,
+      "impact_level": "high",
+      "effect_text": "Генотип AA (MTRR) значительно снижает метаболизм B12, требуется прием активной формы метилкобаламина 1000-2000 мкг/день"
+    }
+  },
+  {
+    "model": "genapp.vitamingenotypeeffect",
+    "pk": 14,
+    "fields": {
+      "gene_variant": 40,
+      "vitamin": 9,
+      "impact_level": "medium",
+      "effect_text": "Генотип AG требует контроля гомоцистеина, прием метилкобаламина 500-1000 мкг/день"
+    }
+  },
+  {
+    "model": "genapp.vitamingenotypeeffect",
+    "pk": 15,
+    "fields": {
+      "gene_variant": 44,
+      "vitamin": 8,
+      "impact_level": "high",
+      "effect_text": "Генотип VV (GSTP1) сильно снижает детоксикацию, требуется селен 100-150 мкг/сут"
+    }
+  },
+  {
+    "model": "genapp.vitamingenotypeeffect",
+    "pk": 16,
+    "fields": {
+      "gene_variant": 47,
+      "vitamin": 2,
+      "impact_level": "high",
+      "effect_text": "Генотип TT (COL1A1) требует повышенного потребления витамина C — 200 мг/день"
+    }
+  },
+  {
+    "model": "genapp.vitamingenotypeeffect",
+    "pk": 17,
+    "fields": {
+      "gene_variant": 47,
+      "vitamin": 12,
+      "impact_level": "medium",
+      "effect_text": "Генотип TT требует меди 2-3 мг/день для кросс-линкинга коллагена"
+    }
+  },
+  {
+    "model": "genapp.vitamingenotypeeffect",
+    "pk": 18,
+    "fields": {
+      "gene_variant": 47,
+      "vitamin": 13,
+      "impact_level": "medium",
+      "effect_text": "Генотип TT требует кремний 20-30 мг/день для укрепления соединительной ткани"
+    }
+  },
+  {
+    "model": "genapp.vitamingenotypeeffect",
+    "pk": 19,
+    "fields": {
+      "gene_variant": 50,
+      "vitamin": 14,
+      "impact_level": "high",
+      "effect_text": "Генотип 2G/2G (MMP1) требует ликопин 15-20 мг/день для ингибирования MMP1"
+    }
+  },
+  {
+    "model": "genapp.vitamingenotypeeffect",
+    "pk": 20,
+    "fields": {
+      "gene_variant": 53,
+      "vitamin": 8,
+      "impact_level": "high",
+      "effect_text": "Генотип TT (GPX1) требует селен 150-200 мкг/сут"
+    }
+  },
+  {
+    "model": "genapp.vitamingenotypeeffect",
+    "pk": 21,
+    "fields": {
+      "gene_variant": 56,
+      "vitamin": 15,
+      "impact_level": "high",
+      "effect_text": "Генотип TT (CAT) требует астаксантин 8-12 мг/день для защиты от окислительного стресса"
+    }
+  },
+  {
+    "model": "genapp.vitamingenotypeeffect",
+    "pk": 22,
+    "fields": {
+      "gene_variant": 59,
+      "vitamin": 9,
+      "impact_level": "high",
+      "effect_text": "Генотип AA (KRT81) требует биотин 5000-10000 мкг/день для укрепления волос"
+    }
+  },
+  {
+    "model": "genapp.vitamingenotypeeffect",
+    "pk": 23,
+    "fields": {
+      "gene_variant": 59,
+      "vitamin": 11,
+      "impact_level": "high",
+      "effect_text": "Генотип AA требует цинк 15-25 мг/день для здоровья волос"
+    }
+  },
+  {
+    "model": "genapp.vitamingenotypeeffect",
+    "pk": 24,
+    "fields": {
+      "gene_variant": 65,
+      "vitamin": 12,
+      "impact_level": "high",
+      "effect_text": "Генотип AA (TYR) требует медь 2-3 мг/день для синтеза меланина"
+    }
+  },
+  {
+    "model": "genapp.vitamingenotypeeffect",
+    "pk": 25,
+    "fields": {
+      "gene_variant": 68,
+      "vitamin": 14,
+      "impact_level": "high",
+      "effect_text": "Генотип TT (MC1R) требует ликопин 20 мг/день и SPF 50 круглый год"
+    }
+  },
+  {
+    "model": "genapp.vitamingenotypeeffect",
+    "pk": 26,
+    "fields": {
+      "gene_variant": 71,
+      "vitamin": 17,
+      "impact_level": "high",
+      "effect_text": "Генотип TT (SIRT1) требует коэнзим Q10 200-300 мг/день для активации сиртуинов"
+    }
+  },
+  {
+    "model": "genapp.vitamingenotypeeffect",
+    "pk": 27,
+    "fields": {
+      "gene_variant": 77,
+      "vitamin": 16,
+      "impact_level": "high",
+      "effect_text": "Генотип CC (CLOCK) требует магний 400-600 мг/день, предпочтительно цитрат или глицинат перед сном"
+    }
+  },
+  {
+    "model": "genapp.vitamingenotypeeffect",
+    "pk": 28,
+    "fields": {
+      "gene_variant": 80,
+      "vitamin": 18,
+      "impact_level": "high",
+      "effect_text": "Генотип TT (BDNF) требует витамин B6 50-100 мг/день для синтеза нейромедиаторов"
+    }
+  },
+  {
+    "model": "genapp.vitamingenotypeeffect",
+    "pk": 29,
+    "fields": {
+      "gene_variant": 83,
+      "vitamin": 11,
+      "impact_level": "high",
+      "effect_text": "Генотип AA (SHBG) требует цинк 20-30 мг/день для снижения SHBG и повышения свободного тестостерона"
+    }
+  },
+  {
+    "model": "genapp.vitamingenotypeeffect",
+    "pk": 30,
+    "fields": {
+      "gene_variant": 86,
+      "vitamin": 17,
+      "impact_level": "medium",
+      "effect_text": "Генотип TT (ESR1) требует коэнзим Q10 100-200 мг/день для поддержки кожи в менопаузе"
+    }
+  },
+  {
+    "model": "genapp.vitamingenotypeeffect",
+    "pk": 31,
+    "fields": {
+      "gene_variant": 89,
+      "vitamin": 10,
+      "impact_level": "high",
+      "effect_text": "Генотип TT (NQO1) требует витамин K2 180-360 мкг/день для активации матриксного Gla-белка"
+    }
+  },
+  {
+    "model": "genapp.recommendation",
+    "pk": 28,
+    "fields": {
+      "title": "Контроль гомоцистеина при вариантах MTHFR/MTRR",
+      "description": "При наличии вариантов MTHFR и/или MTRR рекомендуется ежегодно сдавать анализ на гомоцистеин (цель <8 мкмоль/л) и принимать активные формы фолата (5-MTHF) и B12 (метилкобаламин)",
+      "category": "general",
+      "created_at": "2026-04-22T10:00:00Z"
+    }
+  },
+  {
+    "model": "genapp.recommendation",
+    "pk": 29,
+    "fields": {
+      "title": "Поддержка детоксикации при вариантах GSTP1",
+      "description": "Увеличьте потребление крестоцветных (брокколи, цветная капуста), чеснока, куркумы, обеспечьте достаточное поступление селена (бразильский орех, рыба) и витаминов C, E",
+      "category": "nutrition",
+      "created_at": "2026-04-22T10:00:00Z"
+    }
+  },
+  {
+    "model": "genapp.recommendation",
+    "pk": 30,
+    "fields": {
+      "title": "Увеличение потребления витамина D при вариантах VDR",
+      "description": "При генотипах, снижающих чувствительность к витамину D, целевой уровень 25(OH)D в крови должен быть 50-80 нг/мл, что может требовать приема 2000-4000 МЕ витамина D3 в день",
+      "category": "vitamins",
+      "created_at": "2026-04-22T10:00:00Z"
+    }
+  },
+  {
+    "model": "genapp.recommendation",
+    "pk": 31,
+    "fields": {
+      "title": "Контроль веса и аппетита при вариантах FTO",
+      "description": "При наличии высокорисковых генотипов FTO (AA, AT): ведите дневник питания, увеличьте потребление белка и клетчатки для насыщения, избегайте высококалорийных перекусов, регулярная физическая активность обязательна",
+      "category": "nutrition",
+      "created_at": "2026-04-22T10:00:00Z"
+    }
+  },
+  {
+    "model": "genapp.recommendation",
+    "pk": 32,
+    "fields": {
+      "title": "Липидный профиль и диета при вариантах APOE",
+      "description": "При наличии аллеля E4: ограничьте насыщенные жиры и холестерин, увеличьте омега-3, контролируйте липидный профиль (ЛПНП, триглицериды) каждые 6-12 месяцев",
+      "category": "nutrition",
+      "created_at": "2026-04-22T10:00:00Z"
+    }
+  },
+  {
+    "model": "genapp.recommendation",
+    "pk": 33,
+    "fields": {
+      "title": "Поддержка синтеза коллагена при вариантах COL1A1",
+      "description": "При генотипе TT: ежедневно 200 мг витамина C, 2-3 мг меди, 20-30 мг кремния, костный бульон, желатин, коллагеновые пептиды 10 г/день",
+      "category": "skincare",
+      "created_at": "2026-04-22T10:00:00Z"
+    }
+  },
+  {
+    "model": "genapp.recommendation",
+    "pk": 34,
+    "fields": {
+      "title": "Защита от преждевременного старения при вариантах MMP1",
+      "description": "При генотипе 2G/2G: избегайте избыточного солнца, используйте SPF 50+, ретинол, ниацинамид, ограничьте сахар и жареную пищу, принимайте ликопин 15-20 мг/день",
+      "category": "skincare",
+      "created_at": "2026-04-22T10:00:00Z"
+    }
+  },
+  {
+    "model": "genapp.recommendation",
+    "pk": 35,
+    "fields": {
+      "title": "Антиоксидантная защита при вариантах GPX1",
+      "description": "При генотипе TT: увеличьте потребление селена (100-150 мкг/день), витамина E (400 МЕ), глутатиона (L-цистеин, NAC), ешьте бразильские орехи (2-3 шт/день)",
+      "category": "skincare",
+      "created_at": "2026-04-22T10:00:00Z"
+    }
+  },
+  {
+    "model": "genapp.recommendation",
+    "pk": 36,
+    "fields": {
+      "title": "Профилактика раннего поседения при вариантах CAT",
+      "description": "При генотипе TT: астаксантин 8-12 мг/день, ликопин 10 мг/день, зеленый чай, избегайте курения и оксидативного стресса",
+      "category": "hair",
+      "created_at": "2026-04-22T10:00:00Z"
+    }
+  },
+  {
+    "model": "genapp.recommendation",
+    "pk": 37,
+    "fields": {
+      "title": "Укрепление волос при вариантах KRT81",
+      "description": "При генотипе AA: биотин 5000-10000 мкг/день, цинк 15-25 мг/день, MSM 1000-3000 мг/день, кератиновые маски, избегайте частого окрашивания и термоукладки",
+      "category": "hair",
+      "created_at": "2026-04-22T10:00:00Z"
+    }
+  },
+  {
+    "model": "genapp.recommendation",
+    "pk": 38,
+    "fields": {
+      "title": "Профилактика выпадения волос при вариантах EDAR",
+      "description": "При азиатском варианте AA: массаж кожи головы, миноксидил (по назначению), препараты с аминексилом, контроль уровня ферритина и цинка",
+      "category": "hair",
+      "created_at": "2026-04-22T10:00:00Z"
+    }
+  },
+  {
+    "model": "genapp.recommendation",
+    "pk": 39,
+    "fields": {
+      "title": "Замедление появления седины при вариантах TYR",
+      "description": "При генотипе AA: медь 2-3 мг/день, антиоксиданты (астаксантин, ликопин), снижение стресса, препараты с PABA и L-тирозином",
+      "category": "hair",
+      "created_at": "2026-04-22T10:00:00Z"
+    }
+  },
+  {
+    "model": "genapp.recommendation",
+    "pk": 40,
+    "fields": {
+      "title": "Максимальная фотозащита при вариантах MC1R",
+      "description": "При генотипе TT (рыжие волосы): SPF 50+ круглый год, избегайте солнца 11-16 часов, ликопин 20 мг/день, астаксантин 8 мг/день, никотинамид, ежегодный осмотр у дерматолога",
+      "category": "skincare",
+      "created_at": "2026-04-22T10:00:00Z"
+    }
+  },
+  {
+    "model": "genapp.recommendation",
+    "pk": 41,
+    "fields": {
+      "title": "Активация сиртуинов при вариантах SIRT1",
+      "description": "При генотипе TT: интервальное голодание (16/8), ресвератрол 500-1000 мг/день, коэнзим Q10 200-300 мг/день, полифенолы (зеленый чай, куркума), ограничение калорий",
+      "category": "longevity",
+      "created_at": "2026-04-22T10:00:00Z"
+    }
+  },
+  {
+    "model": "genapp.recommendation",
+    "pk": 42,
+    "fields": {
+      "title": "Поддержка долголетия при вариантах FOXO3",
+      "description": "При наличии аллеля G: средиземноморская диета, ограничение калорий, умеренные физические нагрузки, контроль сахара крови, оливковое масло extra virgin, орехи, ягоды",
+      "category": "longevity",
+      "created_at": "2026-04-22T10:00:00Z"
+    }
+  },
+  {
+    "model": "genapp.recommendation",
+    "pk": 43,
+    "fields": {
+      "title": "Нормализация циркадных ритмов при вариантах CLOCK",
+      "description": "При генотипе CC: строгий режим сна (ложиться до 23:00), яркий свет утром, темнота вечером, магний 400-600 мг перед сном, мелатонин 0.5-3 мг при необходимости",
+      "category": "circadian",
+      "created_at": "2026-04-22T10:00:00Z"
+    }
+  },
+  {
+    "model": "genapp.recommendation",
+    "pk": 44,
+    "fields": {
+      "title": "Контроль эмоционального переедания при вариантах BDNF",
+      "description": "При генотипе TT: психотерапия (КПТ), практики осознанности, физическая активность (особенно на свежем воздухе), омега-3 EPA/DHA, магний, витамин B6, избегайте ночных перекусов",
+      "category": "nutrition",
+      "created_at": "2026-04-22T10:00:00Z"
+    }
+  },
+  {
+    "model": "genapp.recommendation",
+    "pk": 45,
+    "fields": {
+      "title": "Гормональный баланс при вариантах SHBG",
+      "description": "При генотипе AA: цинк 20-30 мг/день, витамин D 2000-4000 МЕ, магний, снижение инсулинорезистентности (меньше сахара), контроль тестостерона и эстрадиола",
+      "category": "hormones",
+      "created_at": "2026-04-22T10:00:00Z"
+    }
+  },
+  {
+    "model": "genapp.recommendation",
+    "pk": 46,
+    "fields": {
+      "title": "Поддержка кожи в менопаузе при вариантах ESR1",
+      "description": "При генотипе TT: фитоэстрогены (соя, красный клевер), коэнзим Q10 100-200 мг/день, витамин C, гиалуроновая кислота, коллагеновые пептиды, обсудите с врачом МГТ",
+      "category": "skincare",
+      "created_at": "2026-04-22T10:00:00Z"
+    }
+  },
+  {
+    "model": "genapp.recommendation",
+    "pk": 47,
+    "fields": {
+      "title": "Детоксикация при вариантах NQO1",
+      "description": "При генотипе TT: витамин K2 180-360 мкг/день, коэнзим Q10 100-200 мг/день, сульфорафан (брокколи), куркума, избегайте бензолов и токсинов окружающей среды",
+      "category": "detox",
+      "created_at": "2026-04-22T10:00:00Z"
+    }
+  },
+  {
+    "model": "genapp.recommendation",
+    "pk": 48,
+    "fields": {
+      "title": "Профилактика остеопороза при вариантах COL1A1",
+      "description": "При генотипе TT: DEXA-сканирование после 50 лет, кальций 1000-1200 мг, витамин D 2000-4000 МЕ, витамин K2 180 мкг, силовые тренировки, бисфосфонаты по назначению врача",
+      "category": "bones",
+      "created_at": "2026-04-22T10:00:00Z"
+    }
+  },
+  {
+    "model": "genapp.recommendation",
+    "pk": 49,
+    "fields": {
+      "title": "Профилактика диабета 2 типа при вариантах TCF7L2",
+      "description": "При генотипе TT: контроль гликированного гемоглобина каждые 6 месяцев, низкоуглеводная диета, метформин по назначению, физическая активность, поддержание ИМТ <25",
+      "category": "metabolism",
+      "created_at": "2026-04-22T10:00:00Z"
+    }
+  },
+  {
+    "model": "genapp.recommendation",
+    "pk": 50,
+    "fields": {
+      "title": "Дополнительный витамин C при вариантах SLC23A1",
+      "description": "При генотипе GG/AG: повышенное потребление витамина C — 150-200 мг/день из пищи и добавок",
+      "category": "vitamins",
+      "created_at": "2026-04-22T10:00:00Z"
+    }
+  },
+  {
+    "model": "genapp.genevariantrecommendation",
+    "pk": 36,
+    "fields": {
+      "gene_variant": 27,
+      "recommendation": 31
+    }
+  },
+  {
+    "model": "genapp.genevariantrecommendation",
+    "pk": 37,
+    "fields": {
+      "gene_variant": 26,
+      "recommendation": 31
+    }
+  },
+  {
+    "model": "genapp.genevariantrecommendation",
+    "pk": 38,
+    "fields": {
+      "gene_variant": 31,
+      "recommendation": 32
+    }
+  },
+  {
+    "model": "genapp.genevariantrecommendation",
+    "pk": 39,
+    "fields": {
+      "gene_variant": 32,
+      "recommendation": 32
+    }
+  },
+  {
+    "model": "genapp.genevariantrecommendation",
+    "pk": 40,
+    "fields": {
+      "gene_variant": 35,
+      "recommendation": 30
+    }
+  },
+  {
+    "model": "genapp.genevariantrecommendation",
+    "pk": 41,
+    "fields": {
+      "gene_variant": 34,
+      "recommendation": 30
+    }
+  },
+  {
+    "model": "genapp.genevariantrecommendation",
+    "pk": 42,
+    "fields": {
+      "gene_variant": 41,
+      "recommendation": 28
+    }
+  },
+  {
+    "model": "genapp.genevariantrecommendation",
+    "pk": 43,
+    "fields": {
+      "gene_variant": 40,
+      "recommendation": 28
+    }
+  },
+  {
+    "model": "genapp.genevariantrecommendation",
+    "pk": 44,
+    "fields": {
+      "gene_variant": 44,
+      "recommendation": 29
+    }
+  },
+  {
+    "model": "genapp.genevariantrecommendation",
+    "pk": 45,
+    "fields": {
+      "gene_variant": 43,
+      "recommendation": 29
+    }
+  },
+  {
+    "model": "genapp.genevariantrecommendation",
+    "pk": 46,
+    "fields": {
+      "gene_variant": 6,
+      "recommendation": 28
+    }
+  },
+  {
+    "model": "genapp.genevariantrecommendation",
+    "pk": 47,
+    "fields": {
+      "gene_variant": 5,
+      "recommendation": 28
+    }
+  },
+  {
+    "model": "genapp.genevariantrecommendation",
+    "pk": 48,
+    "fields": {
+      "gene_variant": 47,
+      "recommendation": 33
+    }
+  },
+  {
+    "model": "genapp.genevariantrecommendation",
+    "pk": 49,
+    "fields": {
+      "gene_variant": 47,
+      "recommendation": 48
+    }
+  },
+  {
+    "model": "genapp.genevariantrecommendation",
+    "pk": 50,
+    "fields": {
+      "gene_variant": 46,
+      "recommendation": 33
+    }
+  },
+  {
+    "model": "genapp.genevariantrecommendation",
+    "pk": 51,
+    "fields": {
+      "gene_variant": 50,
+      "recommendation": 34
+    }
+  },
+  {
+    "model": "genapp.genevariantrecommendation",
+    "pk": 52,
+    "fields": {
+      "gene_variant": 49,
+      "recommendation": 34
+    }
+  },
+  {
+    "model": "genapp.genevariantrecommendation",
+    "pk": 53,
+    "fields": {
+      "gene_variant": 53,
+      "recommendation": 35
+    }
+  },
+  {
+    "model": "genapp.genevariantrecommendation",
+    "pk": 54,
+    "fields": {
+      "gene_variant": 56,
+      "recommendation": 36
+    }
+  },
+  {
+    "model": "genapp.genevariantrecommendation",
+    "pk": 55,
+    "fields": {
+      "gene_variant": 59,
+      "recommendation": 37
+    }
+  },
+  {
+    "model": "genapp.genevariantrecommendation",
+    "pk": 56,
+    "fields": {
+      "gene_variant": 62,
+      "recommendation": 38
+    }
+  },
+  {
+    "model": "genapp.genevariantrecommendation",
+    "pk": 57,
+    "fields": {
+      "gene_variant": 65,
+      "recommendation": 39
+    }
+  },
+  {
+    "model": "genapp.genevariantrecommendation",
+    "pk": 58,
+    "fields": {
+      "gene_variant": 68,
+      "recommendation": 40
+    }
+  },
+  {
+    "model": "genapp.genevariantrecommendation",
+    "pk": 59,
+    "fields": {
+      "gene_variant": 71,
+      "recommendation": 41
+    }
+  },
+  {
+    "model": "genapp.genevariantrecommendation",
+    "pk": 60,
+    "fields": {
+      "gene_variant": 74,
+      "recommendation": 42
+    }
+  },
+  {
+    "model": "genapp.genevariantrecommendation",
+    "pk": 61,
+    "fields": {
+      "gene_variant": 77,
+      "recommendation": 43
+    }
+  },
+  {
+    "model": "genapp.genevariantrecommendation",
+    "pk": 62,
+    "fields": {
+      "gene_variant": 80,
+      "recommendation": 44
+    }
+  },
+  {
+    "model": "genapp.genevariantrecommendation",
+    "pk": 63,
+    "fields": {
+      "gene_variant": 83,
+      "recommendation": 45
+    }
+  },
+  {
+    "model": "genapp.genevariantrecommendation",
+    "pk": 64,
+    "fields": {
+      "gene_variant": 86,
+      "recommendation": 46
+    }
+  },
+  {
+    "model": "genapp.genevariantrecommendation",
+    "pk": 65,
+    "fields": {
+      "gene_variant": 89,
+      "recommendation": 47
+    }
+  },
+  {
+    "model": "genapp.genevariantrecommendation",
+    "pk": 66,
+    "fields": {
+      "gene_variant": 38,
+      "recommendation": 49
+    }
+  },
+  {
+    "model": "genapp.genevariantrecommendation",
+    "pk": 67,
+    "fields": {
+      "gene_variant": 9,
+      "recommendation": 50
+    }
+  },
+  {
+    "model": "genapp.genevariantrecommendation",
+    "pk": 68,
+    "fields": {
+      "gene_variant": 8,
+      "recommendation": 50
+    }
+  }
+]

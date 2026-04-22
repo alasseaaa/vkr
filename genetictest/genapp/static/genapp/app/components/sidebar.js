@@ -37,6 +37,10 @@ export function renderSidebar() {
   items.push({ href: "/articles", label: "Статьи", icon: "bi-newspaper" });
   items.push({ href: "/myth-truth", label: "Миф или правда?", icon: "bi-patch-question" });
 
+  if (role === "patient" || role === "admin") {
+    items.push({ href: "/symptom-test", label: "Анализы по симптомам", icon: "bi-clipboard2-pulse" });
+  }
+
   if (role === "patient") {
     const wellness = getWithoutGeneticTestFlag();
     items.push({ href: "/dashboard", label: "Дашборд", icon: "bi-speedometer2" });

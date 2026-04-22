@@ -1,4 +1,4 @@
-import { parseRoute } from "./router.js?v=5";
+import { parseRoute } from "./router.js?v=6";
 import { showAlert, clearAlert } from "./components/alerts.js";
 import { renderSidebar } from "./components/sidebar.js";
 import { getAuth, isAuthed } from "./services/auth.js";
@@ -47,8 +47,9 @@ async function renderPage(route) {
     register: () => import("./pages/register.js"),
     articles: () => import("./pages/articles.js"),
     "myth-truth": () => import("./pages/mythTruth.js?v=1"),
+    "symptom-test": () => import("./pages/symptomTest.js?v=1"),
     "article-detail": () => import("./pages/articles.js"),
-    dashboard: () => import("./pages/dashboard.js?v=5"),
+    dashboard: () => import("./pages/dashboard.js?v=6"),
     genotypes: () => import("./pages/genotypes.js?v=3"),
     "vitamin-tests": () => import("./pages/vitaminTests.js"),
     recommendations: () => import("./pages/recommendations.js"),

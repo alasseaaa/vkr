@@ -45,7 +45,15 @@ class Gene(models.Model):
             ('metabolism', 'Метаболизм'),
             ('vitamins', 'Витамины'),
             ('sport', 'Спорт'),
-            ('nutrition', 'Питание')
+            ('nutrition', 'Питание'),
+            ('skincare', 'Кожа и старение'),
+            ('hair', 'Волосы'),
+            ('longevity', 'Долголетие'),
+            ('detox', 'Детоксикация'),
+            ('hormones', 'Гормоны'),
+            ('immunity', 'Иммунитет'),
+            ('bones', 'Кости и суставы'),
+            ('circadian', 'Циркадные ритмы'),
         ],
         blank=True,
         verbose_name="Категория"
@@ -88,13 +96,21 @@ class Recommendation(models.Model):
     category = models.CharField(
         max_length=32,
         choices=[
-            ('sport', 'Спорт'),
-            ('vitamins', 'Витамины'),
-            ('nutrition', 'Питание'),
-            ('general', 'Общее')
+            ("sport", "Спорт"),
+            ("vitamins", "Витамины"),
+            ("nutrition", "Питание"),
+            ("general", "Общее"),
+            ("skincare", "Кожа"),
+            ("hair", "Волосы"),
+            ("longevity", "Долголетие"),
+            ("circadian", "Режим / сон"),
+            ("hormones", "Гормоны"),
+            ("detox", "Детокс / антиоксиданты"),
+            ("bones", "Кости / кальций"),
+            ("metabolism", "Метаболизм"),
         ],
         blank=True,
-        verbose_name="Категория"
+        verbose_name="Категория",
     )
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
 

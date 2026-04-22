@@ -107,6 +107,28 @@ export async function render(pageEl, { api, auth, showAlert }) {
   }
 
   const showHintsCard = role !== "patient" || !patientProfileCoreComplete;
+  const showSymptomBanner = role === "patient" || role === "admin";
+  const symptomTestBanner = showSymptomBanner
+    ? `<div class="symptom-test-hero mb-3 rounded-4 text-white overflow-hidden shadow-lg" style="background: linear-gradient(120deg, #0f2b4a 0%, #0d6efd 45%, #14b8a6 100%);">
+        <div class="p-4 p-md-4 d-flex flex-column flex-lg-row align-items-stretch align-items-lg-center justify-content-between gap-3">
+          <div class="d-flex gap-3 align-items-start">
+            <div class="rounded-3 bg-white bg-opacity-15 p-3 d-none d-sm-flex align-items-center justify-content-center" style="min-width:3.5rem;min-height:3.5rem">
+              <i class="bi bi-clipboard2-pulse fs-2" aria-hidden="true"></i>
+            </div>
+            <div>
+              <div class="text-uppercase small text-white-50 letter-spacing-1" style="letter-spacing:0.05em">Интерактив</div>
+              <h2 class="h4 fw-bold mb-2">Узнайте, какие гены и анализы витаминов логично обсудить</h2>
+              <p class="mb-0 small text-white" style="opacity:0.9">Отметьте симптомы — подбор к вашему справочнику в кабинете, не к «всем лабораториям сразу».</p>
+            </div>
+          </div>
+          <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2">
+            <a class="btn btn-light btn-lg fw-semibold px-4 shadow" href="#/symptom-test">Пройти тест</a>
+            <span class="text-white-50 small align-self-center text-sm-center d-none d-md-block">1–2 мин</span>
+          </div>
+        </div>
+      </div>`
+    : "";
+
   const mythTruthCta =
     role === "patient"
       ? `<div class="mb-3">
@@ -163,6 +185,7 @@ export async function render(pageEl, { api, auth, showAlert }) {
 
   pageEl.innerHTML = `
     <div class="app-page">
+    ${symptomTestBanner}
     ${appointmentCtaCard}
     ${notifBanner}
     ${pdfToolbar}
