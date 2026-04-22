@@ -15,15 +15,24 @@ class RegisterSerializer(serializers.Serializer):
     password1 = serializers.CharField(write_only=True)
     password2 = serializers.CharField(write_only=True)
     without_genetic_test = serializers.BooleanField(required=False, default=False)
+    consent_personal_data = serializers.BooleanField(required=True)
 
     def validate(self, attrs):
         if attrs.get("password1") != attrs.get("password2"):
             raise serializers.ValidationError({"password2": ["Пароли не совпадают."]})
         return attrs
 
+    def validate_consent_personal_data(self, value):
+        if not value:
+            raise serializers.ValidationError(
+                "Необходимо согласие на обработку персональных (в т.ч. медицинских) данных."
+            )
+        return value
+
     def create(self, validated_data):
         data = {**validated_data}
         without_genetic_test = bool(data.pop("without_genetic_test", False))
+        data.pop("consent_personal_data", None)
         user = register_user(
             username=data["username"],
             email=data["email"],
@@ -32,6 +41,7 @@ class RegisterSerializer(serializers.Serializer):
             password1=data["password1"],
             password2=data["password2"],
             without_genetic_test=without_genetic_test,
+            consent_personal_data=True,
         )
         return user
 
@@ -53,9 +63,11 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "diet_preferences",
             "goals_text",
             "without_genetic_test",
+            "consent_personal_data_at",
+            "consent_text_version",
             "updated_at",
         ]
-        read_only_fields = ["updated_at"]
+        read_only_fields = ["updated_at", "consent_personal_data_at", "consent_text_version"]
 
 
 class PatientOwnProfileUpdateSerializer(serializers.Serializer):
@@ -69,6 +81,7 @@ class PatientOwnProfileUpdateSerializer(serializers.Serializer):
     diet_preferences = serializers.CharField(required=False, allow_blank=True)
     goals_text = serializers.CharField(required=False, allow_blank=True)
     without_genetic_test = serializers.BooleanField(required=False)
+    consent_personal_data = serializers.BooleanField(required=False)
 
     def validate_gender(self, value):
         if value in (None, ""):

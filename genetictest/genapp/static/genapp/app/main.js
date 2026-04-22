@@ -1,4 +1,4 @@
-import { parseRoute } from "./router.js?v=6";
+import { parseRoute } from "./router.js?v=7";
 import { showAlert, clearAlert } from "./components/alerts.js";
 import { renderSidebar } from "./components/sidebar.js";
 import { getAuth, isAuthed } from "./services/auth.js";
@@ -8,6 +8,41 @@ import {
   stopPatientNotificationPolling,
 } from "./services/patientNotifications.js";
 import { syncPatientWellnessFromProfile } from "./services/wellness.js";
+
+/** Пациент и админ: без даты согласия в профиле — редирект на #/consent. */
+async function ensureConsentForPatientRoutes(route) {
+  if (!isAuthed()) return true;
+  const r = String(getAuth().role || "").toLowerCase();
+  if (r !== "patient" && r !== "admin") return true;
+  if (route.name === "consent") return true;
+  const uid = getAuth().userId;
+  if (uid != null) {
+    try {
+      if (sessionStorage.getItem(`consent_ok_${uid}`) === "1") return true;
+    } catch {
+      /* ignore */
+    }
+  }
+  try {
+    const p = await api.patient.getProfile();
+    if (p.consent_personal_data_at) {
+      if (uid != null) {
+        try {
+          sessionStorage.setItem(`consent_ok_${uid}`, "1");
+        } catch {
+          /* ignore */
+        }
+      }
+      return true;
+    }
+  } catch {
+    return true;
+  }
+  if (String(window.location.hash).replace(/^#/, "") !== "/consent") {
+    window.location.hash = "#/consent";
+  }
+  return false;
+}
 
 async function renderPage(route) {
   const pageEl = document.getElementById("page");
@@ -47,16 +82,17 @@ async function renderPage(route) {
     register: () => import("./pages/register.js"),
     articles: () => import("./pages/articles.js"),
     "myth-truth": () => import("./pages/mythTruth.js?v=1"),
+    consent: () => import("./pages/consent.js?v=2"),
     "symptom-test": () => import("./pages/symptomTest.js?v=1"),
     "article-detail": () => import("./pages/articles.js"),
-    dashboard: () => import("./pages/dashboard.js?v=6"),
+    dashboard: () => import("./pages/dashboard.js?v=7"),
     genotypes: () => import("./pages/genotypes.js?v=3"),
     "vitamin-tests": () => import("./pages/vitaminTests.js"),
     recommendations: () => import("./pages/recommendations.js"),
     passport: () => import("./pages/passport.js?v=3"),
     "patient-consultations": () => import("./pages/patient/consultations.js"),
     "patient-appointments": () => import("./pages/patient/appointments.js?v=2"),
-    profile: () => import("./pages/profile.js"),
+    profile: () => import("./pages/profile.js?v=2"),
     "doctor-appointments": () => import("./pages/doctor/appointments.js"),
     "doctor-patients": () => import("./pages/doctor/patients.js"),
     "doctor-profile": () => import("./pages/doctor/profile.js"),
@@ -96,6 +132,9 @@ async function renderApp() {
   renderSidebar();
   const route = parseRoute();
   try {
+    if (!(await ensureConsentForPatientRoutes(route))) {
+      return;
+    }
     await renderPage(route);
   } catch (e) {
     showAlert("danger", e?.message || "Ошибка");

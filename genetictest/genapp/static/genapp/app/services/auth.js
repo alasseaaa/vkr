@@ -39,6 +39,15 @@ export function setBasicAuth({ username, password, role, userId }) {
 export function clearAuth() {
   Object.values(KEYS).forEach((k) => localStorage.removeItem(k));
   localStorage.removeItem("patient_without_genetic_test");
+  try {
+    Object.keys(sessionStorage).forEach((k) => {
+      if (k.startsWith("consent_ok_")) {
+        sessionStorage.removeItem(k);
+      }
+    });
+  } catch {
+    /* ignore */
+  }
 }
 
 export function getBasicAuthHeaderValue() {

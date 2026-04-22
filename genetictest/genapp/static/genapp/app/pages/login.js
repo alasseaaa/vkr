@@ -66,9 +66,33 @@ export async function render(pageEl, { api, route, showAlert }) {
         userId: res.id,
       });
 
-      if (res.role === "patient") window.location.hash = "#/dashboard";
-      else if (res.role === "doctor") window.location.hash = "#/doctor/patients";
-      else window.location.hash = "#/admin/genes";
+      const setConsentFlag = (id) => {
+        if (id != null) {
+          try {
+            sessionStorage.setItem(`consent_ok_${id}`, "1");
+          } catch {
+            /* ignore */
+          }
+        }
+      };
+
+      if (res.role === "patient") {
+        if (res.needs_consent) window.location.hash = "#/consent";
+        else {
+          setConsentFlag(res.id);
+          window.location.hash = "#/dashboard";
+        }
+      } else if (res.role === "admin") {
+        if (res.needs_consent) window.location.hash = "#/consent";
+        else {
+          setConsentFlag(res.id);
+          window.location.hash = "#/admin/genes";
+        }
+      } else if (res.role === "doctor") {
+        window.location.hash = "#/doctor/patients";
+      } else {
+        window.location.hash = "#/admin/genes";
+      }
     } catch (err) {
       showAlert("danger", err.message);
     }

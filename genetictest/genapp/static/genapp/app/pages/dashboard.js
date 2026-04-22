@@ -183,6 +183,27 @@ export async function render(pageEl, { api, auth, showAlert }) {
         </div>`
     : "";
 
+  let pdConsentStrip = "";
+  if ((role === "patient" || role === "admin") && patientProfile) {
+    const hasPd =
+      patientProfile.has_personal_data_consent === true ||
+      (patientProfile.consent_personal_data_at != null && String(patientProfile.consent_personal_data_at).length > 0);
+    if (hasPd) {
+      const raw = patientProfile.consent_personal_data_at;
+      const when = (() => {
+        if (!raw) return "";
+        const d = new Date(raw);
+        return Number.isNaN(d.getTime()) ? "" : d.toLocaleString("ru-RU", { dateStyle: "short", timeStyle: "short" });
+      })();
+      pdConsentStrip = `<div class="mb-3 rounded-3 border border-success border-2 bg-white px-3 py-2 d-flex flex-wrap align-items-center gap-2">
+        <span class="small mb-0 text-dark"><i class="bi bi-shield-check text-success me-2" aria-hidden="true"></i>
+        <strong>Согласие на обработку персональных (мед.) данных</strong> зафиксировано${when ? ` · <span class="text-muted fw-normal">${when}</span>` : ""}
+        · <a class="text-nowrap" href="#/profile">подробнее в профиле</a>
+        </span>
+      </div>`;
+    }
+  }
+
   pageEl.innerHTML = `
     <div class="app-page">
     ${symptomTestBanner}
@@ -201,6 +222,8 @@ export async function render(pageEl, { api, auth, showAlert }) {
         <div>Всего рекомендаций: <strong class="text-dark">${recItems}</strong></div>
       </div>
     </div>
+
+    ${pdConsentStrip}
 
     ${renderCards({ genotypesCount, vitaminTestsCount, deficiencyCount, normalCount, proficitCount })}
 

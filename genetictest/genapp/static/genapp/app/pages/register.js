@@ -48,6 +48,12 @@ export async function render(pageEl, { api, showAlert }) {
             <input name="password2" type="password" class="form-control" required />
           </div>
         </div>
+        <div class="mb-3 p-3 border rounded bg-light">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="reg-consent" required />
+            <label class="form-check-label" for="reg-consent">Я соглашаюсь на обработку моих <strong>персональных данных</strong> и <strong>сведений, относящихся к моему здоровью</strong> (в т.ч. вносимых в кабинет) в целях работы этого сервиса. Ознакомьте пользователя с полнотекстовой <a href="#/articles" class="text-primary">документацией</a> и политикой на продакшене.</label>
+          </div>
+        </div>
         <div class="mb-3">
           <div class="form-check">
             <input class="form-check-input" type="checkbox" id="reg-without-gt" />
@@ -69,6 +75,12 @@ export async function render(pageEl, { api, showAlert }) {
     e.preventDefault();
     const payload = Object.fromEntries(new FormData(form).entries());
     payload.without_genetic_test = Boolean(document.getElementById("reg-without-gt")?.checked);
+    const consent = Boolean(document.getElementById("reg-consent")?.checked);
+    payload.consent_personal_data = consent;
+    if (!consent) {
+      showAlert("warning", "Поставьте согласие на обработку персональных и медицинских по смыслу 152-ФЗ данных — без него кабинет не используется.");
+      return;
+    }
     try {
       await api.auth.register(payload);
       window.location.hash = "#/login";

@@ -1,6 +1,7 @@
 from django.contrib.auth import authenticate, get_user_model, login
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
+from django.utils import timezone
 
 from genapp.models import UserProfile
 
@@ -16,6 +17,8 @@ def register_user(
     password1: str,
     password2: str,
     without_genetic_test: bool = False,
+    consent_personal_data: bool = False,
+    consent_text_version: str = "1",
 ):
     if password1 != password2:
         raise DjangoValidationError({"password2": ["Пароли не совпадают."]})
@@ -37,7 +40,11 @@ def register_user(
     user.set_password(password1)
     user.save()
 
-    UserProfile.objects.create(user=user, without_genetic_test=bool(without_genetic_test))
+    kwargs = {"user": user, "without_genetic_test": bool(without_genetic_test)}
+    if consent_personal_data:
+        kwargs["consent_personal_data_at"] = timezone.now()
+        kwargs["consent_text_version"] = (consent_text_version or "1")[:32]
+    UserProfile.objects.create(**kwargs)
     return user
 
 

@@ -104,8 +104,19 @@ class LoginAPIView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        role = get_user_role(user)
+        needs_consent = False
+        if role in ("patient", "admin"):
+            prof, _ = UserProfile.objects.get_or_create(user=user)
+            needs_consent = prof.consent_personal_data_at is None
+
         return Response(
-            {"id": user.id, "username": user.username, "role": get_user_role(user)},
+            {
+                "id": user.id,
+                "username": user.username,
+                "role": role,
+                "needs_consent": bool(needs_consent),
+            },
             status=status.HTTP_200_OK,
         )
 
@@ -203,13 +214,16 @@ class PatientOwnProfileAPIView(APIView):
             )
         user = request.user
         profile, _ = UserProfile.objects.get_or_create(user=user)
+        data = UserProfileSerializer(profile).data
         payload = {
             "id": user.id,
             "username": user.username,
             "email": user.email,
             "first_name": user.first_name or "",
             "last_name": user.last_name or "",
-            **UserProfileSerializer(profile).data,
+            **data,
+            # Явно для UI (на случай кэша старого бандла, без ключа в ответе):
+            "has_personal_data_consent": bool(profile.consent_personal_data_at),
         }
         return Response(payload)
 
@@ -242,6 +256,10 @@ class PatientOwnProfileAPIView(APIView):
         ):
             if field in data:
                 setattr(profile, field, data[field])
+        if data.get("consent_personal_data") is True and not profile.consent_personal_data_at:
+            profile.consent_personal_data_at = timezone.now()
+            if not (profile.consent_text_version or "").strip():
+                profile.consent_text_version = "1"
         profile.save()
 
         return self.get(request)

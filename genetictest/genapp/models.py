@@ -19,6 +19,18 @@ class UserProfile(models.Model):
         verbose_name="Режим без генетического теста",
         help_text="Акцент на статьях и привычках; разделы с генотипами скрыты в меню.",
     )
+    consent_personal_data_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name="Согласие на обработку ПДн (дата/время)",
+        help_text="Момент выражения согласия на обработку персональных и медицинских данных в сервисе.",
+    )
+    consent_text_version = models.CharField(
+        max_length=32,
+        blank=True,
+        default="1",
+        verbose_name="Версия текста согласия",
+    )
     birth_date = models.DateField(null=True, blank=True, verbose_name="Дата рождения")
     gender = models.CharField(
         max_length=16,
@@ -47,7 +59,7 @@ class Gene(models.Model):
             ('sport', 'Спорт'),
             ('nutrition', 'Питание'),
             ('skincare', 'Кожа и старение'),
-            ('hair', 'Волосы'),
+            ('hair', 'Волосы'),                                                                 
             ('longevity', 'Долголетие'),
             ('detox', 'Детоксикация'),
             ('hormones', 'Гормоны'),

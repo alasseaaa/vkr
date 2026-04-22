@@ -15,6 +15,7 @@ export function parseRoute() {
   if (parts[0] === "register") return { name: "register" };
 
   if (parts[0] === "myth-truth") return { name: "myth-truth" };
+  if (parts[0] === "consent") return { name: "consent" };
   if (parts[0] === "symptom-test") return { name: "symptom-test" };
 
   if (parts[0] === "articles") {
