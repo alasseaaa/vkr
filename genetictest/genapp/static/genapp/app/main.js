@@ -83,7 +83,7 @@ async function renderPage(route) {
     articles: () => import("./pages/articles.js"),
     "myth-truth": () => import("./pages/mythTruth.js?v=1"),
     consent: () => import("./pages/consent.js?v=2"),
-    "symptom-test": () => import("./pages/symptomTest.js?v=1"),
+    "symptom-test": () => import("./pages/symptomTest.js?v=5"),
     "article-detail": () => import("./pages/articles.js"),
     dashboard: () => import("./pages/dashboard.js?v=7"),
     genotypes: () => import("./pages/genotypes.js?v=3"),

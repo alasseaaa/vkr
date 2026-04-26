@@ -1,9 +1,38 @@
 import { getAuth } from "../services/auth.js";
-import {
-  SYMPTOM_ITEMS,
-  buildGeneScoreMap,
-  buildVitaminScoreMap,
-} from "../data/symptomTestMap.js";
+// Важно: ?v= сбрасывает кэш модуля карты (без него меняется только этот файл, а старая map остаётся).
+import { SYMPTOM_ITEMS, buildGeneScoreMap, buildVitaminScoreMap } from "../data/symptomTestMap.js?v=1";
+
+/** Подпись категории гена (тот же ключ, что в API / модели), только для бейджа. */
+const GENE_CATEGORY_RU = {
+  metabolism: "Метаболизм",
+  vitamins: "Витамины",
+  sport: "Спорт",
+  nutrition: "Питание",
+  skincare: "Кожа и старение",
+  hair: "Волосы",
+  longevity: "Долголетие",
+  circadian: "Циркадные ритмы",
+  detox: "Детоксикация",
+  hormones: "Гормоны",
+  bones: "Кости и суставы",
+  immunity: "Иммунитет",
+};
+function categoryBadgeLabel(key) {
+  if (!key) return "";
+  return GENE_CATEGORY_RU[key] || key;
+}
+
+/** { group, labels[] } — сводка отмеченных пунктов (локально, не импорт из data/*). */
+function getSelectedSymptomGroups(selectedIds) {
+  const map = new Map();
+  for (const item of SYMPTOM_ITEMS) {
+    if (!selectedIds.has(item.id)) continue;
+    const g = item.group || "Другое";
+    if (!map.has(g)) map.set(g, []);
+    map.get(g).push(item.label);
+  }
+  return Array.from(map.entries()).map(([group, labels]) => ({ group, labels }));
+}
 
 function escapeHtml(str) {
   return String(str ?? "")
@@ -55,59 +84,94 @@ export async function render(pageEl, { api, showAlert, auth: authInCtx }) {
       .filter((r) => r.g)
       .sort((a, b) => b.score - a.score);
     const vitRows = buildVitaminScoreMap(vitamins, selected);
+    const symptomGroups = getSelectedSymptomGroups(selected);
+    const maxVit = 15;
+    const vitTrimmed = vitRows.slice(0, maxVit);
+    const vitRest = Math.max(0, vitRows.length - maxVit);
+
+    const yourMarksHtml = symptomGroups.length
+      ? symptomGroups
+          .map(
+            (sg) => `
+        <div class="mb-2">
+          <div class="text-muted text-uppercase" style="font-size:0.7rem;letter-spacing:0.04em">${escapeHtml(sg.group)}</div>
+          <ul class="mb-0 ps-3 small">${sg.labels.map((L) => `<li>${escapeHtml(L)}</li>`).join("")}</ul>
+        </div>`,
+          )
+          .join("")
+      : `<p class="text-muted small mb-0">Нет отмеченных пунктов.</p>`;
+
     return `
-      <div class="card border-0 shadow-sm mb-4" style="border-left:4px solid var(--bs-info)!important">
+      <div class="card bg-light border mb-3">
+        <div class="card-body py-3">
+          <div class="fw-semibold small mb-2">Что вы отметили (сводка)</div>
+          ${yourMarksHtml}
+        </div>
+      </div>
+      <div class="card border-0 shadow-sm mb-3" style="border-left:4px solid var(--bs-info)!important">
         <div class="card-body">
-          <h2 class="h5 mb-3">Что сдать по результатам (ориентир)</h2>
-          <p class="text-muted small mb-3">Не диагноз, а план дискуссии с врачом и сопоставление с вашим справочником. Гены сдаются в виде генетического / SNP-анализа, витамины и микроэлементы — лабораторно.</p>
+          <h2 class="h5 mb-3">Что делать дальше?</h2>
+          <p class="text-muted small mb-3">Генетические тесты сдают один раз в жизни по совету врача. Уровень витаминов и микроэлементов проверяют с помощью обычных анализов в лаборатории. Число рядом с показателем - количество совпадений. Если число большое, значит, этот ген «откликнулся» сразу в нескольких сферах (например, и в блоке «Питание», и в блоке «Кожа»). Это лишь подсказка, на что обратить внимание в первую очередь.</p>
           <div class="row g-3">
             <div class="col-md-6">
-              <div class="fw-semibold mb-2"><i class="bi bi-dna me-1"></i> Гены (по приоритету релевантности)</div>
+              <div class="fw-semibold mb-2"><i class="bi bi-dna me-1"></i> Гены в каталоге (сверху вниз — чаще пересекались с отметками)</div>
               <ol class="small ps-3 mb-0">
                 ${
                   rows.length
                     ? rows
                         .map(
-                          (r) => `
-                    <li class="mb-2">
-                      <strong>${escapeHtml(r.g.symbol)}</strong>
-                      ${r.g.rs_id ? ` <span class="text-muted">(${escapeHtml(r.g.rs_id)})</span>` : ""}
-                      <br/><span class="text-muted">${escapeHtml(r.g.full_name || "")}</span>
-                    </li>`,
+                          (r) => {
+                            const c = r.g.category
+                              ? `<span class="badge bg-secondary bg-opacity-25 text-dark border ms-1" style="font-size:0.65rem">${escapeHtml(
+                                  categoryBadgeLabel(r.g.category),
+                                )}</span>`
+                              : "";
+                            return `<li class="mb-2">
+                      <div class="d-flex flex-wrap align-items-baseline gap-1">
+                        <strong>${escapeHtml(r.g.symbol)}</strong> ${c}
+                        <span class="text-muted" title="в скольких смысловых пунктах встречалось">· рел. ${r.score}</span>
+                      </div>
+                      <span class="text-muted d-block" style="font-size:0.8rem">${escapeHtml(r.g.full_name || "")} ${r.g.rs_id ? ` <span class="text-muted">(${escapeHtml(r.g.rs_id)})</span>` : ""}</span>
+                    </li>`;
+                          },
                         )
                         .join("")
-                    : `<li class="text-muted">По отмеченным пунктам в каталоге нет совпадений — уточните симптомы.</li>`
+                    : `<li class="text-muted">В справочнике нет таких лейблов — проверьте, что в системе заведены гены (или отметьте меньше узкие пункты).</li>`
                 }
               </ol>
             </div>
             <div class="col-md-6">
-              <div class="fw-semibold mb-2"><i class="bi bi-droplet me-1"></i> Анализы: витамины и вещества</div>
+              <div class="fw-semibold mb-2"><i class="bi bi-droplet me-1"></i> Витамины и вещества из справочника (по «пересечению» с отмеченными темами)</div>
               <ol class="small ps-3 mb-0">
                 ${
-                  vitRows.length
-                    ? vitRows
+                  vitTrimmed.length
+                    ? vitTrimmed
                         .map(
                           (x) => `
                     <li class="mb-2">
                       <strong>${escapeHtml(x.v.name)}</strong>
-                      <span class="text-muted"> · совпадений: ${x.score}</span>
+                      <span class="text-muted">· совп. тем: ${x.score}</span>
                     </li>`,
                         )
                         .join("")
-                    : `<li class="text-muted">Нет совпадений по справочнику — обсудите состав панели с врачом.</li>`
+                    : `<li class="text-muted">По подстрокам в названиях нет совпадения — в каталоге нет сочетания, или сузьте отмеченные сигналы; конкретная панель — у врача/лаборатории.</li>`
                 }
+                ${vitRest > 0 ? `<li class="text-muted">…и ещё ${vitRest} веществ(а) в справочнике, можно листать аналогично</li>` : ""}
               </ol>
             </div>
           </div>
-          <div class="d-flex flex-wrap gap-2 mt-4">
-            <a class="btn btn-primary" href="#/genotypes"><i class="bi bi-dna me-1"></i> Внести генотипы</a>
-            <a class="btn btn-outline-primary" href="#/vitamin-tests"><i class="bi bi-droplet me-1"></i> Анализы витаминов</a>
-            <a class="btn btn-outline-secondary" href="#/recommendations">Рекомендации</a>
-            <button type="button" class="btn btn-outline-dark" id="st-retake">Изменить симптомы</button>
+          <div class="alert alert-info small border-0 mt-3 mb-0" role="note">
+            <strong>Дальнейшие шаги.</strong> Внести реальные <a href="#/genotypes" class="alert-link">генотипы</a> и <a href="#/vitamin-tests" class="alert-link">анализы</a> в кабинет — тогда <a href="#/recommendations" class="alert-link">рекомендации</a> и паспорт станут персональны. Сужать или расширять панель анализов имеет смысл только вместе с врачом, который знает клиническую картину.
+          </div>
+          <div class="d-flex flex-wrap gap-2 mt-3">
+            <a class="btn btn-primary" href="#/genotypes"><i class="bi bi-dna me-1"></i> К генотипам</a>
+            <a class="btn btn-outline-primary" href="#/vitamin-tests"><i class="bi bi-droplet me-1"></i> К анализам витаминов</a>
+            <a class="btn btn-outline-secondary" href="#/recommendations">К рекомендациям</a>
+            <button type="button" class="btn btn-outline-dark" id="st-retake">Назад к вопросам</button>
           </div>
         </div>
       </div>
-      <p class="text-muted small mb-0">При тревожных или острых симптомах сначала обратитесь к врачу, а не к самообследованию в интернете.</p>
+      <p class="text-muted small mb-0">Острые или быстро нарастающие симптомы — в скорую или к врачу лично, тест в приложении на это не заменяет.</p>
     `;
   };
 
@@ -128,26 +192,50 @@ export async function render(pageEl, { api, showAlert, auth: authInCtx }) {
       return;
     }
 
-    const checks = SYMPTOM_ITEMS.map(
-      (s) => `
-        <div class="form-check mb-3">
+    const order = [];
+    const byGroup = new Map();
+    for (const s of SYMPTOM_ITEMS) {
+      const g = s.group || "Прочее";
+      if (!byGroup.has(g)) {
+        byGroup.set(g, []);
+        order.push(g);
+      }
+      byGroup.get(g).push(s);
+    }
+    const checks = order
+      .map(
+        (g, idx) => `
+      <h6 class="text-secondary text-uppercase small mb-2 st-symptom-g ${idx === 0 ? "st-symptom-g--first" : "mt-3"}" style="font-size:0.72rem;letter-spacing:0.05em">${escapeHtml(
+        g,
+      )}</h6>
+      ${(byGroup.get(g) || [])
+        .map(
+          (s) => `
+        <div class="form-check mb-2">
           <input class="form-check-input" type="checkbox" name="st" value="${s.id}" id="st-${s.id}" ${
             selected.has(s.id) ? "checked" : ""
           } />
-          <label class="form-check-label" for="st-${s.id}">${escapeHtml(s.label)}</label>
+          <label class="form-check-label small" for="st-${s.id}">${escapeHtml(s.label)}</label>
         </div>`,
-    ).join("");
+        )
+        .join("")}`,
+      )
+      .join("");
+    const firstStyle = `<style>
+      h6.st-symptom-g--first { margin-top:0 !important; }
+    </style>`;
 
-    root.innerHTML = `
+    root.innerHTML = `${firstStyle}
       <div class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-3">
         <div>
           <h1 class="app-page-title h3 mb-1">Тест по симптомам</h1>
-          <p class="text-muted small mb-0">Отметьте, что вас <strong>регулярно</strong> беспокоит. Мы сопоставим ответы со <strong>словарём генов</strong> и <strong>анализов витаминов/микроэлементов</strong> в системе (не весь рынок лабораторий — только то, что есть в каталоге).</p>
+          <p class="text-muted small mb-0">Каждая строчка — <strong>один тип сигнала</strong> (без «всё сразу»). Отмечайте, что <strong>длится и повторяется</strong> у вас. Результат — сопоставление с заведёнными в сервисе <strong>генами</strong> и <strong>веществами из аналитики</strong>, плюс подсказка, куда в кабинете внести данные.</p>
         </div>
       </div>
       <div class="card shadow-sm mb-3">
         <div class="card-body p-3 p-md-4">
-          <div class="fw-semibold mb-2">Симптомы и сигналы</div>
+          <div class="fw-semibold mb-1">Сигналы по группам</div>
+          <p class="text-muted small mb-2">Снимите чекбоксы, если сигнал вам «не подходит» — тогда в учёт не пойдёт.</p>
           ${checks}
         </div>
         <div class="card-footer bg-light d-flex flex-wrap gap-2">

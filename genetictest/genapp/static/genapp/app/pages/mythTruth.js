@@ -117,7 +117,7 @@ export async function render(pageEl, { api, showAlert }) {
       <div class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-3">
         <div>
           <h1 class="app-page-title h3 mb-1">Миф или правда?</h1>
-          <p class="text-muted small mb-0">Образовательный тест без привязки к генетике. Выберите, насколько утверждение соответствует распространённым научным взглядам (в общих чертах).</p>
+          <p class="text-muted small mb-0">Образовательный тест. Выберите, насколько утверждение соответствует распространённым научным взглядам.</p>
         </div>
         <a href="#/articles" class="btn btn-outline-secondary btn-sm">К статьям</a>
       </div>
