@@ -41,13 +41,6 @@ export function renderSidebar() {
   const accountEl = document.getElementById("account-block");
   const logoutBtn = document.getElementById("btn-logout");
 
-  // ========== ОТЛАДКА ==========
-  console.log("========== ОТЛАДКА МЕНЮ ==========");
-  console.log("Роль из getEffectiveRole():", role);
-  console.log("Данные getAuth():", getAuth());
-  console.log("===================================");
-  // =============================
-
   if (!sidebarEl) return;
 
   const currentHash = window.location.hash || "";
@@ -101,9 +94,16 @@ export function renderSidebar() {
     items.push(ART);
     items.push(MYTH, SYM);
     items.push({ href: "/profile", label: "Профиль", icon: "bi-person-vcard" });
+    items.push({ section: "Редактирование контента" });
+    items.push({ href: "/admin/myth-truth", label: "Миф/правда (вопросы)", icon: "bi-patch-question" });
+    items.push({ href: "/admin/symptom-items", label: "Симптомы (тест)", icon: "bi-clipboard2-pulse" });
+    items.push({ href: "/admin/content/articles", label: "Статьи", icon: "bi-journal-richtext" });
+    items.push({ section: "Справочники" });
     items.push({ href: "/admin/genes", label: "Гены", icon: "bi-database" });
     items.push({ href: "/admin/gene-variants", label: "Варианты генов", icon: "bi-diagram-3" });
     items.push({ href: "/admin/recommendations", label: "Рекомендации (админ)", icon: "bi-lightbulb" });
+    items.push({ section: "Пользователи" });
+    items.push({ href: "/admin/user-roles", label: "Врач / медсестра", icon: "bi-person-badge" });
   } 
   else {
     items.push(ART);

@@ -13,6 +13,14 @@ from genapp.api.appointment_views import (
     PatientInPersonAppointmentListCreateAPIView,
     PatientLinkedDoctorsAPIView,
 )
+from genapp.api.admin_cms import (
+    AdminArticleViewSet,
+    AdminMythTruthQuestionViewSet,
+    AdminSymptomTestItemViewSet,
+    AdminUserClinicalRoleAPIView,
+    AdminUserListAPIView,
+    PublicSymptomTestItemListAPIView,
+)
 from genapp.api.myth_truth import MythTruthQuestionListAPIView, MythTruthSubmitAPIView
 from genapp.api.genetic_report import (
     NurseGeneticReportDetailAPIView,
@@ -56,11 +64,20 @@ router.register(r"patient/genetic-reports", PatientGeneticReportViewSet, basenam
 router.register(r"admin/genes", AdminGeneViewSet, basename="admin-genes")
 router.register(r"admin/gene-variants", AdminGeneVariantViewSet, basename="admin-gene-variants")
 router.register(r"admin/recommendations", AdminRecommendationViewSet, basename="admin-recommendations")
+router.register(r"admin/myth-truth-questions", AdminMythTruthQuestionViewSet, basename="admin-myth-truth")
+router.register(r"admin/articles", AdminArticleViewSet, basename="admin-articles-cms")
+router.register(
+    r"admin/symptom-test-items", AdminSymptomTestItemViewSet, basename="admin-symptom-test-items"
+)
 router.register(r"articles", PublicArticleViewSet, basename="public-articles")
 
 urlpatterns = [
     path("myth-truth/questions/", MythTruthQuestionListAPIView.as_view()),
     path("myth-truth/submit/", MythTruthSubmitAPIView.as_view()),
+    path("symptom-test/items/", PublicSymptomTestItemListAPIView.as_view()),
+
+    path("admin/users/", AdminUserListAPIView.as_view()),
+    path("admin/users/<int:user_id>/role/", AdminUserClinicalRoleAPIView.as_view()),
     path("v1/comments/", DoctorCommentListAPIView.as_view()),
     path("auth/register/", RegisterAPIView.as_view()),
     path("auth/login/", LoginAPIView.as_view()),

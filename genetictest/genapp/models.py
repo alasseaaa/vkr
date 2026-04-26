@@ -227,6 +227,26 @@ class MythTruthQuestion(models.Model):
         return (self.statement[:80] + "…") if len(self.statement) > 80 else self.statement
 
 
+class SymptomTestItem(models.Model):
+    """Пункт теста «Анализы по симптомам»; редактирует админ через SPA."""
+
+    item_id = models.SlugField(max_length=64, unique=True, verbose_name="ID пункта")
+    group = models.CharField(max_length=128, verbose_name="Группа")
+    label = models.TextField(verbose_name="Формулировка симптома")
+    gene_symbols = models.JSONField(default=list, verbose_name="Символы генов")
+    vitamin_substrings = models.JSONField(default=list, verbose_name="Подстроки витаминов (поиск)")
+    sort_order = models.PositiveIntegerField(default=0, verbose_name="Порядок")
+    is_active = models.BooleanField(default=True, verbose_name="Активен")
+
+    class Meta:
+        ordering = ["sort_order", "item_id"]
+        verbose_name = "Пункт теста по симптомам"
+        verbose_name_plural = "Тест по симптомам (пункты)"
+
+    def __str__(self):
+        return self.label[:80] if self.label else self.item_id
+
+
 class Vitamin(models.Model):
     name = models.CharField(max_length=64, verbose_name="Название")
     description = models.TextField(blank=True, verbose_name="Описание")

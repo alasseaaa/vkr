@@ -1,6 +1,6 @@
 import { getAuth } from "../services/auth.js?v=3";
 // Важно: ?v= сбрасывает кэш модуля карты (без него меняется только этот файл, а старая map остаётся).
-import { SYMPTOM_ITEMS, buildGeneScoreMap, buildVitaminScoreMap } from "../data/symptomTestMap.js?v=1";
+import { SYMPTOM_ITEMS, buildGeneScoreMap, buildVitaminScoreMap } from "../data/symptomTestMap.js?v=2";
 
 /** Подпись категории гена (тот же ключ, что в API / модели), только для бейджа. */
 const GENE_CATEGORY_RU = {
@@ -23,9 +23,10 @@ function categoryBadgeLabel(key) {
 }
 
 /** { group, labels[] } — сводка отмеченных пунктов (локально, не импорт из data/*). */
-function getSelectedSymptomGroups(selectedIds) {
+function getSelectedSymptomGroups(selectedIds, itemList) {
+  const L = itemList && itemList.length ? itemList : SYMPTOM_ITEMS;
   const map = new Map();
-  for (const item of SYMPTOM_ITEMS) {
+  for (const item of L) {
     if (!selectedIds.has(item.id)) continue;
     const g = item.group || "Другое";
     if (!map.has(g)) map.set(g, []);
@@ -61,8 +62,21 @@ export async function render(pageEl, { api, showAlert, auth: authInCtx }) {
 
   let genes = [];
   let vitamins = [];
+  let items = [];
   try {
     [genes, vitamins] = await Promise.all([api.patient.listGeneCatalog(), api.patient.listVitaminCatalog()]);
+    let remote = null;
+    try {
+      remote = await api.public.listSymptomTestItems();
+    } catch {
+      remote = null;
+    }
+    if (Array.isArray(remote) && remote.length) {
+      items = remote;
+    } else {
+      const mod = await import("../data/symptomTestMap.js?v=2");
+      items = mod.SYMPTOM_ITEMS;
+    }
   } catch (e) {
     pageEl.innerHTML = `<div class="app-page"><div class="alert alert-danger">${escapeHtml(e.message || "Ошибка")}</div></div>`;
     return;
@@ -78,13 +92,13 @@ export async function render(pageEl, { api, showAlert, auth: authInCtx }) {
   pageEl.appendChild(root);
 
   const renderResults = () => {
-    const gmap = buildGeneScoreMap(selected);
+    const gmap = buildGeneScoreMap(selected, items);
     const rows = Array.from(gmap.entries())
       .map(([symbol, score]) => ({ g: symbolToGene.get(symbol), symbol, score }))
       .filter((r) => r.g)
       .sort((a, b) => b.score - a.score);
-    const vitRows = buildVitaminScoreMap(vitamins, selected);
-    const symptomGroups = getSelectedSymptomGroups(selected);
+    const vitRows = buildVitaminScoreMap(vitamins, selected, items);
+    const symptomGroups = getSelectedSymptomGroups(selected, items);
     const maxVit = 15;
     const vitTrimmed = vitRows.slice(0, maxVit);
     const vitRest = Math.max(0, vitRows.length - maxVit);
@@ -194,7 +208,7 @@ export async function render(pageEl, { api, showAlert, auth: authInCtx }) {
 
     const order = [];
     const byGroup = new Map();
-    for (const s of SYMPTOM_ITEMS) {
+    for (const s of items) {
       const g = s.group || "Прочее";
       if (!byGroup.has(g)) {
         byGroup.set(g, []);
@@ -257,7 +271,7 @@ export async function render(pageEl, { api, showAlert, auth: authInCtx }) {
     });
 
     root.querySelector("#st-all")?.addEventListener("click", () => {
-      SYMPTOM_ITEMS.forEach((s) => selected.add(s.id));
+      items.forEach((s) => selected.add(s.id));
       paint();
     });
     root.querySelector("#st-none")?.addEventListener("click", () => {

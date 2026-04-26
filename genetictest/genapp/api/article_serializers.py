@@ -19,3 +19,4 @@ class ArticleSerializer(serializers.ModelSerializer):
             "gene",
             "gene_symbol",
         ]
+        read_only_fields = ["id", "created_at", "gene_symbol"]

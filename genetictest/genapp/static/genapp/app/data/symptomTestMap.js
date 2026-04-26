@@ -36,9 +36,10 @@ export function matchVitaminBySubstrings(vitaminName, substrings) {
   return substrings.some((s) => s && n.includes(s.toLowerCase().trim()));
 }
 
-export function buildGeneScoreMap(selectedIds) {
+export function buildGeneScoreMap(selectedIds, itemList) {
+  const L = itemList && itemList.length ? itemList : SYMPTOM_ITEMS;
   const m = new Map();
-  for (const item of SYMPTOM_ITEMS) {
+  for (const item of L) {
     if (!selectedIds.has(item.id)) continue;
     const seen = new Set();
     for (const sym of item.geneSymbols) {
@@ -50,12 +51,13 @@ export function buildGeneScoreMap(selectedIds) {
   return m;
 }
 
-export function buildVitaminScoreMap(catalog, selectedIds) {
+export function buildVitaminScoreMap(catalog, selectedIds, itemList) {
+  const L = itemList && itemList.length ? itemList : SYMPTOM_ITEMS;
   const arr = (catalog || [])
     .map((v) => {
       if (!v || !v.name) return { v, score: 0 };
       let sc = 0;
-      for (const item of SYMPTOM_ITEMS) {
+      for (const item of L) {
         if (!selectedIds.has(item.id)) continue;
         if (matchVitaminBySubstrings(v.name, item.vitaminSubstrings)) {
           sc += 1;

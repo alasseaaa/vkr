@@ -66,6 +66,10 @@ export function parseRoute() {
     if (parts[1] === "genes") return { name: "admin-genes" };
     if (parts[1] === "gene-variants") return { name: "admin-gene-variants" };
     if (parts[1] === "recommendations") return { name: "admin-recommendations" };
+    if (parts[1] === "myth-truth") return { name: "admin-myth-truth" };
+    if (parts[1] === "symptom-items") return { name: "admin-symptom-items" };
+    if (parts[1] === "user-roles") return { name: "admin-user-roles" };
+    if (parts[1] === "content" && parts[2] === "articles") return { name: "admin-content-articles" };
   }
 
   if (parts[0] === "nurse") {

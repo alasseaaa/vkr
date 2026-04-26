@@ -1,8 +1,8 @@
-import { parseRoute } from "./router.js?v=9";
+import { parseRoute } from "./router.js?v=10";
 import { showAlert, clearAlert } from "./components/alerts.js";
 import { renderSidebar } from "./components/sidebar.js";
 import { getAuth, isAuthed, setStoredRole, getEffectiveRole, NURSE_PROBE_ONCE_KEY } from "./services/auth.js?v=8";
-import { api } from "./services/api.js?v=10";
+import { api } from "./services/api.js?v=11";
 import {
   startPatientNotificationPolling,
   stopPatientNotificationPolling,
@@ -115,13 +115,21 @@ async function renderPage(route) {
     }
   }
 
+  if (isAuthed() && r !== "admin" && String(route.name || "").startsWith("admin-")) {
+    if (r === "nurse") window.location.hash = "#/nurse/profile";
+    else if (r === "doctor") window.location.hash = "#/doctor/patients";
+    else if (r === "patient") window.location.hash = "#/dashboard";
+    else window.location.hash = "#/login";
+    return;
+  }
+
   const moduleMap = {
     login: () => import("./pages/login.js"),
     register: () => import("./pages/register.js?v=2"),
     articles: () => import("./pages/articles.js?v=2"),
     "myth-truth": () => import("./pages/mythTruth.js?v=1"),
     consent: () => import("./pages/consent.js?v=2"),
-    "symptom-test": () => import("./pages/symptomTest.js?v=5"),
+    "symptom-test": () => import("./pages/symptomTest.js?v=6"),
     "article-detail": () => import("./pages/articles.js?v=2"),
     dashboard: () => import("./pages/dashboard.js?v=8"),
     genotypes: () => import("./pages/genotypes.js?v=8"),
@@ -140,6 +148,10 @@ async function renderPage(route) {
     "admin-genes": () => import("./pages/admin/genes.js"),
     "admin-gene-variants": () => import("./pages/admin/geneVariants.js"),
     "admin-recommendations": () => import("./pages/admin/recommendations.js"),
+    "admin-myth-truth": () => import("./pages/admin/mythTruthAdmin.js"),
+    "admin-symptom-items": () => import("./pages/admin/symptomItemsAdmin.js?v=2"),
+    "admin-content-articles": () => import("./pages/admin/articlesCms.js"),
+    "admin-user-roles": () => import("./pages/admin/userRoles.js"),
   };
 
   const loader = moduleMap[route.name];

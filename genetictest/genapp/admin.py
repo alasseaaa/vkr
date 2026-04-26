@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from .models import (
     UserProfile, Gene, GeneVariant, Recommendation,
     GeneVariantRecommendation, UserGenotype, UserRecommendation,
-    Article, Vitamin, GeneVitamin, VitaminGenotypeEffect, Vitamin, VitaminTestResult, DoctorComment, DoctorPatient, DoctorCommentHistory,
+    Article, SymptomTestItem, Vitamin, GeneVitamin, VitaminGenotypeEffect, Vitamin, VitaminTestResult, DoctorComment, DoctorPatient, DoctorCommentHistory,
     InPersonAppointment,
     PatientNotification,
     MythTruthQuestion,
@@ -39,6 +39,14 @@ admin.site.register(GeneVariantRecommendation)
 admin.site.register(UserGenotype)
 admin.site.register(UserRecommendation)
 admin.site.register(Article)
+
+
+@admin.register(SymptomTestItem)
+class SymptomTestItemAdmin(admin.ModelAdmin):
+    list_display = ("item_id", "group", "sort_order", "is_active")
+    list_filter = ("is_active",)
+    search_fields = ("item_id", "label", "group")
+    ordering = ("sort_order", "item_id")
 
 
 @admin.register(MythTruthQuestion)

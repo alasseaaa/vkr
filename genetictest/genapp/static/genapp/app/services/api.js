@@ -121,6 +121,7 @@ export const api = {
     getArticle: (id) => request("get", `/api/articles/${id}/`),
     listMythTruthQuestions: () => request("get", "/api/myth-truth/questions/"),
     submitMythTruth: (data) => request("post", "/api/myth-truth/submit/", { data }),
+    listSymptomTestItems: () => request("get", "/api/symptom-test/items/"),
   },
   auth: {
     login: ({ email, password }) =>
@@ -272,6 +273,30 @@ export const api = {
     updateRecommendation: (id, payload) =>
       request("put", `/api/admin/recommendations/${id}/`, { data: payload }),
     deleteRecommendation: (id) => request("delete", `/api/admin/recommendations/${id}/`),
+
+    listMythTruthQuestions: () => request("get", "/api/admin/myth-truth-questions/"),
+    createMythTruthQuestion: (payload) =>
+      request("post", "/api/admin/myth-truth-questions/", { data: payload }),
+    updateMythTruthQuestion: (id, payload) =>
+      request("put", `/api/admin/myth-truth-questions/${id}/`, { data: payload }),
+    deleteMythTruthQuestion: (id) => request("delete", `/api/admin/myth-truth-questions/${id}/`),
+
+    listCmsArticles: (params) => request("get", "/api/admin/articles/", { params: params || {} }),
+    createCmsArticle: (payload) => request("post", "/api/admin/articles/", { data: payload }),
+    updateCmsArticle: (id, payload) =>
+      request("put", `/api/admin/articles/${id}/`, { data: payload }),
+    deleteCmsArticle: (id) => request("delete", `/api/admin/articles/${id}/`),
+
+    listSymptomTestItems: () => request("get", "/api/admin/symptom-test-items/"),
+    createSymptomTestItem: (payload) => request("post", "/api/admin/symptom-test-items/", { data: payload }),
+    updateSymptomTestItem: (itemId, payload) =>
+      request("put", `/api/admin/symptom-test-items/${encodeURIComponent(String(itemId))}/`, { data: payload }),
+    deleteSymptomTestItem: (itemId) =>
+      request("delete", `/api/admin/symptom-test-items/${encodeURIComponent(String(itemId))}/`),
+
+    listUsers: (params) => request("get", "/api/admin/users/", { params: params || {} }),
+    setUserClinicalRole: (userId, clinicalRole) =>
+      request("post", `/api/admin/users/${userId}/role/`, { data: { clinical_role: clinicalRole } }),
   },
 };
 
