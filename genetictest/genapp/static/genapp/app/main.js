@@ -1,18 +1,22 @@
-import { parseRoute } from "./router.js?v=7";
+import { parseRoute } from "./router.js?v=9";
 import { showAlert, clearAlert } from "./components/alerts.js";
 import { renderSidebar } from "./components/sidebar.js";
-import { getAuth, isAuthed } from "./services/auth.js";
-import { api } from "./services/api.js?v=3";
+import { getAuth, isAuthed, setStoredRole, getEffectiveRole, NURSE_PROBE_ONCE_KEY } from "./services/auth.js?v=8";
+import { api } from "./services/api.js?v=10";
 import {
   startPatientNotificationPolling,
   stopPatientNotificationPolling,
 } from "./services/patientNotifications.js";
+import {
+  startNurseNotificationPolling,
+  stopNurseNotificationPolling,
+} from "./services/nurseNotifications.js";
 import { syncPatientWellnessFromProfile } from "./services/wellness.js";
 
 /** Пациент и админ: без даты согласия в профиле — редирект на #/consent. */
 async function ensureConsentForPatientRoutes(route) {
   if (!isAuthed()) return true;
-  const r = String(getAuth().role || "").toLowerCase();
+  const r = getEffectiveRole() || "";
   if (r !== "patient" && r !== "admin") return true;
   if (route.name === "consent") return true;
   const uid = getAuth().userId;
@@ -50,10 +54,11 @@ async function renderPage(route) {
   pageEl.innerHTML = "";
 
   const auth = getAuth();
+  const r = getEffectiveRole();
   const ctx = { api, auth, showAlert };
 
   const requireAuth = (name) => {
-    const publicRoutes = new Set(["login", "register", "articles", "article-detail", "myth-truth"]);
+    const publicRoutes = new Set(["login", "register", "articles", "article-detail"]);
     return !publicRoutes.has(name);
   };
 
@@ -62,31 +67,67 @@ async function renderPage(route) {
     return;
   }
 
-  if (route.name === "profile" && isAuthed() && auth.role === "doctor") {
+  if (route.name === "myth-truth" && isAuthed() && r !== "patient" && r !== "admin") {
+    if (r === "nurse") window.location.hash = "#/nurse/profile";
+    else if (r === "doctor") window.location.hash = "#/doctor/patients";
+    else window.location.hash = "#/admin/genes";
+    return;
+  }
+
+  if (route.name === "symptom-test" && isAuthed() && r !== "patient" && r !== "admin") {
+    if (r === "nurse") window.location.hash = "#/nurse/profile";
+    else if (r === "doctor") window.location.hash = "#/doctor/patients";
+    else window.location.hash = "#/admin/genes";
+    return;
+  }
+
+  if (route.name === "profile" && isAuthed() && r === "doctor") {
     window.location.hash = "#/doctor/patients";
+    return;
+  }
+  if (route.name === "profile" && isAuthed() && r === "nurse") {
+    window.location.hash = "#/nurse/profile";
     return;
   }
 
   if (route.name === "redirect") {
     if (!isAuthed()) window.location.hash = "#/login";
     else {
-      if (auth.role === "patient") window.location.hash = "#/dashboard";
-      else if (auth.role === "doctor") window.location.hash = "#/doctor/patients";
+      if (r === "patient") window.location.hash = "#/dashboard";
+      else if (r === "doctor") window.location.hash = "#/doctor/patients";
+      else if (r === "nurse") window.location.hash = "#/nurse/profile";
       else window.location.hash = "#/admin/genes";
     }
     return;
   }
 
+  if (isAuthed() && r === "nurse") {
+    const nurseAllowed = new Set([
+      "articles",
+      "article-detail",
+      "nurse-profile",
+      "nurse-genetic-uploads",
+      "nurse-patient-genotypes",
+    ]);
+    if (!nurseAllowed.has(route.name)) {
+      window.location.hash = "#/nurse/profile";
+      return;
+    }
+  }
+
   const moduleMap = {
     login: () => import("./pages/login.js"),
-    register: () => import("./pages/register.js"),
-    articles: () => import("./pages/articles.js"),
+    register: () => import("./pages/register.js?v=2"),
+    articles: () => import("./pages/articles.js?v=2"),
     "myth-truth": () => import("./pages/mythTruth.js?v=1"),
     consent: () => import("./pages/consent.js?v=2"),
     "symptom-test": () => import("./pages/symptomTest.js?v=5"),
-    "article-detail": () => import("./pages/articles.js"),
-    dashboard: () => import("./pages/dashboard.js?v=7"),
-    genotypes: () => import("./pages/genotypes.js?v=3"),
+    "article-detail": () => import("./pages/articles.js?v=2"),
+    dashboard: () => import("./pages/dashboard.js?v=8"),
+    genotypes: () => import("./pages/genotypes.js?v=8"),
+    "nurse-genetic-uploads": () => import("./pages/nurse/geneticUploads.js?v=3"),
+    "nurse-patient-genotypes": () => import("./pages/nurse/patientGenotypes.js?v=3"),
+    "nurse-profile": () => import("./pages/nurse/profile.js?v=4"),
     "vitamin-tests": () => import("./pages/vitaminTests.js"),
     recommendations: () => import("./pages/recommendations.js"),
     passport: () => import("./pages/passport.js?v=3"),
@@ -118,8 +159,47 @@ async function renderPage(route) {
 
 async function renderApp() {
   clearAlert();
+  if (isAuthed()) {
+    try {
+      const me = await api.auth.me();
+      if (me?.role != null) {
+        setStoredRole(me.role);
+      }
+    } catch {
+      /* 401 / сеть — остаётся роль из localStorage */
+    }
+    // Если /auth/me/ + localStorage дают «patient», а у пользователя реально есть доступ IsNurse — роль «nurse» до отрисовки меню
+    if (getEffectiveRole() === "patient") {
+      let probed = false;
+      try {
+        probed = sessionStorage.getItem(NURSE_PROBE_ONCE_KEY) === "1";
+      } catch {
+        /* */
+      }
+      if (!probed) {
+        try {
+          await api.nurse.getUnreadNurseUploadNotifications();
+          setStoredRole("nurse");
+          try {
+            sessionStorage.setItem(NURSE_PROBE_ONCE_KEY, "1");
+          } catch {
+            /* */
+          }
+        } catch (e) {
+          if (e?.status === 403) {
+            try {
+              sessionStorage.setItem(NURSE_PROBE_ONCE_KEY, "1");
+            } catch {
+              /* */
+            }
+          }
+          /* 401 / сеть — флаг не ставим, на следующем renderApp повторим */
+        }
+      }
+    }
+  }
   const authed = isAuthed();
-  const role = getAuth().role;
+  const role = getEffectiveRole();
   if (!authed || role !== "patient") {
     localStorage.removeItem("patient_without_genetic_test");
   } else {
@@ -141,10 +221,27 @@ async function renderApp() {
   }
 
   const a = getAuth();
-  if (isAuthed() && a.role === "patient") {
+  const ar = getEffectiveRole();
+  if (isAuthed() && ar === "patient") {
     startPatientNotificationPolling(api);
   } else {
     stopPatientNotificationPolling();
+  }
+  if (isAuthed() && ar === "nurse") {
+    startNurseNotificationPolling(api);
+    try {
+      const d = await api.nurse.getUnreadNurseUploadNotifications();
+      const c = d?.unread_count ?? 0;
+      const el = document.getElementById("nurse-nav-badge");
+      if (el) {
+        el.textContent = c > 0 ? String(c) : "";
+        el.style.display = c > 0 ? "inline-block" : "none";
+      }
+    } catch {
+      /* */
+    }
+  } else {
+    stopNurseNotificationPolling();
   }
 }
 

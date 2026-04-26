@@ -1,4 +1,4 @@
-import { getBasicAuthHeaderValue } from "./auth.js";
+import { getBasicAuthHeaderValue } from "./auth.js?v=3";
 
 const axiosInstance = axios.create({
   baseURL: "",
@@ -34,7 +34,44 @@ export async function request(method, url, { data, params } = {}) {
     return res.data;
   } catch (e) {
     const message = normalizeError(e);
-    throw new Error(message);
+    const err = new Error(message);
+    if (e?.response?.status) {
+      err.status = e.response.status;
+    }
+    throw err;
+  }
+}
+
+/**
+ * Multipart-загрузка PDF: axios с дефолтом JSON ломает boundary, поэтому fetch.
+ * @param {File} file
+ * @param {string} [uploadUrl] по умолчанию /api/patient/genetic-reports/
+ */
+export async function uploadFilePost(url, file, { fieldName = "file" } = {}) {
+  const form = new FormData();
+  form.append(fieldName, file);
+  const headers = {};
+  const auth = getBasicAuthHeaderValue();
+  if (auth) headers.Authorization = auth;
+  const csrf = getCookie("csrftoken");
+  if (csrf) headers["X-CSRFToken"] = csrf;
+  const r = await fetch(url, { method: "POST", body: form, headers, credentials: "same-origin" });
+  const text = await r.text();
+  if (!r.ok) {
+    let msg = text;
+    try {
+      const j = JSON.parse(text);
+      msg = j.detail || (Array.isArray(j.file) ? j.file[0] : j.file) || j.message || text;
+    } catch {
+      /* as text */
+    }
+    throw new Error(typeof msg === "string" ? msg : "Ошибка загрузки");
+  }
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return { ok: true };
   }
 }
 
@@ -88,10 +125,10 @@ export const api = {
   auth: {
     login: ({ email, password }) =>
       request("post", "/api/auth/login/", { data: { email, password } }),
-    register: ({ username, email, first_name, last_name, password1, password2 }) =>
-      request("post", "/api/auth/register/", {
-        data: { username, email, first_name, last_name, password1, password2 },
-      }),
+    /** Текущий пользователь и роль (сервер) — обновить localStorage. */
+    me: () => request("get", "/api/auth/me/"),
+    /** См. RegisterSerializer: обязательны в т.ч. consent_personal_data, without_genetic_test. */
+    register: (data) => request("post", "/api/auth/register/", { data }),
   },
   patient: {
     getProfile: () => request("get", "/api/patient/profile/"),
@@ -135,6 +172,45 @@ export const api = {
     listGeneVariantCatalog: (params) =>
       request("get", "/api/patient/gene-variants/catalog/", { params }),
 
+    listGeneticReports: () => request("get", "/api/patient/genetic-reports/"),
+    async uploadGeneticReportPdf(file) {
+      return uploadFilePost("/api/patient/genetic-reports/", file, { fieldName: "file" });
+    },
+    /** Просмотр PDF в новой вкладке (только с авторизацией, не публичный /media/). */
+    async openGeneticReportPdfInNewTab(id) {
+      const url = `/api/patient/genetic-reports/${id}/file/`;
+      const headers = {};
+      const a = getBasicAuthHeaderValue();
+      if (a) headers.Authorization = a;
+      const r = await fetch(url, { method: "GET", headers, credentials: "same-origin" });
+      if (!r.ok) {
+        const t = await r.text();
+        let msg = t;
+        try {
+          const j = JSON.parse(t);
+          msg = typeof j.detail === "string" ? j.detail : t;
+        } catch {
+          /* as text */
+        }
+        throw new Error(typeof msg === "string" ? msg : "Не удалось открыть PDF");
+      }
+      const blob = await r.blob();
+      const burl = window.URL.createObjectURL(blob);
+      const w = window.open(burl, "_blank", "noopener");
+      if (!w) {
+        window.URL.revokeObjectURL(burl);
+        throw new Error("Включите всплывающие окна для просмотра PDF или скачайте файл вручную.");
+      }
+      window.setTimeout(() => {
+        try {
+          window.URL.revokeObjectURL(burl);
+        } catch {
+          /* */
+        }
+      }, 600_000);
+    },
+    deleteGeneticReport: (id) => request("delete", `/api/patient/genetic-reports/${id}/`),
+
     listLinkedDoctors: () => request("get", "/api/patient/doctors/"),
     listAppointments: () => request("get", "/api/patient/appointments/"),
     createAppointment: (payload) => request("post", "/api/patient/appointments/", { data: payload }),
@@ -154,6 +230,25 @@ export const api = {
       request("put", `/api/doctor/comments/${commentId}/`, { data: payload }),
     createConclusion: (patientId, payload) =>
       request("post", `/api/doctor/patients/${patientId}/conclusion/`, { data: payload }),
+  },
+  nurse: {
+    listGeneticReports: (params) =>
+      request("get", "/api/nurse/genetic-reports/", { params: params || {} }),
+    getGeneticReport: (uploadId) => request("get", `/api/nurse/genetic-reports/${uploadId}/`),
+    patchGeneticReport: (uploadId, payload) =>
+      request("patch", `/api/nurse/genetic-reports/${uploadId}/`, { data: payload }),
+    getUnreadNurseUploadNotifications: () => request("get", "/api/nurse/notifications/unread/"),
+    markNurseNotificationsRead: (ids) =>
+      request("post", "/api/nurse/notifications/mark-read/", { data: { ids } }),
+    getPatientSummary: (patientId) => request("get", `/api/nurse/patients/${patientId}/`),
+
+    listPatientGenotypes: (patientId) => request("get", `/api/nurse/patients/${patientId}/genotypes/`),
+    createPatientGenotype: (patientId, payload) =>
+      request("post", `/api/nurse/patients/${patientId}/genotypes/`, { data: payload }),
+    updatePatientGenotype: (patientId, id, payload) =>
+      request("patch", `/api/nurse/patients/${patientId}/genotypes/${id}/`, { data: payload }),
+    deletePatientGenotype: (patientId, id) =>
+      request("delete", `/api/nurse/patients/${patientId}/genotypes/${id}/`),
   },
   admin: {
     // genes

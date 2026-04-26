@@ -1,4 +1,4 @@
-import { getAuth } from "../services/auth.js";
+import { getAuth } from "../services/auth.js?v=3";
 // Важно: ?v= сбрасывает кэш модуля карты (без него меняется только этот файл, а старая map остаётся).
 import { SYMPTOM_ITEMS, buildGeneScoreMap, buildVitaminScoreMap } from "../data/symptomTestMap.js?v=1";
 

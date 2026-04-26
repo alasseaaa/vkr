@@ -1,4 +1,4 @@
-import { getAuth } from "../services/auth.js";
+import { getAuth } from "../services/auth.js?v=3";
 import {
   CONSENT_INTRO_LINE,
   getConsentScrollableHtml,

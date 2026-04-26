@@ -130,7 +130,7 @@ export async function render(pageEl, { api, auth, showAlert }) {
     : "";
 
   const mythTruthCta =
-    role === "patient"
+    role === "patient" || role === "admin"
       ? `<div class="mb-3">
           <a class="btn btn-outline-primary" href="#/myth-truth">
             <i class="bi bi-patch-question me-2"></i>Тест «Миф или правда?»

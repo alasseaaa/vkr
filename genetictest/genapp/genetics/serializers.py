@@ -49,8 +49,10 @@ class UserGenotypeSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         request = self.context.get("request")
-        user = getattr(request, "user", None)
-        if not user or not user.is_authenticated:
+        user = None
+        if request and getattr(request, "user", None) and request.user.is_authenticated:
+            user = self.context.get("genotype_user") or request.user
+        if not user:
             return attrs
 
         gene_variant = attrs.get("gene_variant")

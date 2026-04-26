@@ -2,6 +2,17 @@ import { getWithoutGeneticTestFlag } from "../services/wellness.js";
 
 const PENDING_STORAGE_KEY = "genapp_genotypes_pending";
 
+function makeNursePapi(api, patientId) {
+  return {
+    listGeneCatalog: () => api.patient.listGeneCatalog(),
+    listGeneVariantCatalog: (p) => api.patient.listGeneVariantCatalog(p),
+    listGenotypes: () => api.nurse.listPatientGenotypes(patientId),
+    createGenotype: (p) => api.nurse.createPatientGenotype(patientId, p),
+    updateGenotype: (id, p) => api.nurse.updatePatientGenotype(patientId, id, p),
+    deleteGenotype: (id) => api.nurse.deletePatientGenotype(patientId, id),
+  };
+}
+
 function escapeHtml(str) {
   return String(str ?? "")
     .replaceAll("&", "&amp;")
@@ -127,9 +138,9 @@ function genesAvailableForEdit(allGenes, genotypes, currentRow) {
   );
 }
 
-async function loadVariantsForGene(api, geneId) {
+async function loadVariantsForGene(gapi, geneId) {
   if (!geneId) return [];
-  const data = await api.patient.listGeneVariantCatalog({ gene: geneId });
+  const data = await gapi.listGeneVariantCatalog({ gene: geneId });
   return Array.isArray(data) ? data : [];
 }
 
@@ -174,38 +185,162 @@ function wireGeneSearch({ searchInput, geneSelect, datalistEl, getGenes, onGeneC
   return applyFilter;
 }
 
-function readPending() {
-  try {
-    const raw = sessionStorage.getItem(PENDING_STORAGE_KEY);
-    if (!raw) return [];
-    const arr = JSON.parse(raw);
-    return Array.isArray(arr) ? arr : [];
-  } catch {
-    return [];
-  }
-}
-
-function writePending(items) {
-  sessionStorage.setItem(PENDING_STORAGE_KEY, JSON.stringify(items));
-}
-
 function variantLineFromSelect(optionEl) {
   if (!optionEl || !optionEl.value) return "";
   return optionEl.textContent?.trim() || "";
 }
 
-export async function render(pageEl, { api, showAlert }) {
+function statusUploadRu(s) {
+  const m = { pending: "В очереди", processing: "В работе", done: "Обработано", rejected: "Отклонено" };
+  return m[s] || s || "—";
+}
+
+export async function render(
+  pageEl,
+  {
+    api,
+    showAlert,
+    patientId,
+    patientLabel,
+    backHref,
+    uploadGeneticPdfs: allowPdfUpload = true,
+    pdfTaskUploadId = null,
+  } = {},
+) {
   if (pageEl._genotypesClickHandler) {
     pageEl.removeEventListener("click", pageEl._genotypesClickHandler);
     pageEl._genotypesClickHandler = null;
   }
 
+  const isNurse = patientId != null;
+  const pendingKey =
+    isNurse && Number.isFinite(Number(patientId))
+      ? `${PENDING_STORAGE_KEY}_nurse_${Number(patientId)}`
+      : PENDING_STORAGE_KEY;
+  const readPend = () => {
+    try {
+      const raw = sessionStorage.getItem(pendingKey);
+      if (!raw) return [];
+      const arr = JSON.parse(raw);
+      return Array.isArray(arr) ? arr : [];
+    } catch {
+      return [];
+    }
+  };
+  const writePend = (items) => {
+    sessionStorage.setItem(pendingKey, JSON.stringify(items));
+  };
+  const papi = isNurse ? makeNursePapi(api, patientId) : api.patient;
+
   pageEl.innerHTML = `<div class="card app-card"><div class="card-body">Загрузка…</div></div>`;
 
+  let pdfTask = null;
+  let pdfTaskErr = null;
+  const shortWhen = (iso) => {
+    if (iso == null || iso === "") return "—";
+    const s = String(iso);
+    return s.length >= 16 ? s.slice(0, 16).replace("T", " ") : s;
+  };
+  if (isNurse && pdfTaskUploadId != null) {
+    const uir = Number(pdfTaskUploadId);
+    if (Number.isFinite(uir) && uir > 0 && api.nurse?.getGeneticReport) {
+      try {
+        let t = await api.nurse.getGeneticReport(uir);
+        if (t && Number(t.patient_id) !== Number(patientId)) {
+          pdfTaskErr = "mismatch";
+        } else {
+          pdfTask = t;
+          if (t && t.status === "pending" && api.nurse.patchGeneticReport) {
+            try {
+              await api.nurse.patchGeneticReport(uir, { status: "processing" });
+              t = await api.nurse.getGeneticReport(uir);
+              pdfTask = t;
+            } catch {
+              /* оставляем исходный t */
+            }
+          }
+        }
+      } catch {
+        pdfTask = null;
+      }
+    }
+  }
+
+  const nursePdfTaskBanner = (() => {
+    if (!isNurse || !pdfTaskUploadId) return "";
+    if (pdfTaskErr === "mismatch") {
+      return `<div class="alert alert-warning border-0 shadow-sm mb-3" role="alert">
+        <strong>Эта заявка от другого пациента.</strong>
+        PDF №${escapeHtml(String(pdfTaskUploadId))} не относится к открытой карточке. Откройте заявку из
+        <a href="#/nurse/genetic-uploads" class="alert-link">списка PDF</a> или
+        <a href="#/nurse/profile" class="alert-link">рабочего стола</a>.
+      </div>`;
+    }
+    if (!api.nurse?.getGeneticReport) return "";
+    if (pdfTaskUploadId && !pdfTask) {
+      return `<div class="alert alert-light border small mb-3">Не удалось загрузить заявку #${escapeHtml(
+        String(pdfTaskUploadId),
+      )} (проверьте сеть и обновите страницу).</div>`;
+    }
+    if (!pdfTask) return "";
+    if (pdfTask.status === "done" || pdfTask.status === "rejected") {
+      const done = pdfTask.status === "done";
+      return `<div class="card app-card shadow-sm mb-3 border-${done ? "success" : "secondary"}">
+        <div class="card-body d-flex flex-wrap align-items-start gap-3">
+          <div class="rounded-circle bg-${done ? "success" : "secondary"} bg-opacity-10 p-2">
+            <i class="bi ${
+              done ? "bi-check-lg text-success" : "bi-x-lg text-secondary"
+            } fs-4"></i>
+          </div>
+          <div class="flex-grow-1 min-w-0">
+            <div class="fw-semibold">${done ? "Ввод по PDF завершён" : "Заявка отклонена"}</div>
+            <p class="text-muted small mb-0">Заявка №${escapeHtml(String(pdfTask.id))} — ${
+              done ? "варианты внесены в карточку" : "не принята к вводу"
+            }.<br />
+            <span class="text-muted">${done ? "Закрыта" : "Статус"}: ${escapeHtml(
+              shortWhen(pdfTask.updated_at),
+            )}${
+              done && pdfTask.processed_by_username
+                ? ` · ${escapeHtml(pdfTask.processed_by_username)}`
+                : ""
+            }</span></p>
+          </div>
+        </div>
+      </div>`;
+    }
+    return `<div class="card app-card shadow-sm mb-3 border-primary border-opacity-25">
+      <div class="card-body">
+        <div class="fw-semibold mb-1">Перенос вариантов с PDF (заявка №${escapeHtml(String(pdfTask.id))})</div>
+        <p class="text-muted small mb-3">Сейчас: <span class="badge ${
+          pdfTask.status === "processing" ? "text-bg-info" : "text-bg-secondary"
+        }">${escapeHtml(statusUploadRu(pdfTask.status))}</span> — внесите строки в таблицу ниже, затем нажмите кнопку.</p>
+        <button type="button" class="btn btn-success btn-sm" id="nurse-pdf-mark-done" data-up="${escapeHtml(
+          String(pdfTask.id),
+        )}">
+          <i class="bi bi-check2-circle me-1"></i>Варианты внесены, закрыть заявку
+        </button>
+        <p class="text-muted small mt-2 mb-0">Статус заявки сменится на «Обработано» — в списках она отобразится как завершённая.</p>
+      </div>
+    </div>`;
+  })();
+
   let genes = [];
+  let uploads = [];
   try {
-    genes = await api.patient.listGeneCatalog();
-    if (!Array.isArray(genes)) genes = [];
+    const ps = [papi.listGeneCatalog().catch(() => [])];
+    if (!isNurse && allowPdfUpload) {
+      const listFn = api.patient && api.patient.listGeneticReports;
+      ps.push(
+        typeof listFn === "function"
+          ? listFn.call(api.patient).catch(() => [])
+          : Promise.resolve([]),
+      );
+    } else {
+      ps.push(Promise.resolve([]));
+    }
+    const [g, u] = await Promise.all(ps);
+    genes = Array.isArray(g) ? g : [];
+    uploads = Array.isArray(u) ? u : [];
   } catch (e) {
     showAlert("danger", e.message);
   }
@@ -213,17 +348,25 @@ export async function render(pageEl, { api, showAlert }) {
   genes.sort((a, b) => String(a.symbol || "").localeCompare(String(b.symbol || ""), "ru"));
 
   const load = async () => {
-    const data = await api.patient.listGenotypes();
+    const data = await papi.listGenotypes();
     return Array.isArray(data) ? data : [];
   };
 
   let genotypes = await load();
-  let pending = readPending();
+  let pending = readPend();
 
   const refresh = async () => {
     genotypes = await load();
-    pending = readPending();
-    await render(pageEl, { api, showAlert });
+    pending = readPend();
+    await render(pageEl, {
+      api,
+      showAlert,
+      patientId,
+      patientLabel,
+      backHref,
+      uploadGeneticPdfs: allowPdfUpload,
+      pdfTaskUploadId,
+    });
   };
 
   const geneEmpty = "Выберите ген…";
@@ -248,22 +391,99 @@ export async function render(pageEl, { api, showAlert }) {
           .join("")
       : `<tr><td colspan="3" class="text-center text-muted py-3">Добавьте варианты кнопкой «В список»</td></tr>`;
 
-  const wellnessBanner = getWithoutGeneticTestFlag()
-    ? `<div class="alert alert-info border-0 bg-info bg-opacity-10 small mb-3">У вас включён режим «без генетического теста». Раздел доступен по прямой ссылке; чтобы скрыть его в меню снова, снимите галочку в <a href="#/profile">профиле</a>.</div>`
+  const wellnessBanner =
+    !isNurse && getWithoutGeneticTestFlag()
+      ? `<div class="alert alert-info border-0 bg-info bg-opacity-10 small mb-3">У вас включён режим «без генетического теста». Раздел доступен по прямой ссылке; чтобы скрыть его в меню снова, снимите галочку в <a href="#/profile">профиле</a>.</div>`
+      : "";
+  const backNurse = (backHref || "#/nurse/profile").replace(/^#/, "");
+  const nurseContextBar = isNurse
+    ? `<div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+        <a class="btn btn-sm btn-outline-secondary" href="#${backNurse}">← К заявкам</a>
+        <span class="text-secondary small">Пациент: <strong>${escapeHtml(
+          patientLabel || "—",
+        )}</strong></span>
+      </div>`
     : "";
+  const pdfBlock =
+    isNurse || !allowPdfUpload
+      ? ""
+      : `<div class="card app-card shadow-sm mb-3" id="card-pdf-upload">
+      <div class="card-header bg-white">
+        <div class="fw-semibold">Скан или PDF</div>
+        <div class="text-muted small">Прикрепите PDF с результатами анализов. Медсестра получит уведомление и внесёт варианты в ваш профиль. До 5 МБ, только .pdf</div>
+      </div>
+      <div class="card-body">
+        <div class="d-flex flex-wrap gap-2 align-items-center">
+          <input type="file" id="input-genetic-pdf" class="d-none" accept="application/pdf,.pdf" />
+          <button type="button" class="btn btn-primary btn-sm" id="btn-pick-pdf">
+            <i class="bi bi-file-earmark-arrow-up me-1"></i>Выбрать PDF
+          </button>
+        </div>
+        <div class="table-responsive border rounded mt-3">
+          <table class="table table-sm align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Дата</th>
+                <th>Статус</th>
+                <th>Примечание</th>
+                <th class="text-end">Действия</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${
+                uploads.length
+                  ? uploads
+                      .map(
+                        (r) => `
+                <tr>
+                  <td>${escapeHtml((r.created_at != null && String(r.created_at).length >= 10
+                    ? String(r.created_at).slice(0, 10)
+                    : "—") || "—")}</td>
+                  <td>${escapeHtml(statusUploadRu(r.status))}</td>
+                  <td class="text-muted small">${escapeHtml(
+                    (r.admin_note && String(r.admin_note).trim()) || "—",
+                  )}</td>
+                  <td class="text-end text-nowrap">
+                    <button type="button" class="btn btn-sm btn-outline-primary me-1" data-action="view-pdf" data-upload-id="${r.id}" title="Просмотреть PDF" ${r.id != null && Number(r.id) > 0 ? "" : "disabled"}>
+                      <i class="bi bi-eye me-0"></i> Смотреть
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-danger" data-action="delete-pdf" data-upload-id="${r.id}" title="${r.can_delete ? "Удалить" : "После обработки"}" ${r.can_delete ? "" : "disabled"}>
+                      Удалить
+                    </button>
+                  </td>
+                </tr>`,
+                      )
+                      .join("")
+                  : '<tr><td colspan="4" class="text-center text-muted py-3">Нет прикреплённых файлов</td></tr>'
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>`;
 
   pageEl.innerHTML = `
     <div class="app-page">
+    ${nurseContextBar}
+    ${nursePdfTaskBanner}
     ${wellnessBanner}
     <div class="app-page-header d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
       <h1 class="app-page-title h3 mb-0">Генетические данные</h1>
-      <a class="btn btn-outline-secondary btn-sm" href="#/passport">Открыть паспорт</a>
+      ${
+        !isNurse
+          ? '<a class="btn btn-outline-secondary btn-sm" href="#/passport">Открыть паспорт</a>'
+          : ""
+      }
     </div>
+
+    ${pdfBlock}
 
     <div class="card app-card shadow-sm mb-3">
       <div class="card-header bg-white">
         <div class="fw-semibold">Добавить варианты</div>
-        <div class="text-muted small">Введите <strong>символ</strong>, название или rsID — подсказки появятся при вводе; гены, которые уже есть у вас в таблице или в очереди ниже, в списке не показываются. Выберите вариант и нажмите «В список».</div>
+        <div class="text-muted small">Введите <strong>символ</strong>, название или rsID — подсказки появятся при вводе; гены, которые уже есть ${
+          isNurse ? "у пациента" : "у вас"
+        } в таблице или в очереди ниже, в списке не показываются. Выберите вариант и нажмите «В список».</div>
       </div>
       <div class="card-body">
         ${
@@ -307,7 +527,7 @@ export async function render(pageEl, { api, showAlert }) {
         </div>
         <div class="d-grid gap-2 mt-3">
           <button type="button" class="btn btn-primary btn-lg" id="btn-save-passport" ${pending.length ? "" : "disabled"}>
-            <i class="bi bi-check2-circle me-2"></i>Сохранить и открыть паспорт
+            <i class="bi bi-check2-circle me-2"></i>${isNurse ? "Сохранить в профиль пациента" : "Сохранить и открыть паспорт"}
           </button>
         </div>
       </div>
@@ -394,11 +614,57 @@ export async function render(pageEl, { api, showAlert }) {
   const pendingTbody = pageEl.querySelector("#pending-tbody");
   const btnSavePassport = pageEl.querySelector("#btn-save-passport");
   const btnAddPending = pageEl.querySelector("#btn-add-pending");
+  const btnPickPdf = pageEl.querySelector("#btn-pick-pdf");
+  const inputGeneticPdf = pageEl.querySelector("#input-genetic-pdf");
+
+  const btnNursePdfDone = pageEl.querySelector("#nurse-pdf-mark-done");
+  if (btnNursePdfDone && isNurse && api.nurse?.patchGeneticReport) {
+    btnNursePdfDone.addEventListener("click", async () => {
+      const up = Number(btnNursePdfDone.dataset.up);
+      if (!up) return;
+      btnNursePdfDone.disabled = true;
+      try {
+        await api.nurse.patchGeneticReport(up, { status: "done" });
+        showAlert("success", "Заявка закрыта: ввод по PDF отмечен как завершённый.");
+        await refresh();
+      } catch (e) {
+        showAlert("danger", e?.message || "Ошибка");
+        btnNursePdfDone.disabled = false;
+      }
+    });
+  }
+
+  if (btnPickPdf && inputGeneticPdf && !isNurse) {
+    btnPickPdf.addEventListener("click", () => inputGeneticPdf.click());
+    inputGeneticPdf.addEventListener("change", async () => {
+      const f = inputGeneticPdf.files && inputGeneticPdf.files[0];
+      if (!f) return;
+      btnPickPdf.disabled = true;
+      try {
+        const up = api.patient && api.patient.uploadGeneticReportPdf;
+        if (typeof up !== "function") {
+          showAlert(
+            "warning",
+            "Старая версия кэша страницы. Обновите приложение (Ctrl+F5) и откройте снова.",
+          );
+          return;
+        }
+        await up.call(api.patient, f);
+        showAlert("success", "PDF отправлен. Медсестра получит уведомление.");
+        await refresh();
+      } catch (e) {
+        showAlert("danger", e?.message || "Ошибка загрузки");
+      } finally {
+        btnPickPdf.disabled = false;
+        inputGeneticPdf.value = "";
+      }
+    });
+  }
 
   let createApplyFilter = () => {};
 
   const syncPendingUi = () => {
-    pending = readPending();
+    pending = readPend();
     if (pendingTbody) pendingTbody.innerHTML = pendingRowsHtml();
     if (btnSavePassport) btnSavePassport.disabled = !pending.length;
     createApplyFilter();
@@ -425,13 +691,13 @@ export async function render(pageEl, { api, showAlert }) {
       searchInput: createGeneSearch,
       geneSelect: createGeneSelect,
       datalistEl: createGeneDatalist,
-      getGenes: () => genesAvailableForCreate(genes, genotypes, readPending()),
+      getGenes: () => genesAvailableForCreate(genes, genotypes, readPend()),
       emptyLabel: geneEmpty,
       onGeneCleared: resetCreateVariant,
     });
     createApplyFilter = () => {
       runCreateFilter();
-      const pool = genesAvailableForCreate(genes, genotypes, readPending());
+      const pool = genesAvailableForCreate(genes, genotypes, readPend());
       const allow = pool.length > 0;
       createGeneSearch.disabled = !allow;
       createGeneSelect.disabled = !allow;
@@ -448,7 +714,7 @@ export async function render(pageEl, { api, showAlert }) {
       createVariantSelect.innerHTML = '<option value="">Загрузка…</option>';
       btnAddPending.disabled = true;
       try {
-        const vars = await loadVariantsForGene(api, gid);
+        const vars = await loadVariantsForGene(papi, gid);
         createVariantSelect.innerHTML = variantOptionsHtml(vars);
         createVariantSelect.disabled = !vars.length;
       } catch (err) {
@@ -490,7 +756,7 @@ export async function render(pageEl, { api, showAlert }) {
     }
 
     pending.push({ gene_variant: vid, gene_id: Number.isFinite(gid) ? gid : null, gene_symbol: sym, line });
-    writePending(pending);
+    writePend(pending);
     syncPendingUi();
     showAlert("success", "Добавлено в список. Продолжайте или сохраните.");
 
@@ -499,14 +765,14 @@ export async function render(pageEl, { api, showAlert }) {
   });
 
   btnSavePassport.addEventListener("click", async () => {
-    const queue = readPending();
+    const queue = readPend();
     if (!queue.length) return;
 
     btnSavePassport.disabled = true;
     const failed = [];
     for (const p of queue) {
       try {
-        await api.patient.createGenotype({ gene_variant: p.gene_variant });
+        await papi.createGenotype({ gene_variant: p.gene_variant });
       } catch (err) {
         failed.push({ ...p, error: err.message });
       }
@@ -524,7 +790,7 @@ export async function render(pageEl, { api, showAlert }) {
       gene_symbol: f.gene_symbol,
       line: f.line,
     }));
-    writePending(remaining);
+    writePend(remaining);
 
     if (remaining.length) {
       showAlert(
@@ -535,9 +801,14 @@ export async function render(pageEl, { api, showAlert }) {
       return;
     }
 
-    sessionStorage.removeItem(PENDING_STORAGE_KEY);
-    showAlert("success", "Данные сохранены");
-    window.location.hash = "#/passport";
+    sessionStorage.removeItem(pendingKey);
+    if (isNurse) {
+      showAlert("success", "Данные пациента сохранены");
+      await refresh();
+    } else {
+      showAlert("success", "Данные сохранены");
+      window.location.hash = "#/passport";
+    }
   });
 
   const modalEl = pageEl.querySelector("#edit-modal");
@@ -581,7 +852,7 @@ export async function render(pageEl, { api, showAlert }) {
       editVariantSelect.innerHTML = '<option value="">Загрузка…</option>';
       editSubmit.disabled = true;
       try {
-        const vars = await loadVariantsForGene(api, gid);
+        const vars = await loadVariantsForGene(papi, gid);
         editVariantSelect.innerHTML = variantOptionsHtml(vars);
         editVariantSelect.disabled = !vars.length;
       } catch (err) {
@@ -598,10 +869,48 @@ export async function render(pageEl, { api, showAlert }) {
     const pendingBtn = e.target.closest("button[data-action='remove-pending']");
     if (pendingBtn) {
       const idx = Number(pendingBtn.dataset.index);
-      pending = readPending();
+      pending = readPend();
       pending.splice(idx, 1);
-      writePending(pending);
+      writePend(pending);
       syncPendingUi();
+      return;
+    }
+
+    const viewPdf = e.target.closest("button[data-action='view-pdf']");
+    if (viewPdf) {
+      if (isNurse) return;
+      const uid = Number(viewPdf.dataset.uploadId);
+      if (!Number.isFinite(uid) || uid <= 0) return;
+      try {
+        if (typeof api.patient.openGeneticReportPdfInNewTab === "function") {
+          await api.patient.openGeneticReportPdfInNewTab(uid);
+        } else {
+          showAlert("warning", "Обновите страницу (Ctrl+F5) и откройте снова.");
+        }
+      } catch (err) {
+        showAlert("danger", err?.message || "Ошибка");
+      }
+      return;
+    }
+    const delPdf = e.target.closest("button[data-action='delete-pdf']");
+    if (delPdf) {
+      if (isNurse) return;
+      if (delPdf.disabled) return;
+      const uid = Number(delPdf.dataset.uploadId);
+      if (!Number.isFinite(uid) || uid <= 0) return;
+      if (!confirm("Удалить прикреплённый PDF?")) return;
+      try {
+        if (typeof api.patient.deleteGeneticReport === "function") {
+          await api.patient.deleteGeneticReport(uid);
+        } else {
+          showAlert("warning", "Обновите страницу (Ctrl+F5).");
+          return;
+        }
+        showAlert("success", "Файл удалён");
+        await refresh();
+      } catch (err) {
+        showAlert("danger", err?.message || "Ошибка");
+      }
       return;
     }
 
@@ -613,7 +922,7 @@ export async function render(pageEl, { api, showAlert }) {
     if (action === "delete") {
       if (!confirm("Удалить генотип?")) return;
       try {
-        await api.patient.deleteGenotype(id);
+        await papi.deleteGenotype(id);
         showAlert("success", "Удалено");
         await refresh();
       } catch (err) {
@@ -645,7 +954,7 @@ export async function render(pageEl, { api, showAlert }) {
       if (editGeneSelect.value) {
         editVariantSelect.innerHTML = '<option value="">Загрузка…</option>';
         try {
-          const vars = await loadVariantsForGene(api, editGeneSelect.value);
+          const vars = await loadVariantsForGene(papi, editGeneSelect.value);
           editVariantSelect.innerHTML = variantOptionsHtml(vars);
           editVariantSelect.disabled = !vars.length;
           if (row?.gene_variant != null) {
@@ -670,7 +979,7 @@ export async function render(pageEl, { api, showAlert }) {
       const recId = Number(formData.id);
       const vid = Number(editVariantSelect.value);
       if (!vid) return;
-      await api.patient.updateGenotype(recId, { gene_variant: vid });
+      await papi.updateGenotype(recId, { gene_variant: vid });
       editModal.hide();
       showAlert("success", "Сохранено");
       await refresh();

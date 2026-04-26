@@ -9,11 +9,13 @@ from .models import (
     InPersonAppointment,
     PatientNotification,
     MythTruthQuestion,
+    GeneticReportUpload,
+    NurseNotification,
 )
 
 
 # Явная карточка пользователя: блок «Группы» с двумя колонками (доступно / выбрано).
-# Роль врача в API: группа с именем «doctor» (создаётся в «Аутентификация и авторизация» → «Группы»).
+# Роль врача: группа «doctor». Роль медсестры: «nurse».
 try:
     admin.site.unregister(User)
 except admin.sites.NotRegistered:
@@ -69,3 +71,18 @@ class InPersonAppointmentAdmin(admin.ModelAdmin):
 admin.site.register(DoctorComment)
 admin.site.register(DoctorCommentHistory)
 admin.site.register(PatientNotification)
+
+
+@admin.register(GeneticReportUpload)
+class GeneticReportUploadAdmin(admin.ModelAdmin):
+    list_display = ("id", "patient", "status", "created_at", "processed_by")
+    list_filter = ("status", "created_at")
+    search_fields = ("patient__username",)
+    raw_id_fields = ("patient", "processed_by")
+
+
+@admin.register(NurseNotification)
+class NurseNotificationAdmin(admin.ModelAdmin):
+    list_display = ("id", "user", "upload", "is_read", "created_at")
+    list_filter = ("is_read", "created_at")
+    raw_id_fields = ("user", "upload")

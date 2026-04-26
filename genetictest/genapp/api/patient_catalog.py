@@ -2,7 +2,7 @@ from rest_framework import serializers
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from genapp.api.permissions import IsPatientOrAdmin
+from genapp.api.permissions import IsPatientNurseOrAdmin
 from genapp.models import Gene, GeneVariant, Vitamin
 
 
@@ -35,7 +35,7 @@ class GeneVariantChoiceSerializer(serializers.ModelSerializer):
 
 
 class PatientVitaminCatalogAPIView(APIView):
-    permission_classes = [IsPatientOrAdmin]
+    permission_classes = [IsPatientNurseOrAdmin]
 
     def get(self, request):
         qs = Vitamin.objects.all().order_by("name")
@@ -43,7 +43,7 @@ class PatientVitaminCatalogAPIView(APIView):
 
 
 class PatientGeneCatalogAPIView(APIView):
-    permission_classes = [IsPatientOrAdmin]
+    permission_classes = [IsPatientNurseOrAdmin]
 
     def get(self, request):
         qs = Gene.objects.all().order_by("symbol")
@@ -51,7 +51,7 @@ class PatientGeneCatalogAPIView(APIView):
 
 
 class PatientGeneVariantCatalogAPIView(APIView):
-    permission_classes = [IsPatientOrAdmin]
+    permission_classes = [IsPatientNurseOrAdmin]
 
     def get(self, request):
         qs = GeneVariant.objects.select_related("gene").order_by("gene__symbol", "genotype")

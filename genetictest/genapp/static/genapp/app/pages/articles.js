@@ -1,3 +1,4 @@
+import { getAuth, isAuthed } from "../services/auth.js?v=3";
 import { getWithoutGeneticTestFlag } from "../services/wellness.js";
 
 const CATEGORY_LABELS = {
@@ -72,6 +73,9 @@ async function renderList(pageEl, { api, showAlert, auth }) {
 
   const mount = (list, state) => {
     const { q, category, showWellnessHint } = state;
+    const a = getAuth();
+    const ar = String(a?.role || "").toLowerCase().trim();
+    const showMythBtn = isAuthed() && (ar === "patient" || ar === "admin");
     pageEl.innerHTML = `
       <div class="app-page">
         <div class="app-page-header d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
@@ -80,7 +84,11 @@ async function renderList(pageEl, { api, showAlert, auth }) {
             <p class="text-muted small mb-0">Материалы доступны без входа. Поиск по названию и тексту.</p>
           </div>
           <div class="d-flex flex-wrap gap-2 align-items-center">
-            <a href="#/myth-truth" class="btn btn-outline-secondary btn-sm"><i class="bi bi-patch-question me-1"></i>Миф или правда?</a>
+            ${
+              showMythBtn
+                ? `<a href="#/myth-truth" class="btn btn-outline-secondary btn-sm"><i class="bi bi-patch-question me-1"></i>Миф или правда?</a>`
+                : ""
+            }
             ${auth?.basicToken ? "" : `<a href="#/login" class="btn btn-outline-primary btn-sm">Войти</a>`}
           </div>
         </div>

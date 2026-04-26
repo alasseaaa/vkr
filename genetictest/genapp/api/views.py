@@ -121,9 +121,35 @@ class LoginAPIView(APIView):
         )
 
 
+class MeAPIView(APIView):
+    """
+    Текущий пользователь (Basic / сессия DRF) — роль с сервера.
+    Нужен SPA, чтобы обновлять auth_role в localStorage после смены групп в админке.
+    """
+
+    def get(self, request):
+        u = request.user
+        if not u.is_authenticated:
+            return Response({"detail": "Требуется вход."}, status=status.HTTP_401_UNAUTHORIZED)
+        return Response(
+            {
+                "id": u.id,
+                "username": u.username,
+                "first_name": u.first_name or "",
+                "last_name": u.last_name or "",
+                "role": get_user_role(u),
+            }
+        )
+
+
 class PatientGenotypeViewSet(viewsets.ModelViewSet):
     serializer_class = UserGenotypeSerializer
     permission_classes = [IsPatientOrAdmin]
+
+    def get_serializer_context(self):
+        c = super().get_serializer_context()
+        c["genotype_user"] = self.request.user
+        return c
 
     def get_queryset(self):
         role = get_user_role(self.request.user)

@@ -1,5 +1,6 @@
 export function parseRoute() {
-  const raw = (window.location.hash || "").replace(/^#/, "");
+  const raw0 = (window.location.hash || "").replace(/^#/, "");
+  const raw = raw0.split("?")[0] || "";
   const path = raw.startsWith("/") ? raw : `/${raw}`;
   const parts = path.split("/").filter(Boolean); // remove empty
 
@@ -65,6 +66,14 @@ export function parseRoute() {
     if (parts[1] === "genes") return { name: "admin-genes" };
     if (parts[1] === "gene-variants") return { name: "admin-gene-variants" };
     if (parts[1] === "recommendations") return { name: "admin-recommendations" };
+  }
+
+  if (parts[0] === "nurse") {
+    if (parts[1] === "genetic-uploads") return { name: "nurse-genetic-uploads" };
+    if (parts[1] === "profile") return { name: "nurse-profile" };
+    if (parts[1] === "patient" && parts[2] && parts[3] === "genotypes") {
+      return { name: "nurse-patient-genotypes", patientId: Number(parts[2]) };
+    }
   }
 
   return { name: "not-found", path };

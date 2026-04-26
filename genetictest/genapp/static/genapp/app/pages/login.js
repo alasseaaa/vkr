@@ -1,4 +1,4 @@
-import { clearAuth, getAuth, setBasicAuth } from "../services/auth.js";
+import { clearAuth, getAuth, setBasicAuth } from "../services/auth.js?v=8";
 
 function renderShell(pageEl, innerHtml) {
   pageEl.innerHTML = `
@@ -18,6 +18,7 @@ export async function render(pageEl, { api, route, showAlert }) {
     // если уже авторизованы — редирект
     if (auth.role === "patient") window.location.hash = "#/dashboard";
     else if (auth.role === "doctor") window.location.hash = "#/doctor/patients";
+    else if (auth.role === "nurse") window.location.hash = "#/nurse/profile";
     else window.location.hash = "#/admin/genes";
     return;
   }
@@ -90,6 +91,8 @@ export async function render(pageEl, { api, route, showAlert }) {
         }
       } else if (res.role === "doctor") {
         window.location.hash = "#/doctor/patients";
+      } else if (res.role === "nurse") {
+        window.location.hash = "#/nurse/profile";
       } else {
         window.location.hash = "#/admin/genes";
       }

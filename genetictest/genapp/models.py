@@ -512,3 +512,82 @@ class PatientNotification(models.Model):
 
     def __str__(self):
         return f"{self.user.username}: {self.title[:50]}"
+
+
+class GeneticReportUpload(models.Model):
+    """
+    Копия/скан анализа в PDF, загруженная пациентом в разделе «Гены».
+    Медсестра вносит генотипы в профиль пациента вручную, после чего заявка закрывается.
+    """
+
+    STATUS_PENDING = "pending"
+    STATUS_PROCESSING = "processing"
+    STATUS_DONE = "done"
+    STATUS_REJECTED = "rejected"
+    STATUS_CHOICES = [
+        (STATUS_PENDING, "В очереди"),
+        (STATUS_PROCESSING, "В работе"),
+        (STATUS_DONE, "Обработано"),
+        (STATUS_REJECTED, "Отклонено"),
+    ]
+
+    patient = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="genetic_report_uploads",
+        verbose_name="Пациент",
+    )
+    file = models.FileField(upload_to="genetic_reports/%Y/%m/", max_length=512, verbose_name="PDF-файл")
+    status = models.CharField(
+        max_length=16,
+        choices=STATUS_CHOICES,
+        default=STATUS_PENDING,
+        verbose_name="Статус",
+    )
+    admin_note = models.TextField(blank=True, verbose_name="Комментарий (медсестра)")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Создано")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Обновлено")
+    processed_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="processed_genetic_report_uploads",
+        verbose_name="Кто обработал",
+    )
+
+    class Meta:
+        verbose_name = "Загрузка генетического PDF"
+        verbose_name_plural = "Загрузки генетических PDF"
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"PDF {self.patient_id} {self.get_status_display()} {self.created_at}"
+
+
+class NurseNotification(models.Model):
+    """In-app уведомление для медсестры о новой PDF-загрузке."""
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="nurse_upload_notifications",
+        verbose_name="Медсестра",
+    )
+    upload = models.ForeignKey(
+        GeneticReportUpload,
+        on_delete=models.CASCADE,
+        related_name="nurse_notifications",
+        verbose_name="Заявка",
+    )
+    is_read = models.BooleanField(default=False, verbose_name="Прочитано")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Создано")
+
+    class Meta:
+        verbose_name = "Уведомление медсестры (PDF)"
+        verbose_name_plural = "Уведомления медсестр (PDF)"
+        ordering = ["-created_at"]
+        unique_together = [("user", "upload")]
+
+    def __str__(self):
+        return f"Nurse {self.user_id} / upload {self.upload_id}"

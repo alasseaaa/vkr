@@ -1,5 +1,5 @@
 import { showAlert } from "../components/alerts.js";
-import { getAuth, isAuthed } from "./auth.js";
+import { getAuth, isAuthed } from "./auth.js?v=3";
 
 const STORAGE_KEY = "genapp_push_announced_ids";
 const POLL_MS = 35000;

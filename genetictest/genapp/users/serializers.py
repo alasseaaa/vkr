@@ -8,6 +8,8 @@ User = get_user_model()
 
 
 class RegisterSerializer(serializers.Serializer):
+    """Согласие на ПДн не в момент регистрации — сразу после, на экране /consent."""
+
     username = serializers.CharField(max_length=150)
     email = serializers.EmailField()
     first_name = serializers.CharField(max_length=30)
@@ -15,24 +17,15 @@ class RegisterSerializer(serializers.Serializer):
     password1 = serializers.CharField(write_only=True)
     password2 = serializers.CharField(write_only=True)
     without_genetic_test = serializers.BooleanField(required=False, default=False)
-    consent_personal_data = serializers.BooleanField(required=True)
 
     def validate(self, attrs):
         if attrs.get("password1") != attrs.get("password2"):
             raise serializers.ValidationError({"password2": ["Пароли не совпадают."]})
         return attrs
 
-    def validate_consent_personal_data(self, value):
-        if not value:
-            raise serializers.ValidationError(
-                "Необходимо согласие на обработку персональных (в т.ч. медицинских) данных."
-            )
-        return value
-
     def create(self, validated_data):
         data = {**validated_data}
         without_genetic_test = bool(data.pop("without_genetic_test", False))
-        data.pop("consent_personal_data", None)
         user = register_user(
             username=data["username"],
             email=data["email"],
@@ -41,7 +34,7 @@ class RegisterSerializer(serializers.Serializer):
             password1=data["password1"],
             password2=data["password2"],
             without_genetic_test=without_genetic_test,
-            consent_personal_data=True,
+            consent_personal_data=False,
         )
         return user
 

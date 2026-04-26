@@ -14,6 +14,15 @@ from genapp.api.appointment_views import (
     PatientLinkedDoctorsAPIView,
 )
 from genapp.api.myth_truth import MythTruthQuestionListAPIView, MythTruthSubmitAPIView
+from genapp.api.genetic_report import (
+    NurseGeneticReportDetailAPIView,
+    NurseGeneticReportListAPIView,
+    NurseNotificationsMarkReadAPIView,
+    NurseNotificationsUnreadAPIView,
+    NursePatientGenotypeViewSet,
+    NursePatientSummaryAPIView,
+    PatientGeneticReportViewSet,
+)
 from genapp.api.views import (
     AdminGeneVariantViewSet,
     AdminGeneViewSet,
@@ -27,6 +36,7 @@ from genapp.api.views import (
     DoctorPatientsListAPIView,
     DoctorPatientProfileAPIView,
     LoginAPIView,
+    MeAPIView,
     PatientGenotypeViewSet,
     PatientInterpretationAPIView,
     PatientNotificationsMarkReadAPIView,
@@ -41,6 +51,7 @@ from genapp.api.views import (
 router = DefaultRouter()
 router.register(r"patient/genotypes", PatientGenotypeViewSet, basename="patient-genotypes")
 router.register(r"patient/vitamin-tests", PatientVitaminTestViewSet, basename="patient-vitamin-tests")
+router.register(r"patient/genetic-reports", PatientGeneticReportViewSet, basename="patient-genetic-reports")
 
 router.register(r"admin/genes", AdminGeneViewSet, basename="admin-genes")
 router.register(r"admin/gene-variants", AdminGeneVariantViewSet, basename="admin-gene-variants")
@@ -53,6 +64,7 @@ urlpatterns = [
     path("v1/comments/", DoctorCommentListAPIView.as_view()),
     path("auth/register/", RegisterAPIView.as_view()),
     path("auth/login/", LoginAPIView.as_view()),
+    path("auth/me/", MeAPIView.as_view()),
 
     path("patient/interpretation/", PatientInterpretationAPIView.as_view()),
     path("patient/profile/", PatientOwnProfileAPIView.as_view()),
@@ -66,6 +78,28 @@ urlpatterns = [
     path("patient/doctors/", PatientLinkedDoctorsAPIView.as_view()),
     path("patient/appointments/", PatientInPersonAppointmentListCreateAPIView.as_view()),
     path("patient/appointments/<int:pk>/", PatientInPersonAppointmentDetailAPIView.as_view()),
+
+    path("nurse/genetic-reports/", NurseGeneticReportListAPIView.as_view()),
+    path("nurse/genetic-reports/<int:upload_id>/", NurseGeneticReportDetailAPIView.as_view()),
+    path("nurse/notifications/unread/", NurseNotificationsUnreadAPIView.as_view()),
+    path("nurse/notifications/mark-read/", NurseNotificationsMarkReadAPIView.as_view()),
+
+    path(
+        "nurse/patients/<int:patient_id>/genotypes/<int:pk>/",
+        NursePatientGenotypeViewSet.as_view(
+            {
+                "get": "retrieve",
+                "put": "update",
+                "patch": "partial_update",
+                "delete": "destroy",
+            }
+        ),
+    ),
+    path(
+        "nurse/patients/<int:patient_id>/genotypes/",
+        NursePatientGenotypeViewSet.as_view({"get": "list", "post": "create"}),
+    ),
+    path("nurse/patients/<int:patient_id>/", NursePatientSummaryAPIView.as_view()),
 
     path("doctor/activity/", DoctorActivityFeedAPIView.as_view()),
     path("doctor/appointments/", DoctorInPersonAppointmentListAPIView.as_view()),

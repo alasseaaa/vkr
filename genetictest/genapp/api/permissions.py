@@ -9,23 +9,29 @@ def get_user_role(user):
     Роль пользователя для API.
 
     Приоритет:
-    - admin: staff/superuser
-    - doctor: принадлежит группе `doctor` или существует привязка DoctorPatient (doctor->patients)
+    - superuser: admin
+    - doctor: группа `doctor` или привязка DoctorPatient
+    - nurse: группа `nurse` (в т.ч. при is_staff — иначе SPA даст «лишние» пункты меню)
+    - staff без клинических групп: admin
     - иначе patient
     """
     if not user or not getattr(user, "is_authenticated", False):
         return None
 
-    if getattr(user, "is_staff", False) or getattr(user, "is_superuser", False):
+    if getattr(user, "is_superuser", False):
         return "admin"
 
-    # Группа задаёт роль явно (удобно для реальной эксплуатации).
-    if user.groups.filter(name="doctor").exists():
+    if user.groups.filter(name__iexact="doctor").exists():
         return "doctor"
 
-    # Подстраховка: если врач уже имеет закрепленных пациентов, считаем его врачом.
     if DoctorPatient.objects.filter(doctor=user).exists():
         return "doctor"
+
+    if user.groups.filter(name__iexact="nurse").exists():
+        return "nurse"
+
+    if getattr(user, "is_staff", False):
+        return "admin"
 
     return "patient"
 
@@ -50,6 +56,12 @@ class IsPatientOrAdmin(RolePermission):
     required_roles = {"patient", "admin"}
 
 
+class IsPatientNurseOrAdmin(RolePermission):
+    """Справочники генов/вариантов/витаминов: пациент, медсестра (ввод в чужой профиль), админ."""
+
+    required_roles = {"patient", "nurse", "admin"}
+
+
 class IsPatientRole(RolePermission):
     """Только пациент (не врач и не staff-админ)."""
 
@@ -58,6 +70,10 @@ class IsPatientRole(RolePermission):
 
 class IsDoctor(RolePermission):
     required_roles = {"doctor"}
+
+
+class IsNurse(RolePermission):
+    required_roles = {"nurse"}
 
 
 class IsAdminOnly(RolePermission):
