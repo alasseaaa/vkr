@@ -80,7 +80,7 @@ export function renderSidebar() {
     items.push({ href: "/dashboard", label: "Дашборд", icon: "bi-speedometer2" });
     items.push({ href: "/profile", label: "Профиль", icon: "bi-person-vcard" });
     if (!wellness) {
-      items.push({ href: "/genotypes", label: "Генетические данные", icon: "bi-dna" });
+      items.push({ href: "/genotypes", label: "Генетические данные", icon: "bi-diagram-2-fill" });
     }
     items.push({ href: "/vitamin-tests", label: "Анализы витаминов", icon: "bi-droplet" });
     items.push({ href: "/recommendations", label: "Рекомендации", icon: "bi-stars" });

@@ -347,6 +347,9 @@
       <a href="/app/#/articles" class="sidebar-link {% if request.resolver_match.url_name == 'articles' %}active{% endif %}">
         <i class="bi bi-newspaper"></i>Статьи
       </a>
+      <a href="{% url 'appointments_spa' %}" class="sidebar-link">
+        <i class="bi bi-calendar-check"></i>Запись к врачу
+      </a>
 
       {% if user.is_authenticated %}
         <div class="sidebar-divider"></div>

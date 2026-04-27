@@ -129,13 +129,13 @@ async function renderPage(route) {
 
   const moduleMap = {
     login: () => import("./pages/login.js"),
-    register: () => import("./pages/register.js?v=2"),
+    register: () => import("./pages/register.js?v=3"),
     articles: () => import("./pages/articles.js?v=2"),
     "myth-truth": () => import("./pages/mythTruth.js?v=1"),
     consent: () => import("./pages/consent.js?v=2"),
     "symptom-test": () => import("./pages/symptomTest.js?v=6"),
     "article-detail": () => import("./pages/articles.js?v=2"),
-    dashboard: () => import("./pages/dashboard.js?v=8"),
+    dashboard: () => import("./pages/dashboard.js?v=14"),
     genotypes: () => import("./pages/genotypes.js?v=11"),
     "nurse-genetic-uploads": () => import("./pages/nurse/geneticUploads.js?v=3"),
     "nurse-patient-genotypes": () => import("./pages/nurse/patientGenotypes.js?v=3"),

@@ -84,6 +84,13 @@ export async function render(pageEl, { api, showAlert }) {
         role: res.role,
         userId: res.id,
       });
+      if (res.role === "patient") {
+        try {
+          sessionStorage.setItem("genapp_just_registered", "1");
+        } catch {
+          /* */
+        }
+      }
       const setConsentFlag = (id) => {
         if (id == null) return;
         try {

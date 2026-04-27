@@ -2,20 +2,20 @@
 {% block title %}Генетический интерпретатор{% endblock %}
 {% block content %}
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;600;700&family=Manrope:wght@400;500;600;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap');
   .home-landing {
     font-family: 'Manrope', system-ui, sans-serif;
-    max-width: 1080px;
+    max-width: 1120px;
     margin: 0 auto;
   }
   .home-landing h1, .home-landing h2, .home-landing .display-font {
-    font-family: 'Fraunces', Georgia, serif;
+    font-family: 'Manrope', system-ui, sans-serif;
   }
   .home-hero {
     position: relative;
     border-radius: 20px;
     padding: 2.5rem 2rem;
-    margin-bottom: 2rem;
+    margin-bottom: 0.5rem;
     overflow: hidden;
     background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 45%, #0c4a6e 100%);
     color: #f8fafc;
@@ -30,12 +30,7 @@
     pointer-events: none;
   }
   .home-hero-inner { position: relative; z-index: 1; }
-  .home-hero .lead {
-    color: rgba(248, 250, 252, 0.88);
-    font-size: 1.05rem;
-    max-width: 36rem;
-    line-height: 1.55;
-  }
+  .home-hero .lead { color: rgba(248, 250, 252, 0.9); font-size: 1.05rem; max-width: 38rem; line-height: 1.6; }
   .home-badge {
     display: inline-block;
     font-size: 0.72rem;
@@ -48,133 +43,331 @@
     border-radius: 999px;
     margin-bottom: 1rem;
   }
-  .home-cta .btn {
-    font-weight: 600;
-    padding: 0.65rem 1.25rem;
-    border-radius: 10px;
-  }
-  .home-cta .btn-light {
-    color: #0f172a;
-  }
-  .home-cta .btn-outline-light {
-    border-width: 2px;
-  }
-  .home-feature-card {
-    border-radius: 16px;
-    border: 1px solid rgba(0,0,0,0.06);
-    background: #fff;
-    padding: 1.35rem 1.25rem;
-    height: 100%;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-  }
-  .home-feature-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
-  }
-  .home-feature-icon {
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.25rem;
-    margin-bottom: 0.85rem;
-  }
-  .home-strip {
-    border-radius: 16px;
-    background: linear-gradient(180deg, #f1f5f9 0%, #e2e8f0 100%);
-    border: 1px solid rgba(0,0,0,0.05);
-    padding: 1.75rem 1.5rem;
-    margin: 2rem 0;
-  }
-  .home-step-num {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: #0d6efd;
-    color: #fff;
-    font-weight: 700;
-    font-size: 0.9rem;
+  .home-hero-cta .btn { font-weight: 600; padding: 0.7rem 1.35rem; border-radius: 10px; }
+  .home-hero-cta .btn-primary { color: #fff; border: none; }
+  .home-hero-cta .btn-outline-light { border-width: 2px; }
+  .home-free-pill {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-    margin-bottom: 0.5rem;
-  }
-  .home-footnote {
+    gap: 0.4rem;
+    border-radius: 999px;
+    border: 1px solid rgba(125, 211, 252, 0.55);
+    background: rgba(13, 110, 253, 0.18);
+    color: #e0f2fe;
+    padding: 0.35rem 0.75rem;
     font-size: 0.8rem;
-    color: #64748b;
-    max-width: 42rem;
-    margin-top: 2rem;
-    line-height: 1.5;
+    font-weight: 600;
   }
+  .home-hero-sublinks { position: relative; z-index: 1; }
+  .home-hero-sublinks a { color: rgba(248,250,252,0.85); text-decoration: none; border-bottom: 1px solid rgba(255,255,255,0.2); }
+  .home-hero-sublinks a:hover { color: #fff; border-color: #fff; }
+  .home-section { margin: 2.5rem 0; }
+  .home-section h2 { font-size: 1.35rem; }
+  @media (min-width: 768px) { .home-section h2 { font-size: 1.5rem; } }
+  .home-feature-card { border-radius: 16px; border: 1px solid rgba(0,0,0,0.06); background: #fff; padding: 1.35rem 1.25rem; height: 100%; transition: transform 0.2s ease, box-shadow 0.2s ease; }
+  .home-feature-card { position: relative; }
+  .home-feature-card:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08); }
+  .home-feature-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; margin-bottom: 0.85rem; }
+  .home-strip { border-radius: 16px; background: linear-gradient(180deg, #eff6ff 0%, #e0f2fe 100%); border: 1px solid rgba(13,110,253,0.12); padding: 1.75rem 1.5rem; }
+  .home-trust { border-radius: 16px; background: #fff; border: 1px solid rgba(0,0,0,0.05); box-shadow: 0 4px 20px rgba(15,23,42,0.04); padding: 1.5rem; }
+  .home-stat-num { font-size: 1.5rem; font-weight: 700; color: #0d6efd; font-family: 'Manrope', system-ui, sans-serif; }
+  .home-partner-tile {
+    border: 1px dashed rgba(13,110,253,0.3);
+    background: #f8fbff;
+    border-radius: 12px;
+    padding: 0.55rem 0.7rem;
+    font-size: 0.75rem;
+    color: #4b5563;
+    text-align: center;
+  }
+  .home-pill { font-size: 0.75rem; color: #64748b; padding: 0.2rem 0.5rem; background: #f1f5f9; border-radius: 6px; }
+  .home-process-step { text-align: center; padding: 0.5rem; }
+  .home-process-ico { width: 3rem; height: 3rem; margin: 0 auto 0.5rem; border-radius: 12px; background: linear-gradient(180deg, rgba(13,110,253,0.1), rgba(25,135,84,0.1)); color: #0d6efd; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+  .home-mockup { perspective: 800px; }
+  .home-mockup-frame { border-radius: 12px 12px 0 0; background: #1e293b; padding: 0.4rem 0.75rem; display: flex; gap: 0.35rem; align-items: center; }
+  .home-mockup-dot { width: 0.4rem; height: 0.4rem; border-radius: 50%; background: #64748b; }
+  .home-mockup-screen { border: 1px solid rgba(0,0,0,0.08); border-top: 0; border-radius: 0 0 12px 12px; background: linear-gradient(180deg, #f8fafc, #f1f5f9); padding: 1rem; min-height: 11rem; }
+  .home-mini-badge { font-size: 0.7rem; }
+  .home-cta-band { border-radius: 20px; background: linear-gradient(120deg, #0d6efd 0%, #198754 100%); color: #fff; padding: 2rem; text-align: center; box-shadow: 0 16px 40px rgba(25, 135, 84, 0.25); }
+  .home-cta-band .btn { font-weight: 600; }
+  .home-footnote { font-size: 0.8rem; color: #64748b; max-width: 48rem; margin: 0 auto; line-height: 1.55; }
+  .home-site-footer a { color: #64748b; text-decoration: none; }
+  .home-site-footer a:hover { color: #0d6efd; text-decoration: underline; }
+  .home-reveal { opacity: 0.04; transform: translateY(14px); transition: opacity 0.5s ease, transform 0.5s ease; }
+  .home-reveal.home-reveal--visible { opacity: 1; transform: translateY(0); }
+  @media (prefers-reduced-motion: reduce) {
+    .home-reveal { opacity: 1; transform: none; transition: none; }
+  }
+  .nav-pills .nav-link { border-radius: 10px; color: #64748b; }
+  .nav-pills .nav-link.active { background: #0d6efd; color: #fff; }
+  .accordion-button:not(.collapsed) { background: rgba(13,110,253,0.08); color: #0c2a5c; }
 </style>
 
 <div class="home-landing py-4">
+  <!-- 1. Hero -->
   <section class="home-hero">
     <div class="home-hero-inner">
       <span class="home-badge">Персональная генетика</span>
-      <h1 class="display-5 fw-semibold mb-3">Интерпретируйте ДНК вместе с врачом и данными</h1>
-      <p class="lead mb-4">
-        Сервис объединяет <strong>генотипы</strong>, <strong>анализы витаминов</strong> и <strong>научные статьи</strong>
-        в одном месте: вы вносите результаты, система помогает увидеть картину целиком — а паспорт удобно показать специалисту.
-      </p>
-      <div class="home-cta d-flex flex-wrap gap-2">
-        <a href="/app/#/login" class="btn btn-light"><i class="bi bi-box-arrow-in-right me-2"></i>Войти</a>
-        <a href="/app/#/register" class="btn btn-outline-light"><i class="bi bi-person-plus me-2"></i>Регистрация</a>
-        <a href="/app/#/articles" class="btn btn-outline-light"><i class="bi bi-newspaper me-2"></i>Статьи</a>
-        <a href="/appointments/" class="btn btn-outline-light"><i class="bi bi-calendar-check me-2"></i>Запись к врачу</a>
+      <h1 class="display-5 fw-semibold mb-3">Расшифруйте ДНК и получите рекомендации по витаминам и образу жизни</h1>
+      <p class="lead mb-4"><strong>Больше не теряйтесь в генетических отчётах.</strong> Сервис связывает <strong>гены</strong>, <strong>анализы витаминов</strong> и <strong>график их динамики</strong> в одном кабинете.</p>
+      <div class="home-hero-cta d-flex flex-wrap align-items-center gap-2 gap-md-3 mb-3">
+        <a href="/app/#/register" class="btn btn-primary"><i class="bi bi-rocket-takeoff me-2"></i>Попробовать бесплатно</a>
+        <a href="/app/#/login" class="btn btn-outline-light"><i class="bi bi-box-arrow-in-right me-2"></i>Войти</a>
+        <a href="#preimuschestva" class="text-white text-decoration-underline small ms-1">Узнать больше</a>
       </div>
     </div>
   </section>
 
-  <div class="row g-3 g-md-4 mb-2">
-    <div class="col-md-4">
-      <div class="home-feature-card">
-        <div class="home-feature-icon bg-primary bg-opacity-10 text-primary"><i class="bi bi-dna"></i></div>
-        <h3 class="h6 fw-semibold mb-2">Гены и варианты</h3>
-        <p class="text-muted small mb-0">Выбор из справочника, очередь записей и переход к паспорту после сохранения — без лишних шагов.</p>
+<!-- 2. Social proof & trust -->
+<section class="home-section home-reveal" id="doverie" aria-label="Почему нам доверяют">
+  <div class="home-trust">
+    <h2 class="h5 mb-2 display-font">Почему нам доверяют</h2>
+    <div class="row g-3 text-center text-md-start">
+      <div class="col-md-4">
+        <div class="home-stat-num">1000+</div>
+        <div class="text-secondary small">генов в справочнике</div>
       </div>
-    </div>
-    <div class="col-md-4">
-      <div class="home-feature-card">
-        <div class="home-feature-icon bg-info bg-opacity-10 text-info"><i class="bi bi-droplet-half"></i></div>
-        <h3 class="h6 fw-semibold mb-2">Витамины и лаборатория</h3>
-        <p class="text-muted small mb-0">Фиксируйте значения анализов, смотрите статусы и рекомендации в контексте генетики.</p>
+      <div class="col-md-4">
+        <div class="home-stat-num">500+</div>
+        <div class="text-secondary small">научных публикаций</div>
       </div>
-    </div>
-    <div class="col-md-4">
-      <div class="home-feature-card">
-        <div class="home-feature-icon bg-success bg-opacity-10 text-success"><i class="bi bi-heart-pulse"></i></div>
-        <h3 class="h6 fw-semibold mb-2">Связь с врачом</h3>
-        <p class="text-muted small mb-0">Роль врача и пациента: комментарии и выводы поверх вашего профиля.</p>
+      <div class="col-md-4">
+        <div class="home-stat-num">1</div>
+        <div class="text-secondary small">единый кабинет здоровья</div>
       </div>
     </div>
   </div>
+</section>
 
-  <section class="home-strip">
-    <h2 class="h5 fw-semibold mb-3 text-dark">Как начать</h2>
-    <div class="row g-3">
-      <div class="col-md-4">
-        <div class="home-step-num">1</div>
-        <div class="fw-semibold small">Зарегистрируйтесь</div>
-        <p class="text-muted small mb-0 mt-1">Создайте аккаунт и войдите в веб-приложение.</p>
+
+  <!-- 4. How it works (visual) -->
+  <section class="home-section home-reveal" id="kak-eto-rabotaet" aria-label="Как это работает">
+    <h2 class="h4 mb-3 text-dark display-font">Как это работает: от теста до врача</h2>
+    <div class="row g-2 g-md-3 justify-content-center">
+      <div class="col-6 col-md-4 col-lg-2 home-process-step">
+        <div class="home-process-ico"><i class="bi bi-hospital"></i></div>
+        <div class="small fw-semibold">1. Генетическое  тестирование</div>
+        <div class="small text-muted">Сдайте анализ в любой удобной лаборатории</div>
       </div>
-      <div class="col-md-4">
-        <div class="home-step-num">2</div>
-        <div class="fw-semibold small">Внесите данные</div>
-        <p class="text-muted small mb-0 mt-1">Добавьте генотипы и при необходимости результаты анализов.</p>
+      <div class="col-6 col-md-4 col-lg-2 home-process-step">
+        <div class="home-process-ico"><i class="bi bi-file-earmark-pdf"></i></div>
+        <div class="small fw-semibold">2. Загрузка данных</div>
+        <div class="small text-muted">Загрузите PDF-отчет или введите значения вручную</div>
       </div>
-      <div class="col-md-4">
-        <div class="home-step-num">3</div>
-        <div class="fw-semibold small">Смотрите паспорт</div>
-        <p class="text-muted small mb-0 mt-1">Откройте сводку и рекомендации; статьи доступны без входа.</p>
+      <div class="col-6 col-md-4 col-lg-2 home-process-step">
+        <div class="home-process-ico"><i class="bi bi-cpu"></i></div>
+        <div class="small fw-semibold">3. Мгновенная аналитика</div>
+        <div class="small text-muted">Система сформирует ваш интерактивный паспорт</div>
+      </div>
+      <div class="col-6 col-md-4 col-lg-2 home-process-step">
+        <div class="home-process-ico"><i class="bi bi-graph-up"></i></div>
+        <div class="small fw-semibold">4. Контроль нутриентов</div>
+        <div class="small text-muted">Добавьте анализы крови для оценки дефицитов и динамики</div>
+      </div>
+      <div class="col-6 col-md-4 col-lg-2 home-process-step">
+        <div class="home-process-ico"><i class="bi bi-people"></i></div>
+        <div class="small fw-semibold">5. Консультация эксперта</div>
+        <div class="small text-muted">Обсудите результаты и план действий с врачом</div>
       </div>
     </div>
   </section>
 
-  <p class="home-footnote mb-0">
-    Материалы носят информационный характер и не заменяют очную консультацию врача. Интерпретация зависит от полноты исходных данных и клинической ситуации.
-  </p>
+
+
+  <!-- 6. Benefits (links) -->
+  <section class="home-section home-reveal" id="preimuschestva" aria-label="Преимущества">
+    <h2 class="h4 mb-3 text-dark display-font">Сильные стороны</h2>
+    <div class="row g-3 g-md-4 mb-0">
+      <div class="col-md-4">
+        <a href="/app/#/genotypes" class="home-feature-card d-block h-100 text-decoration-none text-body">
+          <div class="home-feature-icon bg-primary bg-opacity-10 text-primary"><i class="bi bi-dna" aria-hidden="true"></i></div>
+          <h3 class="h6 fw-semibold mb-2">Интерактивный паспорт</h3>
+          <p class="text-muted small mb-0"> Справочник из 30+ ключевых полиморфизмов. Исследуйте ключевые гены в удобном интерактивном формате.</p>
+        </a>
+      </div>
+      <div class="col-md-4">
+        <a href="/app/#/vitamin-tests" class="home-feature-card d-block h-100 text-decoration-none text-body">
+          <div class="home-feature-icon bg-success bg-opacity-10 text-success"><i class="bi bi-droplet-half" aria-hidden="true"></i></div>
+          <h3 class="h6 fw-semibold mb-2">Контроль витаминов</h3>
+          <p class="text-muted small mb-0">Мониторинг уровней витаминов и микроэлементов. Автоматическое определение дефицитов и зон риска.</p>
+        </a>
+      </div>
+      <div class="col-md-4">
+        <a href="{% url 'appointments_spa' %}" class="home-feature-card d-block h-100 text-decoration-none text-body">
+          <div class="home-feature-icon bg-info bg-opacity-10 text-info"><i class="bi bi-heart-pulse" aria-hidden="true"></i></div>
+          <h3 class="h6 fw-semibold mb-2">Экспертное сопровождение</h3>
+          <p class="text-muted small mb-0">Анализ внешних лабораторных данных и консультации врачей с опорой на ваш генетический и биохимический профиль.</p>
+        </a>
+      </div>
+    </div>
+  </section>
+
+<!-- 7. После регистрации -->
+<section class="home-strip home-section home-reveal mb-0" id="kak-nachat" aria-label="Как начать">
+  <div class="container">
+    <div class="text-center mb-5">
+      <h2 class="h4 display-font">Что вы получите после регистрации</h2>
+      <p class="text-muted mx-auto" style="max-width: 600px;">Всего 5 минут на заполнение профиля — и ваша персональная карта здоровья готова.</p>
+    </div>
+
+    <div class="row g-4 mt-2">
+      <!-- Карта 1 -->
+      <div class="col-md-4">
+        <div class="p-4 h-100 border-0 shadow-sm rounded-4 bg-white">
+          <div class="text-primary mb-3"><i class="bi bi-layout-wtf fs-4"></i></div>
+          <h3 class="h6 fw-bold">Интерактивный дашборд</h3>
+          <p class="text-muted small mb-0">Единая точка управления вашим здоровьем: моментальный доступ к статусам, анализам и быстрым действиям.</p>
+        </div>
+      </div>
+
+      <!-- Карта 2 -->
+      <div class="col-md-4">
+        <div class="p-4 h-100 border-0 shadow-sm rounded-4 bg-white">
+          <div class="text-success mb-3"><i class="bi bi-clipboard2-pulse fs-4"></i></div>
+          <h3 class="h6 fw-bold">Цифровой профиль и динамика</h3>
+          <p class="text-muted small mb-0">Генетический паспорт и автоматические графики витаминов. Система сама подсветит зоны дефицита.</p>
+        </div>
+      </div>
+
+      <!-- Карта 3 -->
+      <div class="col-md-4">
+        <div class="p-4 h-100 border-0 shadow-sm rounded-4 bg-white">
+          <div class="text-info mb-3"><i class="bi bi-person-video3 fs-4"></i></div>
+          <h3 class="h6 fw-bold">Умные консультации</h3>
+          <p class="text-muted small mb-0">Врач видит ваши данные в цифровом виде. Больше не нужно пересказывать историю болезни или искать бумажные отчеты.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Кнопка призыва к действию -->
+    <div class="text-center mt-5">
+      <a href="/register/" class="btn btn-primary btn-lg px-5 shadow-sm rounded-pill">Создать личный кабинет</a>
+    </div>
+  </div>
+</section>
+
+
+
+  <!-- FAQ -->
+  <section class="home-section home-reveal" id="faq" aria-label="Вопросы">
+    <h2 class="h4 mb-3 text-dark display-font">Вопросы</h2>
+    <div class="accordion accordion-flush" id="homeFaq">
+      <div class="accordion-item border rounded-3 overflow-hidden mb-2">
+        <h3 class="accordion-header">
+          <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">Нужно ли медицинское образование, чтобы пользоваться сервисом?</button>
+        </h3>
+        <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#homeFaq">
+          <div class="accordion-body small text-muted">Нет. Интерфейс ведёт по шагам; смыслы вынесены в подсказки. Всё, что касается схем лечения, остаётся на врача.</div>
+        </div>
+      </div>
+      <div class="accordion-item border rounded-3 overflow-hidden mb-2">
+        <h3 class="accordion-header">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">Безопасны ли мои данные?</button>
+        </h3>
+        <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#homeFaq">
+          <div class="accordion-body small text-muted">Используется <strong>HTTPS</strong> и <a href="/app/#/consent">согласие на обработку ПДн</a> в кабинете. Передавайте доступ только врачу и в рамках политики площадки (ФЗ‑152, локальные акты организации — уточняйте в клинике).</div>
+        </div>
+      </div>
+      <div class="accordion-item border rounded-3 overflow-hidden mb-2">
+        <h3 class="accordion-header">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">Могу ли я загрузить PDF из своей лаборатории?</button>
+        </h3>
+        <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#homeFaq">
+          <div class="accordion-body small text-muted">Как правило, да, если в файле читаемые идентификаторы — этап привязывают <strong>медсёстры/координатор</strong> в <a href="/app/#/nurse/genetic-uploads">модуле загрузок</a>. Можно и <a href="/app/#/genotypes">внести гены</a> вручную.</div>
+        </div>
+      </div>
+      <div class="accordion-item border rounded-3 overflow-hidden mb-2">
+        <h3 class="accordion-header">
+          <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">Сколько стоит?</button>
+        </h3>
+        <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#homeFaq">
+          <div class="accordion-body small text-muted">Регистрация и ведение кабинета — бесплатно. Стоимость лабораторных исследований и консультации уточняйте в вашей клинике.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+<!-- 8. Secondary CTA -->
+<section class="home-section home-reveal py-5" id="cta" aria-label="Начать">
+  <div class="container">
+    <!-- Зеленый градиент: от насыщенного изумрудного к свежей мяте -->
+    <div class="home-cta-band p-4 p-md-5 rounded-4 shadow-lg text-center text-md-start d-md-flex align-items-center justify-content-between" 
+         style="background: linear-gradient(135deg, #198754 0%, #20c997 100%);">
+      
+      <div class="me-md-4">
+        <h2 class="h3 text-white display-font mb-2">Начните путь к системному здоровью</h2>
+        <p class="text-white-50 mb-0">Присоединяйтесь к платформе, чтобы перевести данные анализов на понятный язык и улучшить качество жизни.</p>
+      </div>
+
+      <div class="mt-4 mt-md-0">
+        <!-- Белая кнопка на зеленом фоне выглядит очень ярко и чисто -->
+        <a href="/app/#/register" class="btn btn-white btn-lg px-4 fw-bold rounded-pill shadow-sm text-success" 
+           style="background-color: white; border: none;">
+          Создать кабинет <i class="bi bi-arrow-right ms-2"></i>
+        </a>
+      </div>
+    </div>
+
+    <!-- 9. Disclaimer -->
+    <div class="mt-4 px-2">
+      <div class="p-3 bg-light rounded-3 border-start border-4 border-secondary">
+        <p class="home-footnote mb-0 text-muted shadow-none" id="disclaimer-legal" style="font-size: 0.75rem; line-height: 1.4;">
+          <strong>Важная информация:</strong> Представленные материалы носят справочный характер и не являются медицинским диагнозом или основанием для самолечения. Любые интерпретации генетических данных и показателей витаминов должны быть подтверждены очной консультацией квалифицированного специалиста. Точность рекомендаций напрямую зависит от полноты предоставленных вами данных.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+  <footer class="home-site-footer home-section pt-0 mt-0 mb-2 text-center text-md-start" style="padding-top:0; margin-top:0; border-top:1px solid rgba(0,0,0,0.06)">
+    <p class="small text-muted pt-2 mb-2">
+      <a href="#preimuschestva">О проекте</a>
+      <span class="mx-2">·</span>
+      <a href="/app/#/consent">Согласие / политика данных</a>
+      <span class="mx-2">·</span>
+      <a href="{% url 'appointments_spa' %}">Запись и контакты</a>
+      <span class="mx-2">·</span>
+      <a href="/app/#/articles">Материалы</a>
+    </p>
+    <p class="small text-muted mb-0">&copy; {% now "Y" %} «Генетический интерпретатор»</p>
+  </footer>
 </div>
+
+<script>
+  (function () {
+    function activateRoleTabByHash() {
+      var h = (window.location.hash || "").toLowerCase();
+      var tabBtn = null;
+      if (h === "#dlya-kogo-vrach") tabBtn = document.getElementById("p-doc-tab");
+      else if (h === "#dlya-kogo-medsestra" || h === "#dlya-kogo-lab") tabBtn = document.getElementById("p-nurse-tab");
+      else if (h === "#dlya-kogo" || h === "#dlya-kogo-pacient") tabBtn = document.getElementById("p-patient-tab");
+      if (tabBtn && window.bootstrap && window.bootstrap.Tab) {
+        window.bootstrap.Tab.getOrCreateInstance(tabBtn).show();
+      }
+    }
+    activateRoleTabByHash();
+    window.addEventListener("hashchange", activateRoleTabByHash);
+
+    if (!window.matchMedia || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      document.querySelectorAll(".home-reveal").forEach(function (el) { el.classList.add("home-reveal--visible"); });
+      return;
+    }
+    var nodes = [].slice.call(document.querySelectorAll(".home-reveal"));
+    if (!("IntersectionObserver" in window)) {
+      nodes.forEach(function (el) { el.classList.add("home-reveal--visible"); });
+      return;
+    }
+    var obs = new IntersectionObserver(
+      function (ents) {
+        ents.forEach(function (e) {
+          if (e.isIntersecting) { e.target.classList.add("home-reveal--visible"); obs.unobserve(e.target); }
+        });
+      },
+      { rootMargin: "0px 0px -5% 0px", threshold: 0.08 }
+    );
+    nodes.forEach(function (el) { obs.observe(el); });
+  })();
+</script>
 {% endblock %}
