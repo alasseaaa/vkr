@@ -65,6 +65,7 @@ export function parseRoute() {
   if (parts[0] === "admin") {
     if (parts[1] === "genes") return { name: "admin-genes" };
     if (parts[1] === "gene-variants") return { name: "admin-gene-variants" };
+    if (parts[1] === "gene-requests") return { name: "admin-gene-requests" };
     if (parts[1] === "recommendations") return { name: "admin-recommendations" };
     if (parts[1] === "myth-truth") return { name: "admin-myth-truth" };
     if (parts[1] === "symptom-items") return { name: "admin-symptom-items" };

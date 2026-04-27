@@ -10,6 +10,7 @@ from .models import (
     PatientNotification,
     MythTruthQuestion,
     GeneticReportUpload,
+    GeneSymbolRequest,
     NurseNotification,
 )
 
@@ -94,3 +95,11 @@ class NurseNotificationAdmin(admin.ModelAdmin):
     list_display = ("id", "user", "upload", "is_read", "created_at")
     list_filter = ("is_read", "created_at")
     raw_id_fields = ("user", "upload")
+
+
+@admin.register(GeneSymbolRequest)
+class GeneSymbolRequestAdmin(admin.ModelAdmin):
+    list_display = ("id", "symbol", "user", "status", "created_at", "resolved_at")
+    list_filter = ("status", "created_at")
+    search_fields = ("symbol", "user__username", "raw_input", "comment")
+    raw_id_fields = ("user", "resolved_by")

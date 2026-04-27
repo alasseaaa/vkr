@@ -173,6 +173,10 @@ export const api = {
     listGeneVariantCatalog: (params) =>
       request("get", "/api/patient/gene-variants/catalog/", { params }),
 
+    listGeneSymbolRequests: () => request("get", "/api/patient/gene-symbol-requests/"),
+    createGeneSymbolRequest: (payload) =>
+      request("post", "/api/patient/gene-symbol-requests/", { data: payload }),
+
     listGeneticReports: () => request("get", "/api/patient/genetic-reports/"),
     async uploadGeneticReportPdf(file) {
       return uploadFilePost("/api/patient/genetic-reports/", file, { fieldName: "file" });
@@ -297,6 +301,13 @@ export const api = {
     listUsers: (params) => request("get", "/api/admin/users/", { params: params || {} }),
     setUserClinicalRole: (userId, clinicalRole) =>
       request("post", `/api/admin/users/${userId}/role/`, { data: { clinical_role: clinicalRole } }),
+
+    listGeneSymbolRequests: (params) =>
+      request("get", "/api/admin/gene-symbol-requests/", { params: params || {} }),
+    getGeneSymbolRequestPendingCount: () =>
+      request("get", "/api/admin/gene-symbol-requests/pending_count/"),
+    patchGeneSymbolRequest: (id, payload) =>
+      request("patch", `/api/admin/gene-symbol-requests/${id}/`, { data: payload }),
   },
 };
 

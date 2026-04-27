@@ -611,3 +611,64 @@ class NurseNotification(models.Model):
 
     def __str__(self):
         return f"Nurse {self.user_id} / upload {self.upload_id}"
+
+
+class GeneSymbolRequest(models.Model):
+    """
+    Пациент просит добавить в справочник ген, которого ещё нет в БД.
+    Админ видит список / счётчик в SPA (поллинг, как у медсестры по PDF).
+    """
+
+    STATUS_PENDING = "pending"
+    STATUS_ADDED = "added"
+    STATUS_REJECTED = "rejected"
+    STATUS_CHOICES = [
+        (STATUS_PENDING, "Ожидает"),
+        (STATUS_ADDED, "Добавлено в справочник"),
+        (STATUS_REJECTED, "Отклонено"),
+    ]
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name="gene_symbol_requests",
+        verbose_name="Пациент",
+    )
+    symbol = models.CharField(max_length=32, db_index=True, verbose_name="Символ (нормализованный)")
+    raw_input = models.CharField(max_length=64, blank=True, default="", verbose_name="Как ввели")
+    proposed_genotype = models.CharField(
+        max_length=32,
+        blank=True,
+        default="",
+        verbose_name="Предполагаемый генотип",
+    )
+    comment = models.TextField(blank=True, default="", verbose_name="Комментарий пациента")
+    status = models.CharField(
+        max_length=16,
+        choices=STATUS_CHOICES,
+        default=STATUS_PENDING,
+        db_index=True,
+        verbose_name="Статус",
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Создано")
+    resolved_at = models.DateTimeField(null=True, blank=True, verbose_name="Обработано")
+    resolved_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="resolved_gene_symbol_requests",
+        verbose_name="Кто обработал",
+    )
+    admin_note = models.TextField(blank=True, default="", verbose_name="Примечание администратора")
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name = "Заявка на добавление гена"
+        verbose_name_plural = "Заявки на добавление генов"
+        indexes = [
+            models.Index(fields=["user", "status", "-created_at"]),
+        ]
+
+    def __str__(self):
+        return f"{self.symbol} ({self.get_status_display()}) by {self.user_id}"

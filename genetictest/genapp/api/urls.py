@@ -21,6 +21,12 @@ from genapp.api.admin_cms import (
     AdminUserListAPIView,
     PublicSymptomTestItemListAPIView,
 )
+from genapp.api.gene_symbol_request import (
+    AdminGeneSymbolRequestDetailView,
+    AdminGeneSymbolRequestListView,
+    AdminGeneSymbolRequestPendingCountView,
+    PatientGeneSymbolRequestListCreateView,
+)
 from genapp.api.myth_truth import MythTruthQuestionListAPIView, MythTruthSubmitAPIView
 from genapp.api.genetic_report import (
     NurseGeneticReportDetailAPIView,
@@ -92,6 +98,11 @@ urlpatterns = [
     path("patient/vitamins/catalog/", PatientVitaminCatalogAPIView.as_view()),
     path("patient/genes/catalog/", PatientGeneCatalogAPIView.as_view()),
     path("patient/gene-variants/catalog/", PatientGeneVariantCatalogAPIView.as_view()),
+    path("patient/gene-symbol-requests/", PatientGeneSymbolRequestListCreateView.as_view()),
+
+    path("admin/gene-symbol-requests/pending_count/", AdminGeneSymbolRequestPendingCountView.as_view()),
+    path("admin/gene-symbol-requests/<int:pk>/", AdminGeneSymbolRequestDetailView.as_view()),
+    path("admin/gene-symbol-requests/", AdminGeneSymbolRequestListView.as_view()),
     path("patient/doctors/", PatientLinkedDoctorsAPIView.as_view()),
     path("patient/appointments/", PatientInPersonAppointmentListCreateAPIView.as_view()),
     path("patient/appointments/<int:pk>/", PatientInPersonAppointmentDetailAPIView.as_view()),

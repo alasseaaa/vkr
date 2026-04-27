@@ -2,7 +2,11 @@ import { parseRoute } from "./router.js?v=10";
 import { showAlert, clearAlert } from "./components/alerts.js";
 import { renderSidebar } from "./components/sidebar.js";
 import { getAuth, isAuthed, setStoredRole, getEffectiveRole, NURSE_PROBE_ONCE_KEY } from "./services/auth.js?v=8";
-import { api } from "./services/api.js?v=11";
+import { api } from "./services/api.js?v=12";
+import {
+  startAdminGeneRequestPolling,
+  stopAdminGeneRequestPolling,
+} from "./services/adminGeneSymbolRequestPolling.js";
 import {
   startPatientNotificationPolling,
   stopPatientNotificationPolling,
@@ -132,7 +136,7 @@ async function renderPage(route) {
     "symptom-test": () => import("./pages/symptomTest.js?v=6"),
     "article-detail": () => import("./pages/articles.js?v=2"),
     dashboard: () => import("./pages/dashboard.js?v=8"),
-    genotypes: () => import("./pages/genotypes.js?v=8"),
+    genotypes: () => import("./pages/genotypes.js?v=11"),
     "nurse-genetic-uploads": () => import("./pages/nurse/geneticUploads.js?v=3"),
     "nurse-patient-genotypes": () => import("./pages/nurse/patientGenotypes.js?v=3"),
     "nurse-profile": () => import("./pages/nurse/profile.js?v=4"),
@@ -147,6 +151,7 @@ async function renderPage(route) {
     "doctor-profile": () => import("./pages/doctor/profile.js"),
     "admin-genes": () => import("./pages/admin/genes.js"),
     "admin-gene-variants": () => import("./pages/admin/geneVariants.js"),
+    "admin-gene-requests": () => import("./pages/admin/geneSymbolRequests.js"),
     "admin-recommendations": () => import("./pages/admin/recommendations.js"),
     "admin-myth-truth": () => import("./pages/admin/mythTruthAdmin.js"),
     "admin-symptom-items": () => import("./pages/admin/symptomItemsAdmin.js?v=2"),
@@ -254,6 +259,22 @@ async function renderApp() {
     }
   } else {
     stopNurseNotificationPolling();
+  }
+  if (isAuthed() && ar === "admin") {
+    startAdminGeneRequestPolling(api);
+    try {
+      const d = await api.admin.getGeneSymbolRequestPendingCount();
+      const c = d?.pending_count ?? 0;
+      const el = document.getElementById("admin-gene-req-badge");
+      if (el) {
+        el.textContent = c > 0 ? String(c) : "";
+        el.style.display = c > 0 ? "inline-block" : "none";
+      }
+    } catch {
+      /* */
+    }
+  } else {
+    stopAdminGeneRequestPolling();
   }
 }
 

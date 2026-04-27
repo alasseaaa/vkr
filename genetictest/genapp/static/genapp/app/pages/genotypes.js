@@ -195,6 +195,11 @@ function statusUploadRu(s) {
   return m[s] || s || "—";
 }
 
+function greqStatusRu(s) {
+  const m = { pending: "на рассмотрении", added: "ген в справочнике", rejected: "отклонена" };
+  return m[s] || s || "—";
+}
+
 export async function render(
   pageEl,
   {
@@ -326,6 +331,7 @@ export async function render(
 
   let genes = [];
   let uploads = [];
+  let geneRequests = [];
   try {
     const ps = [papi.listGeneCatalog().catch(() => [])];
     if (!isNurse && allowPdfUpload) {
@@ -338,9 +344,15 @@ export async function render(
     } else {
       ps.push(Promise.resolve([]));
     }
-    const [g, u] = await Promise.all(ps);
+    if (!isNurse && typeof api.patient?.listGeneSymbolRequests === "function") {
+      ps.push(api.patient.listGeneSymbolRequests().catch(() => []));
+    } else {
+      ps.push(Promise.resolve([]));
+    }
+    const [g, u, greq] = await Promise.all(ps);
     genes = Array.isArray(g) ? g : [];
     uploads = Array.isArray(u) ? u : [];
+    geneRequests = Array.isArray(greq) ? greq : [];
   } catch (e) {
     showAlert("danger", e.message);
   }
@@ -404,6 +416,87 @@ export async function render(
         )}</strong></span>
       </div>`
     : "";
+  const greqBlock =
+    isNurse
+      ? ""
+      : `<div class="card app-card shadow-sm mb-3" id="card-gene-request">
+      <div class="card-header bg-white">
+        <div class="fw-semibold">Нет гена в справочнике</div>
+        <div class="text-muted small">Если нужного <strong>символа</strong> нет в подсказках, введите его вручную. Администратору придёт уведомление в панели; пока гена нет в базе, вариант к паспорту не привязывается — сначала добавьте варианты, когда гены появятся в списке.</div>
+      </div>
+      <div class="card-body">
+        <div class="row g-2 align-items-end">
+          <div class="col-md-3 col-lg-2">
+            <label class="form-label small mb-1">Символ гена</label>
+            <input type="text" id="greq-symbol" class="form-control form-control-sm" placeholder="например FTO" maxlength="64" autocomplete="off" />
+          </div>
+          <div class="col-md-3 col-lg-2">
+            <label class="form-label small mb-1">Генотип (по желанию)</label>
+            <input type="text" id="greq-gt" class="form-control form-control-sm" placeholder="CT" maxlength="32" autocomplete="off" />
+          </div>
+          <div class="col-md-4 col-lg-5">
+            <label class="form-label small mb-1">Комментарий</label>
+            <input type="text" id="greq-comment" class="form-control form-control-sm" placeholder="откуда известен маркер" maxlength="2000" />
+          </div>
+          <div class="col-md-2 col-lg-3 d-grid d-md-block">
+            <button type="button" class="btn btn-primary btn-sm w-100" id="greq-submit" ${
+              typeof api.patient?.createGeneSymbolRequest === "function"
+                ? ""
+                : 'disabled title="Обновите страницу (Ctrl+F5)"'
+            }>
+              <i class="bi bi-send me-1"></i>Запросить добавление
+            </button>
+          </div>
+        </div>
+        <div class="table-responsive border rounded mt-3">
+          <table class="table table-sm align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Символ</th>
+                <th>Генотип</th>
+                <th>Статус</th>
+                <th>Дата</th>
+                <th>Примечание</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${
+                geneRequests.length
+                  ? geneRequests
+                      .map(
+                        (q) => `
+                <tr>
+                  <td>${escapeHtml(q.symbol || "")}</td>
+                  <td class="text-muted small">${escapeHtml(
+                    (q.proposed_genotype && String(q.proposed_genotype).trim()) || "—",
+                  )}</td>
+                  <td><span class="badge ${
+                    q.status === "pending"
+                      ? "text-bg-warning text-dark"
+                      : "text-bg-secondary"
+                  }">${escapeHtml(greqStatusRu(q.status))}</span></td>
+                  <td class="text-muted small">${
+                    q.created_at != null && String(q.created_at).length >= 10
+                      ? String(q.created_at).slice(0, 10)
+                      : "—"
+                  }</td>
+                  <td class="text-muted small">${
+                    q.status === "rejected" && (q.admin_note && String(q.admin_note).trim())
+                      ? escapeHtml(String(q.admin_note).trim())
+                      : q.status === "added"
+                        ? "Можно выбрать ген в списке выше"
+                        : "—"
+                  }</td>
+                </tr>`,
+                      )
+                      .join("")
+                  : '<tr><td colspan="5" class="text-center text-muted py-2">Пока нет заявок</td></tr>'
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>`;
   const pdfBlock =
     isNurse || !allowPdfUpload
       ? ""
@@ -532,7 +625,7 @@ export async function render(
         </div>
       </div>
     </div>
-
+    ${greqBlock}
     <div class="card app-card shadow-sm">
       <div class="card-header bg-white">
         <div class="fw-semibold">Уже сохранённые генотипы</div>
@@ -657,6 +750,48 @@ export async function render(
       } finally {
         btnPickPdf.disabled = false;
         inputGeneticPdf.value = "";
+      }
+    });
+  }
+
+  const btnGreq = pageEl.querySelector("#greq-submit");
+  const inpGreqSym = pageEl.querySelector("#greq-symbol");
+  const inpGreqGt = pageEl.querySelector("#greq-gt");
+  const inpGreqCm = pageEl.querySelector("#greq-comment");
+  if (btnGreq && inpGreqSym && !isNurse && typeof api.patient?.createGeneSymbolRequest === "function") {
+    btnGreq.addEventListener("click", async () => {
+      const raw = (inpGreqSym.value || "").trim();
+      if (!raw) {
+        showAlert("warning", "Введите символ гена.");
+        return;
+      }
+      const low = raw.toLowerCase();
+      if (genes.some((g) => String(g.symbol || "").trim().toLowerCase() === low)) {
+        showAlert(
+          "warning",
+          "Этот ген уже есть в справочнике — выберите его в списке «Добавить варианты».",
+        );
+        return;
+      }
+      btnGreq.disabled = true;
+      try {
+        await api.patient.createGeneSymbolRequest({
+          symbol: raw,
+          proposed_genotype: (inpGreqGt && inpGreqGt.value) || "",
+          comment: (inpGreqCm && inpGreqCm.value) || "",
+        });
+        showAlert(
+          "success",
+          "Заявка отправлена. Когда администратор добавит ген, вы сможете выбрать вариант в форме выше.",
+        );
+        inpGreqSym.value = "";
+        if (inpGreqGt) inpGreqGt.value = "";
+        if (inpGreqCm) inpGreqCm.value = "";
+        await refresh();
+      } catch (e) {
+        showAlert("danger", e?.message || "Ошибка");
+      } finally {
+        btnGreq.disabled = false;
       }
     });
   }

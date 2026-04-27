@@ -100,6 +100,7 @@ export function renderSidebar() {
     items.push({ href: "/admin/content/articles", label: "Статьи", icon: "bi-journal-richtext" });
     items.push({ section: "Справочники" });
     items.push({ href: "/admin/genes", label: "Гены", icon: "bi-database" });
+    items.push({ href: "/admin/gene-requests", label: "Заявки: новые гены", icon: "bi-inbox", badgeId: "admin-gene-req-badge" });
     items.push({ href: "/admin/gene-variants", label: "Варианты генов", icon: "bi-diagram-3" });
     items.push({ href: "/admin/recommendations", label: "Рекомендации (админ)", icon: "bi-lightbulb" });
     items.push({ section: "Пользователи" });
