@@ -1,6 +1,8 @@
 export function parseRoute() {
   const raw0 = (window.location.hash || "").replace(/^#/, "");
-  const raw = raw0.split("?")[0] || "";
+  const [rawPath = "", rawQuery = ""] = raw0.split("?");
+  const query = new URLSearchParams(rawQuery);
+  const raw = rawPath || "";
   const path = raw.startsWith("/") ? raw : `/${raw}`;
   const parts = path.split("/").filter(Boolean); // remove empty
 
@@ -27,6 +29,13 @@ export function parseRoute() {
   }
 
   if (parts[0] === "dashboard") return { name: "dashboard" };
+  if (parts[0] === "genetics") return { name: "genetics", tab: query.get("tab") || parts[1] || "genes" };
+  if (parts[0] === "health-insights") return { name: "health-insights", tab: parts[1] || "vitamins" };
+  if (parts[0] === "doctor-communication")
+    return { name: "doctor-communication", tab: query.get("tab") || parts[1] || "appointments" };
+  if (parts[0] === "doctor-interaction")
+    return { name: "doctor-communication", tab: query.get("tab") || parts[1] || "appointments" };
+  if (parts[0] === "materials") return { name: "materials", tab: query.get("tab") || parts[1] || "articles" };
   if (parts[0] === "genotypes") return { name: "genotypes" };
   if (parts[0] === "vitamin-tests") {
     if (parts[1] === "focus" && parts[2] && !Number.isNaN(Number(parts[2]))) {

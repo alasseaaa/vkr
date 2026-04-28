@@ -4,6 +4,7 @@ from . import views
 
 urlpatterns = [
     path("", views.home_view, name="home"),
+    path("privacy-policy/", views.privacy_policy_view, name="privacy_policy"),
     path("register/", views.spa_hash_redirect, {"fragment": "register"}, name="register"),
     path("login/", views.spa_hash_redirect, {"fragment": "login"}, name="login"),
     path("logout/", views.logout_view, name="logout"),

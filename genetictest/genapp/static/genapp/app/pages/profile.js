@@ -12,7 +12,7 @@ const ACTIVITY_OPTS = [
 ];
 
 import { renderSidebar } from "../components/sidebar.js";
-import { setWithoutGeneticTestFlag } from "../services/wellness.js";
+import { getWithoutGeneticTestFlag, setWithoutGeneticTestFlag } from "../services/wellness.js";
 import { getConsentScrollableHtml, CONSENT_CHECKBOX_WARRANTY_LINE } from "../data/consentText.js";
 
 function escapeHtml(str) {
@@ -44,6 +44,80 @@ function hasPersonalDataConsent(data) {
   return t != null && String(t).length > 0;
 }
 
+function initials(firstName, lastName) {
+  const f = String(firstName || "").trim();
+  const l = String(lastName || "").trim();
+  const fi = f ? f[0].toUpperCase() : "";
+  const li = l ? l[0].toUpperCase() : "";
+  return `${fi}${li}` || null;
+}
+
+function profileCompletion(data) {
+  const fields = [
+    Boolean(String(data?.first_name || "").trim()),
+    Boolean(String(data?.last_name || "").trim()),
+    Boolean(String(data?.gender || "").trim()),
+    Boolean(String(data?.birth_date || "").trim()),
+    data?.height != null && String(data.height) !== "",
+    data?.weight != null && String(data.weight) !== "",
+  ];
+  const done = fields.filter(Boolean).length;
+  const total = fields.length;
+  const pct = Math.round((done / total) * 100);
+  return { done, total, pct };
+}
+
+function isDateAfterToday(dateStr) {
+  if (!dateStr) return false;
+  const d = new Date(dateStr);
+  if (Number.isNaN(d.getTime())) return false;
+  const now = new Date();
+  d.setHours(0, 0, 0, 0);
+  now.setHours(0, 0, 0, 0);
+  return d.getTime() > now.getTime();
+}
+
+function validateProfilePayload(payload) {
+  const errors = {};
+  const nameRe = /^[A-Za-zА-Яа-яЁё\-\s]{2,}$/;
+  const first = String(payload.first_name || "").trim();
+  const last = String(payload.last_name || "").trim();
+  if (first && !nameRe.test(first)) {
+    errors.first_name = "Имя: только буквы, пробел и дефис (минимум 2 символа).";
+  }
+  if (last && !nameRe.test(last)) {
+    errors.last_name = "Фамилия: только буквы, пробел и дефис (минимум 2 символа).";
+  }
+  if (payload.birth_date && isDateAfterToday(payload.birth_date)) {
+    errors.birth_date = "Дата рождения не может быть позже текущей даты.";
+  }
+  if (payload.height != null) {
+    if (!Number.isFinite(payload.height) || payload.height < 40 || payload.height > 250) {
+      errors.height = "Рост должен быть числом от 40 до 250 см.";
+    }
+  }
+  if (payload.weight != null) {
+    if (!Number.isFinite(payload.weight) || payload.weight < 2 || payload.weight > 500) {
+      errors.weight = "Вес должен быть числом от 2 до 500 кг.";
+    }
+  }
+  return errors;
+}
+
+function clearFieldErrors(form) {
+  form.querySelectorAll(".field-error").forEach((el) => (el.textContent = ""));
+  form.querySelectorAll(".is-invalid").forEach((el) => el.classList.remove("is-invalid"));
+}
+
+function showFieldErrors(form, errors) {
+  Object.entries(errors).forEach(([name, msg]) => {
+    const input = form.querySelector(`[name="${name}"]`);
+    if (input) input.classList.add("is-invalid");
+    const err = form.querySelector(`.field-error[data-field="${name}"]`);
+    if (err) err.textContent = msg;
+  });
+}
+
 export async function render(pageEl, { api, showAlert }) {
   pageEl.innerHTML = `<div class="card app-card"><div class="card-body">Загрузка профиля…</div></div>`;
 
@@ -55,67 +129,80 @@ export async function render(pageEl, { api, showAlert }) {
     pageEl.innerHTML = `<div class="alert alert-danger">${escapeHtml(e.message)}</div>`;
     return;
   }
+  const consentOk = hasPersonalDataConsent(data);
+  const cmp = profileCompletion(data);
+  const init = initials(data.first_name, data.last_name);
 
+  const wellnessChecked = Boolean(data.without_genetic_test || getWithoutGeneticTestFlag());
   pageEl.innerHTML = `
     <div class="app-page">
-    <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
-      <h1 class="app-page-title h3 mb-0">Профиль пациента</h1>
+    <style>
+      .profile-avatar {
+        width: 2.5rem;
+        height: 2.5rem;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(13, 110, 253, 0.12);
+        color: #0d6efd;
+        font-weight: 700;
+      }
+      .profile-progress-text { font-size: 0.84rem; color: #6c757d; }
+      .wellness-strip {
+        background: rgba(13,110,253,0.06);
+        border: 1px solid rgba(13,110,253,0.15);
+        border-radius: 12px;
+      }
+      .field-error { min-height: 1.05rem; }
+      .spin { display: inline-block; animation: spin .8s linear infinite; }
+      @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    </style>
+    <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
+      <div class="d-flex align-items-center gap-2">
+        <span class="profile-avatar">
+          ${
+            init
+              ? escapeHtml(init)
+              : `<i class="bi bi-person-fill" aria-hidden="true"></i>`
+          }
+        </span>
+        <h1 class="app-page-title h3 mb-0">Профиль пациента</h1>
+      </div>
       <a class="btn btn-outline-secondary btn-sm" href="#/dashboard">На дашборд</a>
     </div>
 
-    <div class="card app-card shadow-sm border-success border-2 mb-3" id="profile-pd-consent">
+    <div class="mb-3">
+      <div class="profile-progress-text mb-1">Заполнено ${cmp.done} из ${cmp.total} важных полей</div>
+      <div class="progress" style="height:.55rem">
+        <div class="progress-bar ${cmp.pct >= 100 ? "bg-success" : "bg-primary"}" style="width:${cmp.pct}%"></div>
+      </div>
+      <div class="profile-progress-text mt-1">${cmp.pct}%</div>
+    </div>
+
+    <div class="wellness-strip p-3 mb-3">
+      <div class="form-check mb-1">
+        <input class="form-check-input" type="checkbox" id="prof-wg-top" ${wellnessChecked ? "checked" : ""} />
+        <label class="form-check-label fw-semibold" for="prof-wg-top">🧬 Режим без генетического теста (скрыть разделы с генами)</label>
+      </div>
+      <div class="text-muted small">Режим можно выключить позже — после этого снова откроются генетические разделы.</div>
+    </div>
+
+    <div class="card app-card shadow-sm mb-3" id="profile-pd-consent">
       <div class="card-body">
-        <div class="d-flex align-items-start gap-3">
-          <i class="bi bi-shield-check text-success fs-3" aria-hidden="true"></i>
-          <div class="flex-grow-1">
-            <div class="d-flex flex-wrap align-items-baseline justify-content-between gap-2">
-              <span class="fw-semibold">Согласие на обработку ПДн и сведений о здоровье</span>
-              ${
-                hasPersonalDataConsent(data)
-                  ? `<span class="badge bg-success">получено</span>`
-                  : `<span class="badge bg-warning text-dark">требуется</span>`
-              }
-            </div>
-            <p class="text-muted small mb-2">Можно снова открыть <strong>полный текст</strong> того, на что вы соглашались (обработка ПДн и сведений о здоровье).</p>
-            ${
-              hasPersonalDataConsent(data)
-                ? `<p class="mb-2 small">Дата/время фиксации: <strong>${formatConsentDate(
-                    data.consent_personal_data_at,
-                  )}</strong> · Версия формулировок: <strong>${escapeHtml(
-                    String(
-                      data.consent_text_version != null && data.consent_text_version !== "" ? data.consent_text_version : "1",
-                    ),
-                  )}</strong></p>
-                  <div class="d-flex flex-wrap align-items-center gap-2">
-                    <button
-                      class="btn btn-sm btn-success"
-                      type="button"
-                      data-bs-toggle="collapse"
-                      data-bs-target="#profile-consent-fulltext"
-                      aria-expanded="false"
-                      aria-controls="profile-consent-fulltext"
-                      id="btn-profile-open-consent-text"
-                    >
-                      <i class="bi bi-chevron-down me-1" aria-hidden="true"></i>Прочитать согласие полностью
-                    </button>
-                    <span class="small text-muted d-none d-md-inline">тот же текст, что на экране согласия</span>
-                  </div>
-                  <div class="collapse mt-3" id="profile-consent-fulltext">
-                    <div class="border border-success border-opacity-25 rounded-3 p-0 overflow-hidden">
-                      <div class="px-3 py-2 bg-success bg-opacity-10 small fw-semibold text-dark">
-                        Полный текст согласия на обработку данных
-                      </div>
-                      <div class="p-3 bg-light small" style="max-height: 420px; overflow-y: auto">
-                        ${getConsentScrollableHtml()}
-                      </div>
-                    </div>
-                    <p class="small text-muted mt-2 mb-1">Формулировка с чекбокса при оформлении согласия в кабинете:</p>
-                    <p class="small mb-0 fst-italic">«${escapeHtml(CONSENT_CHECKBOX_WARRANTY_LINE)}»</p>
-                    <p class="small text-muted mt-2 mb-0">При регистрации вы отмечали согласие в краткой формулировке; развёрнутый текст выше — для наглядного описания границ обработки. Юридически значимые документы публикуйте в политике/оферте и при смене версии уведомляйте пользователей по вашим правилам.</p>
-                  </div>`
-                : `<p class="mb-0 small">Согласие в базе <strong>не зарегистрировано</strong> — <a class="alert-link" href="#/consent">перейти к согласию</a> (без него кабинет не должен использоваться).</p>`
-            }
-          </div>
+        <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap">
+          ${
+            consentOk
+              ? `<div class="small"><span class="text-success fw-semibold">✅ Согласие получено</span> ${formatConsentDate(
+                  data.consent_personal_data_at,
+                )}</div>`
+              : `<div class="alert alert-warning py-2 px-3 mb-0 small">Требуется согласие</div>`
+          }
+          ${
+            consentOk
+              ? `<button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#profileConsentModal">Показать текст согласия</button>`
+              : `<a class="btn btn-sm btn-warning" href="#/consent">Перейти к согласию</a>`
+          }
         </div>
       </div>
     </div>
@@ -138,14 +225,17 @@ export async function render(pageEl, { api, showAlert }) {
           <div class="col-md-6">
             <label class="form-label small">Имя</label>
             <input name="first_name" class="form-control" value="${escapeHtml(data.first_name || "")}" />
+            <div class="text-danger small field-error mt-1" data-field="first_name"></div>
           </div>
           <div class="col-md-6">
             <label class="form-label small">Фамилия</label>
             <input name="last_name" class="form-control" value="${escapeHtml(data.last_name || "")}" />
+            <div class="text-danger small field-error mt-1" data-field="last_name"></div>
           </div>
           <div class="col-md-4">
             <label class="form-label small">Дата рождения</label>
             <input name="birth_date" type="date" class="form-control" value="${escapeHtml(data.birth_date || "")}" />
+            <div class="text-danger small field-error mt-1" data-field="birth_date"></div>
           </div>
           <div class="col-md-4">
             <label class="form-label small">Пол</label>
@@ -157,11 +247,13 @@ export async function render(pageEl, { api, showAlert }) {
           </div>
           <div class="col-md-6">
             <label class="form-label small">Рост (см)</label>
-            <input name="height" type="number" min="40" max="280" class="form-control" value="${data.height != null ? escapeHtml(String(data.height)) : ""}" placeholder="—" />
+            <input name="height" type="number" min="40" max="250" class="form-control" value="${data.height != null ? escapeHtml(String(data.height)) : ""}" placeholder="—" />
+            <div class="text-danger small field-error mt-1" data-field="height"></div>
           </div>
           <div class="col-md-6">
             <label class="form-label small">Вес (кг)</label>
             <input name="weight" type="number" min="2" max="500" class="form-control" value="${data.weight != null ? escapeHtml(String(data.weight)) : ""}" placeholder="—" />
+            <div class="text-danger small field-error mt-1" data-field="weight"></div>
           </div>
           <div class="col-12">
             <label class="form-label small">Пищевые предпочтения</label>
@@ -172,24 +264,70 @@ export async function render(pageEl, { api, showAlert }) {
             <textarea name="goals_text" class="form-control" rows="2">${escapeHtml(data.goals_text || "")}</textarea>
           </div>
           <div class="col-12">
-            <div class="form-check">
-              <input class="form-check-input" type="checkbox" id="prof-wg" ${data.without_genetic_test ? "checked" : ""} />
-              <label class="form-check-label" for="prof-wg">Режим без генетического теста</label>
-            </div>
-            <div class="text-muted small mt-1">Упрощённое меню без разделов «Генетические данные» и «Генетический паспорт»; на странице статей по умолчанию открывается категория «Общее здоровье». Генотипы можно добавить позже — снимите галочку.</div>
-          </div>
-          <div class="col-12">
-            <button type="submit" class="btn btn-primary">Сохранить</button>
+            <button type="submit" class="btn btn-primary" id="btn-profile-save">Сохранить</button>
           </div>
         </form>
       </div>
     </div>
+
+    ${
+      consentOk
+        ? `<div class="modal fade" id="profileConsentModal" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h2 class="h6 mb-0">Текст согласия на обработку данных</h2>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+          </div>
+          <div class="modal-body small">
+            ${getConsentScrollableHtml()}
+            <hr class="my-3" />
+            <p class="mb-0 fst-italic">«${escapeHtml(CONSENT_CHECKBOX_WARRANTY_LINE)}»</p>
+          </div>
+        </div>
+      </div>
+    </div>`
+        : ""
+    }
     </div>
   `;
 
+  const topWg = pageEl.querySelector("#prof-wg-top");
+  let wellnessSaving = false;
+  if (topWg) {
+    topWg.addEventListener("change", async () => {
+      if (wellnessSaving) return;
+      const prev = getWithoutGeneticTestFlag();
+      const next = Boolean(topWg.checked);
+      wellnessSaving = true;
+      topWg.disabled = true;
+      setWithoutGeneticTestFlag(next);
+      renderSidebar();
+      try {
+        const updated = await api.patient.updateProfile({ without_genetic_test: next });
+        const persisted =
+          updated?.without_genetic_test ??
+          updated?.profile?.without_genetic_test ??
+          next;
+        setWithoutGeneticTestFlag(Boolean(persisted));
+        topWg.checked = Boolean(persisted);
+        renderSidebar();
+        showAlert("success", "Режим обновлён");
+      } catch (err) {
+        setWithoutGeneticTestFlag(prev);
+        topWg.checked = Boolean(prev);
+        renderSidebar();
+        showAlert("danger", err?.message || "Не удалось сохранить режим");
+      } finally {
+        wellnessSaving = false;
+        topWg.disabled = false;
+      }
+    });
+  }
   pageEl.querySelector("#profile-form").addEventListener("submit", async (e) => {
     e.preventDefault();
     const form = e.target;
+    clearFieldErrors(form);
     const fd = new FormData(form);
     const payload = {};
     for (const [k, v] of fd.entries()) {
@@ -202,14 +340,36 @@ export async function render(pageEl, { api, showAlert }) {
         payload[k] = v;
       }
     }
-    payload.without_genetic_test = Boolean(form.querySelector("#prof-wg")?.checked);
+    payload.without_genetic_test = Boolean(topWg?.checked);
+    const errors = validateProfilePayload(payload);
+    if (Object.keys(errors).length) {
+      showFieldErrors(form, errors);
+      showAlert("danger", "Проверьте корректность заполнения полей.");
+      return;
+    }
+    const saveBtn = pageEl.querySelector("#btn-profile-save");
+    const oldHtml = saveBtn?.innerHTML;
+    if (saveBtn) {
+      saveBtn.disabled = true;
+      saveBtn.innerHTML = `<span class="spin me-1"><i class="bi bi-arrow-repeat"></i></span>Сохранение...`;
+    }
     try {
       const updated = await api.patient.updateProfile(payload);
-      setWithoutGeneticTestFlag(Boolean(updated?.without_genetic_test));
+      const nextWellness =
+        updated?.without_genetic_test ??
+        updated?.profile?.without_genetic_test ??
+        Boolean(topWg?.checked);
+      setWithoutGeneticTestFlag(Boolean(nextWellness));
+      if (topWg) topWg.checked = Boolean(nextWellness);
       renderSidebar();
       showAlert("success", "Профиль сохранён");
     } catch (err) {
       showAlert("danger", err.message);
+    } finally {
+      if (saveBtn) {
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = oldHtml || "Сохранить";
+      }
     }
   });
 }

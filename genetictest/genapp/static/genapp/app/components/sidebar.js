@@ -7,10 +7,12 @@ function navItemHtml(item, currentHash) {
       .replaceAll("&", "&amp;")
       .replaceAll("<", "&lt;")
       .replaceAll(">", "&gt;");
-    return `<div class="text-uppercase text-muted small fw-semibold px-2 pt-3 pb-0 mb-0" style="font-size:0.72rem;letter-spacing:0.04em">${lab}</div>`;
+    return `<div class="sidebar-section-title text-uppercase small fw-semibold px-2 pt-3 pb-0 mb-0" style="font-size:0.72rem;letter-spacing:0.04em">${lab}</div>`;
   }
-  const active = item.external ? false : `#${item.href}` === currentHash;
-  const cls = `nav-link py-2 px-2 text-dark ${item.icon ? "d-flex align-items-center" : ""}`;
+  const hashPath = String(currentHash || "").split("?")[0] || "";
+  const own = `#${item.href}`;
+  const active = item.external ? false : hashPath === own || hashPath.startsWith(`${own}/`);
+  const cls = `nav-link py-2 px-2 text-dark rounded-2 ${item.icon ? "d-flex align-items-center" : ""}`;
   const badge = item.badgeId
     ? ` <span class="badge text-bg-danger ms-1" id="${item.badgeId}" data-nurse-nav-badge="1" style="display:none">0</span>`
     : "";
@@ -70,25 +72,20 @@ export function renderSidebar() {
   } 
   else if (role === "doctor") {
     items.push(ART);
-    items.push({ href: "/doctor/appointments", label: "Заявки на приём", icon: "bi-calendar-event" });
+    items.push({ href: "/doctor/appointments", label: "Заявки", icon: "bi-calendar2-check" });
     items.push({ href: "/doctor/patients", label: "Пациенты", icon: "bi-people" });
   } 
   else if (role === "patient") {
     const wellness = getWithoutGeneticTestFlag();
-    items.push(ART);
-    items.push(MYTH, SYM);
     items.push({ href: "/dashboard", label: "Дашборд", icon: "bi-speedometer2" });
     items.push({ href: "/profile", label: "Профиль", icon: "bi-person-vcard" });
     if (!wellness) {
-      items.push({ href: "/genotypes", label: "Генетические данные", icon: "bi-diagram-2-fill" });
+      items.push({ href: "/genetics", label: "Генетика", icon: "bi-diagram-3" });
+      items.push({ href: "/recommendations", label: "Рекомендации", icon: "bi-stars" });
     }
-    items.push({ href: "/vitamin-tests", label: "Анализы витаминов", icon: "bi-droplet" });
-    items.push({ href: "/recommendations", label: "Рекомендации", icon: "bi-stars" });
-    if (!wellness) {
-      items.push({ href: "/passport", label: "Генетический паспорт", icon: "bi-person-badge" });
-    }
-    items.push({ href: "/appointments", label: "Запись к врачу", icon: "bi-calendar-check" });
-    items.push({ href: "/patient/consultations", label: "История консультаций", icon: "bi-chat-square-text" });
+    items.push({ href: "/vitamin-tests", label: "Анализы витаминов", icon: "bi-droplet-half" });
+    items.push({ href: "/doctor-communication", label: "Связь с врачом", icon: "bi-chat-dots" });
+    items.push({ href: "/materials", label: "Материалы", icon: "bi-journal-bookmark-fill" });
   } 
   else if (role === "admin") {
     items.push(ART);
@@ -104,7 +101,7 @@ export function renderSidebar() {
     items.push({ href: "/admin/gene-variants", label: "Варианты генов", icon: "bi-diagram-3" });
     items.push({ href: "/admin/recommendations", label: "Рекомендации (админ)", icon: "bi-lightbulb" });
     items.push({ section: "Пользователи" });
-    items.push({ href: "/admin/user-roles", label: "Врач / медсестра", icon: "bi-person-badge" });
+    items.push({ href: "/admin/user-roles", label: "Роли пользователей", icon: "bi-person-badge" });
   } 
   else {
     items.push(ART);

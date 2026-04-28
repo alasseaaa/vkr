@@ -1,6 +1,6 @@
-import { parseRoute } from "./router.js?v=10";
-import { showAlert, clearAlert } from "./components/alerts.js";
-import { renderSidebar } from "./components/sidebar.js";
+import { parseRoute } from "./router.js?v=11";
+import { showAlert, clearAlert } from "./components/alerts.js?v=2";
+import { renderSidebar } from "./components/sidebar.js?v=10";
 import { getAuth, isAuthed, setStoredRole, getEffectiveRole, NURSE_PROBE_ONCE_KEY } from "./services/auth.js?v=8";
 import { api } from "./services/api.js?v=12";
 import {
@@ -15,7 +15,33 @@ import {
   startNurseNotificationPolling,
   stopNurseNotificationPolling,
 } from "./services/nurseNotifications.js";
-import { syncPatientWellnessFromProfile } from "./services/wellness.js";
+import { getWithoutGeneticTestFlag, syncPatientWellnessFromProfile } from "./services/wellness.js";
+
+function closeSidebarMobile() {
+  document.body.classList.remove("sidebar-open");
+}
+
+function bindSidebarMobileControls() {
+  const toggleBtn = document.getElementById("sidebar-toggle");
+  const backdrop = document.getElementById("sidebar-backdrop");
+  if (toggleBtn && !toggleBtn.dataset.bound) {
+    toggleBtn.dataset.bound = "1";
+    toggleBtn.addEventListener("click", () => {
+      document.body.classList.toggle("sidebar-open");
+    });
+  }
+  if (backdrop && !backdrop.dataset.bound) {
+    backdrop.dataset.bound = "1";
+    backdrop.addEventListener("click", closeSidebarMobile);
+  }
+  document.querySelectorAll("#sidebar a[data-href], #sidebar a[data-external]").forEach((a) => {
+    if (a.dataset.mobileCloseBound) return;
+    a.dataset.mobileCloseBound = "1";
+    a.addEventListener("click", () => {
+      if (window.matchMedia("(max-width: 767.98px)").matches) closeSidebarMobile();
+    });
+  });
+}
 
 /** Пациент и админ: без даты согласия в профиле — редирект на #/consent. */
 async function ensureConsentForPatientRoutes(route) {
@@ -127,6 +153,20 @@ async function renderPage(route) {
     return;
   }
 
+  if (isAuthed() && r === "patient" && getWithoutGeneticTestFlag()) {
+    const blockedInWellness = new Set(["genetics", "genotypes", "passport", "recommendations"]);
+    if (blockedInWellness.has(route.name)) {
+      showAlert(
+        "warning",
+        route.name === "recommendations"
+          ? "Раздел рекомендаций скрыт в режиме без генетического теста. Отключите режим в профиле, чтобы открыть его снова."
+          : "Раздел генетики скрыт в режиме без генетического теста. Отключите режим в профиле, чтобы открыть его снова.",
+      );
+      window.location.hash = "#/dashboard";
+      return;
+    }
+  }
+
   const moduleMap = {
     login: () => import("./pages/login.js"),
     register: () => import("./pages/register.js?v=3"),
@@ -136,16 +176,20 @@ async function renderPage(route) {
     "symptom-test": () => import("./pages/symptomTest.js?v=6"),
     "article-detail": () => import("./pages/articles.js?v=2"),
     dashboard: () => import("./pages/dashboard.js?v=14"),
+    genetics: () => import("./pages/geneticsHub.js?v=1"),
+    "health-insights": () => import("./pages/healthInsightsHub.js?v=1"),
+    "doctor-communication": () => import("./pages/doctorCommunicationHub.js?v=1"),
+    materials: () => import("./pages/materialsHub.js?v=1"),
     genotypes: () => import("./pages/genotypes.js?v=11"),
     "nurse-genetic-uploads": () => import("./pages/nurse/geneticUploads.js?v=3"),
     "nurse-patient-genotypes": () => import("./pages/nurse/patientGenotypes.js?v=3"),
     "nurse-profile": () => import("./pages/nurse/profile.js?v=4"),
     "vitamin-tests": () => import("./pages/vitaminTests.js"),
-    recommendations: () => import("./pages/recommendations.js"),
+    recommendations: () => import("./pages/recommendations.js?v=2"),
     passport: () => import("./pages/passport.js?v=3"),
     "patient-consultations": () => import("./pages/patient/consultations.js"),
     "patient-appointments": () => import("./pages/patient/appointments.js?v=2"),
-    profile: () => import("./pages/profile.js?v=2"),
+    profile: () => import("./pages/profile.js?v=4"),
     "doctor-appointments": () => import("./pages/doctor/appointments.js"),
     "doctor-patients": () => import("./pages/doctor/patients.js"),
     "doctor-profile": () => import("./pages/doctor/profile.js"),
@@ -227,6 +271,7 @@ async function renderApp() {
     }
   }
   renderSidebar();
+  bindSidebarMobileControls();
   const route = parseRoute();
   try {
     if (!(await ensureConsentForPatientRoutes(route))) {
@@ -279,6 +324,7 @@ async function renderApp() {
 }
 
 window.addEventListener("hashchange", () => {
+  closeSidebarMobile();
   renderApp();
 });
 

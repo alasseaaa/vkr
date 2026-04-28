@@ -313,3 +313,7 @@ def vitamin_test_delete_view(request, pk):
 
 def spa_index_view(request):
     return render(request, "genapp/spa/index.html", {"debug": settings.DEBUG})
+
+
+def privacy_policy_view(request):
+    return render(request, "genapp/privacy_policy.html")
