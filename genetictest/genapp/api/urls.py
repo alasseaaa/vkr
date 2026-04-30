@@ -28,6 +28,7 @@ from genapp.api.gene_symbol_request import (
     PatientGeneSymbolRequestListCreateView,
 )
 from genapp.api.myth_truth import MythTruthQuestionListAPIView, MythTruthSubmitAPIView
+from genapp.api.push_views import PushUserSettingsAPIView
 from genapp.api.genetic_report import (
     NurseGeneticReportDetailAPIView,
     NurseGeneticReportListAPIView,
@@ -85,6 +86,7 @@ urlpatterns = [
     path("admin/users/", AdminUserListAPIView.as_view()),
     path("admin/users/<int:user_id>/role/", AdminUserClinicalRoleAPIView.as_view()),
     path("v1/comments/", DoctorCommentListAPIView.as_view()),
+    path("v1/push/user-settings/", PushUserSettingsAPIView.as_view()),
     path("auth/register/", RegisterAPIView.as_view()),
     path("auth/login/", LoginAPIView.as_view()),
     path("auth/me/", MeAPIView.as_view()),

@@ -345,7 +345,7 @@ export async function render(pageEl, { api, auth, showAlert }) {
   const isPatient = role === "patient";
   const isAdmin = role === "admin";
 
-  const [genotypes, vitaminTests, recommendations, comments, appointments] = await Promise.all([
+  const [genotypes, vitaminTests, recommendations, comments, appointments, unreadNotificationsData] = await Promise.all([
     api.patient.listGenotypes(),
     api.patient.listVitaminTests(),
     api.patient.getRecommendations().catch(() => null),
@@ -355,10 +355,15 @@ export async function render(pageEl, { api, auth, showAlert }) {
     (isPatient || isAdmin
       ? api.patient.listAppointments().catch(() => [])
       : Promise.resolve([])) || Promise.resolve([]),
+    (isPatient || isAdmin
+      ? api.patient.getUnreadNotifications().catch(() => ({ items: [] }))
+      : Promise.resolve({ items: [] })) || Promise.resolve({ items: [] }),
   ]);
 
   const commentList = Array.isArray(comments) ? comments : comments?.results || [];
   const apptList = Array.isArray(appointments) ? appointments : [];
+  const unreadNotifications = Array.isArray(unreadNotificationsData?.items) ? unreadNotificationsData.items : [];
+  const recommendationReminders = unreadNotifications.filter((n) => n?.user_recommendation != null);
   const hasUpcomingAppt = apptList.some((a) =>
     String(a?.status || "").toLowerCase().match(/pending|confirm|оформ/),
   );
@@ -472,6 +477,30 @@ export async function render(pageEl, { api, auth, showAlert }) {
       <button type="button" class="btn btn-sm btn-light" id="btn-enable-push">Разрешить</button>
     </div>`
       : "";
+  const remindersHtml = recommendationReminders.length
+    ? `<div class="card app-card border-0 shadow-sm mb-3 dashboard-animate">
+      <div class="card-header bg-white fw-semibold">Напоминания по рекомендациям</div>
+      <div class="card-body">
+        ${recommendationReminders
+          .map(
+            (n) => `<div class="border rounded-3 p-3 mb-2" data-reminder-id="${escapeHtml(n.id)}" data-user-rec-id="${escapeHtml(n.user_recommendation)}">
+              <div class="d-flex align-items-start justify-content-between gap-2">
+                <div>
+                  <div class="fw-semibold">${escapeHtml(n.title || "Напоминание")}</div>
+                  <div class="small text-muted">${escapeHtml(n.body || "")}</div>
+                </div>
+                <div class="text-nowrap small text-muted">${escapeHtml(formatDateRu(n.created_at))}</div>
+              </div>
+              <div class="mt-2 d-flex flex-wrap gap-2">
+                <button type="button" class="btn btn-sm btn-outline-success" data-action="done-reminder" data-id="${escapeHtml(n.id)}" data-user-rec-id="${escapeHtml(n.user_recommendation)}">Выполнено</button>
+                <a class="btn btn-sm btn-outline-primary" href="#/recommendations?highlight=${encodeURIComponent(String(n.user_recommendation))}" data-action="open-reminder" data-id="${escapeHtml(n.id)}">Перейти к рекомендации</a>
+              </div>
+            </div>`,
+          )
+          .join("")}
+      </div>
+    </div>`
+    : "";
 
   const onboardingW =
     showOnboardingWellness && (isPatient || isAdmin)
@@ -827,6 +856,7 @@ export async function render(pageEl, { api, auth, showAlert }) {
       </div>
     </div>
     ${notifHtml}
+    ${remindersHtml}
     ${onboardingW}
     ${onboardingD}
     ${symptomCtaHtml}
@@ -967,7 +997,9 @@ export async function render(pageEl, { api, auth, showAlert }) {
   if (pushBtn) {
     pushBtn.addEventListener("click", async () => {
       const r = await requestBrowserNotificationPermission();
-      if (r === "granted") showAlert("success", "Уведомления включены.");
+      if (r === "granted") {
+        showAlert("success", "Уведомления включены.");
+      }
       pushBtn.closest(".alert")?.remove();
     });
   }
@@ -993,4 +1025,34 @@ export async function render(pageEl, { api, auth, showAlert }) {
       }
     });
   }
+  pageEl.querySelectorAll('[data-action="done-reminder"]').forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const id = Number(btn.getAttribute("data-id"));
+      const userRecId = Number(btn.getAttribute("data-user-rec-id"));
+      if (!Number.isFinite(id) || !Number.isFinite(userRecId)) return;
+      try {
+        await api.push.updateUserSettings({
+          user_recommendation_id: userRecId,
+          status: "applied",
+        });
+        await api.patient.markNotificationsRead([id]);
+        const box = btn.closest("[data-reminder-id]");
+        if (box) box.remove();
+        showAlert("success", "Отметили как выполнено.");
+      } catch (e) {
+        showAlert("danger", e?.message || "Не удалось обновить напоминание.");
+      }
+    });
+  });
+  pageEl.querySelectorAll('[data-action="open-reminder"]').forEach((link) => {
+    link.addEventListener("click", async () => {
+      const id = Number(link.getAttribute("data-id"));
+      if (!Number.isFinite(id)) return;
+      try {
+        await api.patient.markNotificationsRead([id]);
+      } catch {
+        /* ignore */
+      }
+    });
+  });
 }

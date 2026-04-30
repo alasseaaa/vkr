@@ -50,8 +50,13 @@ function handleNewNotifications(items, api) {
   });
   n.onclick = () => {
     window.focus();
+    const recNotif = fresh.find((x) => x.user_recommendation != null);
     const toAppointments = fresh.some((x) => x.appointment != null);
-    window.location.hash = toAppointments ? "#/appointments" : "#/patient/consultations";
+    if (recNotif) {
+      window.location.hash = `#/recommendations?highlight=${encodeURIComponent(String(recNotif.user_recommendation))}`;
+    } else {
+      window.location.hash = toAppointments ? "#/appointments" : "#/patient/consultations";
+    }
     n.close();
     const ids = fresh.map((x) => Number(x.id)).filter((x) => Number.isFinite(x));
     if (ids.length) {

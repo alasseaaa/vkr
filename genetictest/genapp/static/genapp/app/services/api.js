@@ -131,6 +131,10 @@ export const api = {
     /** См. RegisterSerializer: обязательны в т.ч. consent_personal_data, without_genetic_test. */
     register: (data) => request("post", "/api/auth/register/", { data }),
   },
+  push: {
+    getUserSettings: () => request("get", "/api/v1/push/user-settings/"),
+    updateUserSettings: (payload) => request("post", "/api/v1/push/user-settings/", { data: payload }),
+  },
   patient: {
     getProfile: () => request("get", "/api/patient/profile/"),
     updateProfile: (payload) => request("patch", "/api/patient/profile/", { data: payload }),

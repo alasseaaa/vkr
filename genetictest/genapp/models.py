@@ -133,6 +133,28 @@ class Recommendation(models.Model):
         verbose_name = "Рекомендация"
         verbose_name_plural = "Рекомендации"
 
+
+class RecommendationReminder(models.Model):
+    recommendation = models.ForeignKey(
+        Recommendation,
+        on_delete=models.CASCADE,
+        related_name="reminders",
+        verbose_name="Рекомендация",
+    )
+    prompt_text = models.TextField(verbose_name="Текст напоминания")
+    interval_days = models.PositiveIntegerField(default=7, verbose_name="Интервал повтора (дни)")
+    is_active = models.BooleanField(default=True, verbose_name="Активно")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Создано")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Обновлено")
+
+    class Meta:
+        verbose_name = "Напоминание к рекомендации"
+        verbose_name_plural = "Напоминания к рекомендациям"
+        ordering = ["recommendation_id", "id"]
+
+    def __str__(self):
+        return f"{self.recommendation_id}: {self.prompt_text[:60]}"
+
 class GeneVariantRecommendation(models.Model):
     gene_variant = models.ForeignKey(GeneVariant, on_delete=models.CASCADE, verbose_name="Вариант гена")
     recommendation = models.ForeignKey(Recommendation, on_delete=models.CASCADE, verbose_name="Рекомендация")
@@ -167,6 +189,9 @@ class UserRecommendation(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Пользователь")
     recommendation = models.ForeignKey(Recommendation, on_delete=models.CASCADE, verbose_name="Рекомендация")
     status = models.CharField(max_length=16, choices=STATUS_CHOICES, default='new', verbose_name="Статус")
+    last_completed_at = models.DateTimeField(null=True, blank=True, verbose_name="Последнее выполнение")
+    last_reminder_sent_at = models.DateTimeField(null=True, blank=True, verbose_name="Последнее отправленное напоминание")
+    is_habit_tracking_enabled = models.BooleanField(default=True, verbose_name="Отслеживание привычки включено")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Создано")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Обновлено")
 
@@ -176,6 +201,7 @@ class UserRecommendation(models.Model):
     class Meta:
         verbose_name = "Пользовательская рекомендация"
         verbose_name_plural = "Пользовательские рекомендации"
+
 
 class Article(models.Model):
     title = models.CharField(max_length=256, verbose_name="Название")
@@ -519,6 +545,14 @@ class PatientNotification(models.Model):
         blank=True,
         related_name="patient_notifications",
         verbose_name="Заявка на приём",
+    )
+    user_recommendation = models.ForeignKey(
+        "UserRecommendation",
+        on_delete=models.CASCADE,
+        related_name="patient_notifications",
+        null=True,
+        blank=True,
+        verbose_name="Пользовательская рекомендация",
     )
     title = models.CharField(max_length=200, verbose_name="Заголовок")
     body = models.TextField(blank=True, verbose_name="Текст")

@@ -34,7 +34,11 @@ from genapp.genetics.serializers import (
     UserGenotypeSerializer,
 )
 from genapp.recommendations.serializers import RecommendationSerializer
-from genapp.recommendations.services import get_interpretation, get_user_recommendations
+from genapp.recommendations.services import (
+    ensure_due_recommendation_reminders,
+    get_interpretation,
+    get_user_recommendations,
+)
 from genapp.reports.patient_report_pdf import build_patient_report_pdf
 from genapp.doctor.activity import get_doctor_patient_activity
 from genapp.doctor.serializers import (
@@ -579,6 +583,7 @@ class PatientNotificationsUnreadAPIView(APIView):
     permission_classes = [IsPatientRole]
 
     def get(self, request):
+        ensure_due_recommendation_reminders(request.user)
         unread_qs = PatientNotification.objects.filter(user=request.user, is_read=False).order_by("-created_at")
         unread_count = unread_qs.count()
         items = unread_qs[:50]

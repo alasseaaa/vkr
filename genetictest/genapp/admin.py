@@ -12,6 +12,7 @@ from .models import (
     GeneticReportUpload,
     GeneSymbolRequest,
     NurseNotification,
+    RecommendationReminder,
 )
 
 
@@ -30,9 +31,16 @@ class UserAdmin(DjangoUserAdmin):
     list_filter = ("is_staff", "is_superuser", "is_active", "groups")
 
 
+class RecommendationReminderInline(admin.TabularInline):
+    model = RecommendationReminder
+    extra = 1
+    fields = ("prompt_text", "interval_days", "is_active")
+
+
 @admin.register(Recommendation)
 class RecommendationAdmin(admin.ModelAdmin):
     list_display = ('title', 'description', 'category')
+    inlines = [RecommendationReminderInline]
 admin.site.register(UserProfile)
 admin.site.register(Gene)
 admin.site.register(GeneVariant)

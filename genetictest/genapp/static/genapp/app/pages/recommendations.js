@@ -178,7 +178,7 @@ function renderCategories(categories, favSet) {
             .map((rec, idx, arr) => {
               const isFav = favSet.has(rec._uid);
               return `
-                <article class="rec-item py-3 ${idx < arr.length - 1 ? "border-bottom" : ""}" data-rec-uid="${escapeHtml(rec._uid)}">
+                <article class="rec-item py-3 ${idx < arr.length - 1 ? "border-bottom" : ""}" data-rec-uid="${escapeHtml(rec._uid)}" data-user-rec-id="${escapeHtml(rec.user_recommendation_id || "")}">
                   <div class="d-flex align-items-start justify-content-between gap-2 mb-2">
                     <div>
                       <div class="fw-semibold text-dark">${escapeHtml(rec.title || "")}</div>
@@ -189,6 +189,12 @@ function renderCategories(categories, favSet) {
                     </button>
                   </div>
                   <div class="rec-description text-body" style="white-space: pre-wrap;">${escapeHtml(rec.description || "")}</div>
+                  <div class="mt-2 p-2 rounded border bg-light-subtle">
+                    <div class="form-check form-switch mb-2">
+                      <input class="form-check-input" type="checkbox" data-action="habit-toggle" data-user-rec-id="${escapeHtml(rec.user_recommendation_id || "")}" ${rec.is_habit_tracking_enabled ? "" : "checked"}>
+                      <label class="form-check-label small">Не напоминать</label>
+                    </div>
+                  </div>
                 </article>`;
             })
             .join("")}
@@ -241,10 +247,19 @@ export async function render(pageEl, { api, showAlert, auth }) {
           background: #ffffff;
           box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
         }
+        .rec-item.rec-highlight {
+          animation: recPulseHighlight 1s ease-in-out 3;
+          background: #fff8d7 !important;
+          box-shadow: 0 0 0 2px rgba(255, 193, 7, .4), 0 8px 22px rgba(15, 23, 42, 0.1);
+        }
         .rec-description {
           font-size: 0.97rem;
           line-height: 1.58;
           color: #1f2937;
+        }
+        @keyframes recPulseHighlight {
+          0%,100% { transform: translateY(0); }
+          50% { transform: translateY(-2px); }
         }
         @keyframes recPulse { 0%,100% { opacity:0.5; } 50% { opacity:0.95; } }
       </style>
@@ -318,6 +333,18 @@ export async function render(pageEl, { api, showAlert, auth }) {
         return;
       }
       mount.innerHTML = renderCategories(filtered, favSet);
+      const rawHash = String(window.location.hash || "");
+      const query = rawHash.includes("?") ? rawHash.split("?")[1] : "";
+      const params = new URLSearchParams(query);
+      const hl = params.get("highlight");
+      if (hl) {
+        const target = mount.querySelector(`[data-user-rec-id="${hl}"]`);
+        if (target) {
+          target.scrollIntoView({ behavior: "smooth", block: "center" });
+          target.classList.add("rec-highlight");
+          window.setTimeout(() => target.classList.remove("rec-highlight"), 5000);
+        }
+      }
     };
 
     paint();
@@ -335,8 +362,17 @@ export async function render(pageEl, { api, showAlert, auth }) {
         paint();
         return;
       }
+      if (action === "habit-toggle") {
+        const userRecId = btn.getAttribute("data-user-rec-id");
+        if (!userRecId) return;
+        api.push
+          .updateUserSettings({
+            user_recommendation_id: Number(userRecId),
+            is_habit_tracking_enabled: !Boolean(btn.checked),
+          })
+          .catch((e) => showAlert("danger", e.message));
+      }
     });
-
     let debounce;
     searchEl.addEventListener("input", () => {
       clearTimeout(debounce);
