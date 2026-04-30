@@ -118,6 +118,26 @@ function showFieldErrors(form, errors) {
   });
 }
 
+const KEY_LAST_VISIT = "genapp_dashboard_last_visit";
+
+function readLastVisitLabel() {
+  try {
+    const raw = sessionStorage.getItem(KEY_LAST_VISIT);
+    if (!raw) return "—";
+    const d = new Date(raw);
+    if (Number.isNaN(d.getTime())) return "—";
+    return d.toLocaleString("ru-RU", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return "—";
+  }
+}
+
 export async function render(pageEl, { api, showAlert }) {
   pageEl.innerHTML = `<div class="card app-card"><div class="card-body">Загрузка профиля…</div></div>`;
 
@@ -132,6 +152,7 @@ export async function render(pageEl, { api, showAlert }) {
   const consentOk = hasPersonalDataConsent(data);
   const cmp = profileCompletion(data);
   const init = initials(data.first_name, data.last_name);
+  const lastVisitLabel = readLastVisitLabel();
 
   const wellnessChecked = Boolean(data.without_genetic_test || getWithoutGeneticTestFlag());
   pageEl.innerHTML = `
@@ -171,6 +192,7 @@ export async function render(pageEl, { api, showAlert }) {
       </div>
       <a class="btn btn-outline-secondary btn-sm" href="#/dashboard">На дашборд</a>
     </div>
+    <p class="text-muted small mb-3"><i class="bi bi-clock-history me-1" aria-hidden="true"></i>Предыдущий визит: <span class="text-body">${escapeHtml(lastVisitLabel)}</span></p>
 
     <div class="mb-3">
       <div class="profile-progress-text mb-1">Заполнено ${cmp.done} из ${cmp.total} важных полей</div>

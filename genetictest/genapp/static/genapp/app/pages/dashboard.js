@@ -2,6 +2,8 @@ import { requestBrowserNotificationPermission } from "../services/patientNotific
 
 const KEY_JUST_REGISTERED = "genapp_just_registered";
 const KEY_LAST_VISIT = "genapp_dashboard_last_visit";
+const KEY_VIT_SIG = "genapp_vitamin_signature";
+const KEY_VIT_ACTIVITY_TS = "genapp_vitamin_activity_ts";
 
 function escapeHtml(str) {
   return String(str ?? "")
@@ -33,6 +35,17 @@ function vitStatusToFillPercent(st) {
   return 25;
 }
 
+function formatDateRu(value) {
+  if (!value) return "—";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return String(value);
+  return d.toLocaleDateString("ru-RU", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+}
+
 function consumeJustRegistered() {
   try {
     if (sessionStorage.getItem(KEY_JUST_REGISTERED) === "1") {
@@ -53,11 +66,12 @@ function readAndUpdateLastVisit() {
       const d = new Date(raw);
       if (!Number.isNaN(d.getTime())) {
         previousLabel = d.toLocaleString("ru-RU", {
-          day: "numeric",
-          month: "short",
+          day: "2-digit",
+          month: "2-digit",
           year: "numeric",
           hour: "2-digit",
           minute: "2-digit",
+          hour12: false,
         });
       }
     }
@@ -66,6 +80,29 @@ function readAndUpdateLastVisit() {
     /* */
   }
   return previousLabel;
+}
+
+function readVitaminActivityTs(vitaminTests) {
+  try {
+    const signature = (vitaminTests || [])
+      .map((v) => `${v.id}:${v.vitamin}:${v.test_value}:${v.test_date}`)
+      .sort()
+      .join("|");
+    const prevSig = sessionStorage.getItem(KEY_VIT_SIG) || "";
+    let ts = Number(sessionStorage.getItem(KEY_VIT_ACTIVITY_TS) || 0);
+    if (signature && signature !== prevSig) {
+      ts = Date.now();
+      sessionStorage.setItem(KEY_VIT_ACTIVITY_TS, String(ts));
+      sessionStorage.setItem(KEY_VIT_SIG, signature);
+    } else if (!signature) {
+      sessionStorage.removeItem(KEY_VIT_SIG);
+      sessionStorage.removeItem(KEY_VIT_ACTIVITY_TS);
+      ts = 0;
+    }
+    return Number.isFinite(ts) ? ts : 0;
+  } catch {
+    return 0;
+  }
 }
 
 function pickTopRecs(recommendations, n = 3) {
@@ -169,7 +206,7 @@ function buildChartPayload(vitaminTests) {
   const labels = labelRaw.map((d) => {
     const x = new Date(d);
     return !Number.isNaN(x.getTime())
-      ? x.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit" })
+      ? x.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" })
       : String(d);
   });
   const lineColors = [
@@ -199,13 +236,18 @@ function buildChartPayload(vitaminTests) {
 function buildActivityItems(genotypes, vitaminTests, comments) {
   const items = [];
   (genotypes || []).forEach((g) => {
-    const t = g.created_at ? new Date(g.created_at).getTime() : 0;
+    const d = g.created_at ? new Date(g.created_at) : null;
+    const t = d && !Number.isNaN(d.getTime()) ? d.getTime() : 0;
     if (!t) return;
     items.push({
       t,
       icon: "dna",
       text: `Генотип: ${(g.gene_symbol || "ген").toString()}`,
-      sub: g.created_at,
+      sub: d.toLocaleDateString("ru-RU", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      }),
     });
   });
   (vitaminTests || []).forEach((v) => {
@@ -216,7 +258,7 @@ function buildActivityItems(genotypes, vitaminTests, comments) {
       t,
       icon: "vit",
       text: `Анализ: ${v.vitamin_name || "витамин"}`,
-      sub: v.test_date,
+      sub: formatDateRu(v.test_date),
     });
   });
   (comments || []).forEach((c) => {
@@ -232,7 +274,7 @@ function buildActivityItems(genotypes, vitaminTests, comments) {
       t: t || Date.now(),
       icon: "doc",
       text: `Комментарий: ${(c.text || "").toString().slice(0, 100)}${(c.text || "").length > 100 ? "…" : ""}`,
-      sub: c.created_at || "—",
+      sub: formatDateRu(c.created_at),
       who: doc,
     });
   });
@@ -341,7 +383,6 @@ export async function render(pageEl, { api, auth, showAlert }) {
   let patientProfile = null;
   let patientProfileCoreComplete = false;
   const justRegistered = (isPatient || isAdmin) ? consumeJustRegistered() : false;
-  const lastVisitLabel = readAndUpdateLastVisit();
 
   if (isPatient || isAdmin) {
     try {
@@ -387,7 +428,40 @@ export async function render(pageEl, { api, auth, showAlert }) {
   const stepProfileDone = patientProfileCoreComplete;
   const stepGeneDone = wellnessMode ? true : genotypesCount > 0;
   const stepVitDone = vitaminTestsCount > 0;
+  const reportReady = fillPct >= 100;
+  const doneSectionsCount = wellnessMode
+    ? (stepProfileDone ? 1 : 0) + (stepVitDone ? 1 : 0)
+    : (stepProfileDone ? 1 : 0) + (stepGeneDone ? 1 : 0) + (stepVitDone ? 1 : 0);
+  const totalSectionsCount = wellnessMode ? 2 : 3;
+  const progressBarClass = fillPct <= 0 ? "bg-secondary" : fillPct >= 100 ? "bg-success" : "bg-primary";
+  const progressHint = !stepProfileDone
+    ? "Начните с профиля — это займёт 1 минуту."
+    : !wellnessMode && !stepGeneDone
+      ? "Добавьте гены — это самый важный шаг для рекомендаций."
+      : !stepVitDone
+        ? "Добавьте анализы витаминов, чтобы увидеть полную картину."
+        : "Отлично! Ваш кабинет полностью готов.";
   const passportStatus = wellnessMode ? "Не используется" : genotypesCount > 0 ? "Заполнен" : "Пусто";
+  const nextStepKey = !stepProfileDone
+    ? "profile"
+    : !wellnessMode && !stepGeneDone
+      ? "genes"
+      : !stepVitDone
+        ? "vitamins"
+        : "report";
+
+  const renderHeroStep = (cfg) => {
+    const doneCls = cfg.done ? "dash-step--done" : "";
+    const activeCls = !cfg.done && cfg.key === nextStepKey ? "dash-step--active" : "";
+    const statusText = cfg.done ? "заполнено" : "заполнить";
+    const circleCls = cfg.key === "report" ? "dash-step__circle dash-step__circle--report" : "dash-step__circle";
+    return `<a class="dash-step ${doneCls} ${activeCls} text-decoration-none" href="${cfg.href}">
+      <div class="${circleCls}"><i class="bi ${cfg.icon}" aria-hidden="true"></i></div>
+      <div class="dash-step__label">${cfg.label}</div>
+      <div class="dash-step__meta">${statusText}</div>
+    </a>`;
+  };
+  const isOnboardingActive = (key, done) => !done && key === nextStepKey;
 
   const notifHtml =
     isPatient &&
@@ -437,22 +511,50 @@ export async function render(pageEl, { api, auth, showAlert }) {
 
   const onboardingD =
     showOnboarding && !isDoctor
-      ? `<div class="card border-0 shadow-sm mb-3 dashboard-animate" style="background: linear-gradient(180deg, #f0f4ff 0%, #fff 100%)">
+      ? reportReady
+        ? `<div class="card border-0 shadow-sm mb-3 dashboard-animate" style="background: linear-gradient(180deg, #edf7ef 0%, #fff 100%)">
+    <div class="card-body p-4">
+      <h2 class="h5 mb-2">Все разделы заполнены! Ваш отчёт готов.</h2>
+      <p class="text-muted small mb-3">Можно скачать персонализированный PDF-отчёт и перейти к рекомендациям.</p>
+      <button type="button" class="btn btn-success btn-sm" id="btn-download-report-inline">
+        <i class="bi bi-file-earmark-arrow-down me-1" aria-hidden="true"></i> Скачать PDF →
+      </button>
+    </div>
+  </div>`
+        : `<div class="card border-0 shadow-sm mb-3 dashboard-animate" style="background: linear-gradient(180deg, #f0f4ff 0%, #fff 100%)">
     <div class="card-body p-4">
       <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
         ${justRegistered ? `<span class="badge text-bg-success">Добро пожаловать</span>` : ""}
-        <h2 class="h5 mb-0">${justRegistered ? "Старт: 3 шага" : "Начните с данных"}</h2>
+        <h2 class="h5 mb-0">Как получить персональные рекомендации</h2>
       </div>
-      <p class="text-muted small">Профиль → <strong>гены</strong> (или PDF) → <strong>витамины</strong>.</p>
+      <p class="text-muted small mb-3">Заполните три раздела, и система сформирует ваш генетический паспорт и список рекомендаций.</p>
       <div class="row g-3 mt-1">
         <div class="col-md-4">
-          <a class="d-block text-decoration-none rounded-3 border p-3 h-100 bg-white shadow-sm" href="#/profile">1. Профиль</a>
+          <a class="d-block text-decoration-none rounded-3 border p-3 h-100 ${isOnboardingActive("profile", stepProfileDone) ? "border-primary" : "bg-white"} ${isOnboardingActive("profile", stepProfileDone) ? "" : "shadow-sm"}" style="${isOnboardingActive("profile", stepProfileDone) ? "box-shadow: 0 4px 20px rgba(13, 110, 253, 0.12)" : ""}" href="#/profile">
+            <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+              <div class="fw-semibold text-dark"><i class="bi bi-person-circle me-1"></i> 1. Профиль</div>
+              <span class="badge ${stepProfileDone ? "text-bg-success" : "text-bg-primary"}">${stepProfileDone ? "✅ Заполнено" : "➕ Заполнить"}</span>
+            </div>
+            <div class="small text-muted">Укажите пол, возраст, рост и вес — это важно для точных рекомендаций.</div>
+          </a>
         </div>
         <div class="col-md-4">
-          <a class="d-block text-decoration-none rounded-3 border p-3 h-100 border-primary" style="box-shadow: 0 4px 20px rgba(13, 110, 253, 0.12)" href="#/genotypes">2. Генетика</a>
+          <a class="d-block text-decoration-none rounded-3 border p-3 h-100 ${isOnboardingActive("genes", stepGeneDone) ? "border-primary" : "bg-white"} ${isOnboardingActive("genes", stepGeneDone) ? "" : "shadow-sm"}" style="${isOnboardingActive("genes", stepGeneDone) ? "box-shadow: 0 4px 20px rgba(13, 110, 253, 0.12)" : ""}" href="#/genotypes">
+            <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+              <div class="fw-semibold text-dark"><i class="bi bi-dna me-1"></i> 2. Генетика</div>
+              <span class="badge ${stepGeneDone ? "text-bg-success" : "text-bg-primary"}">${stepGeneDone ? "✅ Заполнено" : "➕ Заполнить"}</span>
+            </div>
+            <div class="small text-muted">Внесите гены вручную или загрузите PDF — при необходимости поможет медсестра.</div>
+          </a>
         </div>
         <div class="col-md-4">
-          <a class="d-block text-decoration-none rounded-3 border p-3 h-100 bg-white shadow-sm" href="#/vitamin-tests">3. Витамины</a>
+          <a class="d-block text-decoration-none rounded-3 border p-3 h-100 ${isOnboardingActive("vitamins", stepVitDone) ? "border-primary" : "bg-white"} ${isOnboardingActive("vitamins", stepVitDone) ? "" : "shadow-sm"}" style="${isOnboardingActive("vitamins", stepVitDone) ? "box-shadow: 0 4px 20px rgba(13, 110, 253, 0.12)" : ""}" href="#/vitamin-tests">
+            <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+              <div class="fw-semibold text-dark"><i class="bi bi-droplet me-1"></i> 3. Анализы</div>
+              <span class="badge ${stepVitDone ? "text-bg-success" : "text-bg-primary"}">${stepVitDone ? "✅ Заполнено" : "➕ Заполнить"}</span>
+            </div>
+            <div class="small text-muted">Добавьте результаты анализов на витамины — система покажет дефицит/норму.</div>
+          </a>
         </div>
       </div>
     </div>
@@ -499,19 +601,24 @@ export async function render(pageEl, { api, auth, showAlert }) {
       if (n > b) b = n;
     });
     (vitaminTests || []).forEach((v) => {
-      const n = v.test_date ? new Date(v.test_date).getTime() : 0;
+      const x = v.updated_at || v.created_at || v.test_date;
+      const n = x ? new Date(x).getTime() : 0;
       if (n > b) b = n;
     });
+    const vitMutationTs = readVitaminActivityTs(vitaminTests);
+    if (vitMutationTs > b) b = vitMutationTs;
     if (patientProfile?.updated_at) {
       const n = new Date(patientProfile.updated_at).getTime();
       if (n > b) b = n;
     }
     if (!b) return "—";
     return new Date(b).toLocaleString("ru-RU", {
-      day: "numeric",
-      month: "short",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
+      hour12: false,
     });
   })();
 
@@ -529,7 +636,7 @@ export async function render(pageEl, { api, auth, showAlert }) {
           </div>
         </div>
       </td>
-      <td class="text-nowrap text-muted small">${escapeHtml(String(t.test_date))}</td>
+      <td class="text-nowrap text-muted small">${escapeHtml(formatDateRu(t.test_date))}</td>
     </tr>`,
     )
     .join("");
@@ -638,91 +745,85 @@ export async function render(pageEl, { api, auth, showAlert }) {
     ? `Добавьте <strong>ещё одно</strong> измерение${needMoreName} — на графике появятся линии динамики (до 3 витаминов).`
     : "Когда накопите несколько точек по витаминам, здесь отобразим кривые (до 3 витаминов с динамикой).";
 
-  const leadLine = isPatient
-    ? justRegistered
-      ? "Добро пожаловать. Ниже — путь к полноценному отчёту."
-      : "Сводка: профиль, маркеры и витамины в одном месте."
-    : isAdmin
-      ? "Просмотр в режиме, близком к кабинету пациента."
-      : "";
-
-  const stepperHtml = wellnessMode
-    ? `<div class="dash-stepper small">
-      <div class="dash-step ${stepProfileDone ? "dash-step--done" : "dash-step--active"}">
-        <div class="dash-step__circle">1</div>
-        <div class="dash-step__label">Профиль</div>
-      </div>
-      <div class="dash-step ${ctaVdone ? "dash-step--done" : "dash-step--active"}">
-        <div class="dash-step__circle">2</div>
-        <div class="dash-step__label">Витамины</div>
-      </div>
-    </div>`
-    : `<div class="dash-stepper small">
-      <div class="dash-step ${stepProfileDone ? "dash-step--done" : "dash-step--active"}">
-        <div class="dash-step__circle">1</div>
-        <div class="dash-step__label">Профиль</div>
-      </div>
-      <div class="dash-step ${stepGeneDone ? "dash-step--done" : "dash-step--active"}">
-        <div class="dash-step__circle">2</div>
-        <div class="dash-step__label">Генотипы</div>
-      </div>
-      <div class="dash-step ${stepVitDone ? "dash-step--done" : "dash-step--active"}">
-        <div class="dash-step__circle">3</div>
-        <div class="dash-step__label">Витамины</div>
-      </div>
-      <div class="dash-step ${fillPct >= 100 ? "dash-step--done" : ""}">
-        <div class="dash-step__circle">✓</div>
-        <div class="dash-step__label">Отчёт</div>
-      </div>
-    </div>`;
+  const stepperItems = wellnessMode
+    ? [
+        { key: "profile", label: "Профиль", icon: "bi-person-circle", done: stepProfileDone, href: "#/profile" },
+        { key: "vitamins", label: "Витамины", icon: "bi-droplet", done: stepVitDone, href: "#/vitamin-tests" },
+        { key: "report", label: "Отчёт", icon: "bi-file-text", done: reportReady, href: "#/dashboard" },
+      ]
+    : [
+        { key: "profile", label: "Профиль", icon: "bi-person-circle", done: stepProfileDone, href: "#/profile" },
+        { key: "genes", label: "Генетика", icon: "bi-diagram-3", done: stepGeneDone, href: "#/genotypes" },
+        { key: "vitamins", label: "Витамины", icon: "bi-droplet", done: stepVitDone, href: "#/vitamin-tests" },
+        { key: "report", label: "Отчёт", icon: "bi-file-text", done: reportReady, href: "#/dashboard" },
+      ];
+  const stepperHtml = `<div class="dash-stepper small">${stepperItems.map((s) => renderHeroStep(s)).join("")}</div>`;
 
   const emptyVit = !(vitaminTests && vitaminTests.length);
   const vitTableFooter =
-    isPatient || isAdmin
-      ? `<div class="card-footer bg-white border-0 border-top small py-2 d-flex flex-wrap align-items-center justify-content-between gap-2">
-      <span class="text-muted me-auto">Полезное</span>
-      <div>
-        <a class="me-3" href="#/myth-truth">Миф или правда</a>
-        <a href="#/articles">Материалы</a>
-      </div>
-    </div>`
-      : "";
+    "";
 
   pageEl.innerHTML = `<div class="app-page app-dashboard">
+    <style>
+      .dash-step {
+        border-radius: .7rem;
+        padding: .2rem .25rem;
+      }
+      .dash-step__meta {
+        font-size: .68rem;
+        line-height: 1.2;
+        color: #6c757d;
+        min-height: .95rem;
+      }
+      .dash-step--done .dash-step__meta {
+        color: #198754;
+        font-weight: 600;
+      }
+      .dash-step__circle--report {
+        border-radius: .45rem;
+      }
+      .dash-step--active {
+        background: rgba(13, 110, 253, .08);
+      }
+      .dash-progress-wrap .progress-bar {
+        transition: width .45s ease;
+      }
+      .dash-progress-caption {
+        font-size: .78rem;
+        color: #6c757d;
+      }
+    </style>
     <div class="dashboard-hero p-3 p-md-4 mb-3 mb-md-4 dashboard-animate">
       <div class="dashboard-hero-inner">
         <div class="d-flex flex-wrap align-items-start justify-content-between gap-2 gap-md-3">
           <div>
             <div class="d-flex align-items-center flex-wrap gap-2 mb-1">
               <h1 class="h3 mb-0" style="letter-spacing:-0.02em">Здравствуйте, ${escapeHtml(patientDisplay || "—")}</h1>
-              <span class="badge text-bg-light border text-secondary"><i class="bi bi-shield-lock me-1"></i>кабинет</span>
             </div>
-            <p class="text-muted small mb-1"><i class="bi bi-clock-history me-1" aria-hidden="true"></i>Предыдущий визит: <span class="text-body">${escapeHtml(lastVisitLabel)}</span> · <a href="#/profile" class="text-decoration-none">профиль</a></p>
-            <p class="text-muted small mb-0"><i class="bi bi-activity me-1 text-primary" aria-hidden="true"></i>Актуальные данные: <strong class="text-body fw-medium">${lastActivity === "—" ? "—" : escapeHtml(lastActivity)}</strong></p>
+            <p class="text-muted small mb-0"><i class="bi bi-activity me-1 text-primary" aria-hidden="true"></i>Последняя активность: <strong class="text-body fw-medium">${lastActivity === "—" ? "—" : escapeHtml(lastActivity)}</strong></p>
           </div>
-          <div class="d-none d-md-block text-end small text-secondary">
-            <i class="bi bi-lock-fill text-success" title="HTTPS" aria-hidden="true"></i> соединение защищено
-          </div>
-        </div>
-        <div class="row g-3 align-items-stretch mt-1">
-          <div class="col-12 col-lg-5">
-            <div class="small text-muted text-uppercase mb-1" style="font-size:0.68rem; letter-spacing:0.06em">Сборка отчёта</div>
-            <div class="d-flex align-items-center gap-2">
-              <div class="flex-grow-1" style="max-width: 14rem">
-                <div class="progress" style="height: 0.5rem; border-radius: 0.5rem">
-                  <div class="progress-bar ${fillPct >= 100 ? "bg-success" : "bg-primary"}" style="width: ${fillPct}%"></div>
-                </div>
-              </div>
-              <span class="small fw-semibold text-primary">${fillPct}%</span>
-            </div>
-            ${stepperHtml}
-          </div>
-          <div class="col-12 col-lg-7 text-lg-end small">
+          <div class="d-none d-md-block text-end small">
             <div>Рекомендации: <span class="fw-medium text-body">${recItems}</span> в <span class="text-body fw-medium">${recCats}</span> раздел.</div>
             <div class="text-muted">Паспорт (ДНК): <span class="text-body">${escapeHtml(passportStatus)}</span></div>
           </div>
         </div>
-        <p class="text-secondary small mt-2 mb-0"><i class="bi bi-info-circle me-1" aria-hidden="true"></i>${escapeHtml(leadLine)}</p>
+        <div class="row g-3 align-items-stretch mt-1">
+          <div class="col-12">
+            <div class="small text-muted text-uppercase mb-1" style="font-size:0.68rem; letter-spacing:0.06em">Ваш прогресс в заполнении кабинета</div>
+            <div class="dash-progress-caption mb-2">После заполнения вы получите персонализированный PDF-отчёт и рекомендации.</div>
+            ${stepperHtml}
+            <div class="mt-2 dash-progress-wrap">
+              <div class="progress" style="height: 0.5rem; border-radius: 0.5rem">
+                <div class="progress-bar ${progressBarClass}" style="width: ${fillPct}%"></div>
+              </div>
+              <div class="d-flex align-items-center justify-content-between gap-2 mt-1">
+                <span class="small text-muted">Заполнено ${doneSectionsCount} из ${totalSectionsCount} разделов</span>
+                <span class="small fw-semibold text-primary">${fillPct}%</span>
+              </div>
+              <div class="small text-muted mt-1">${escapeHtml(progressHint)}</div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     ${notifHtml}
@@ -730,12 +831,13 @@ export async function render(pageEl, { api, auth, showAlert }) {
     ${onboardingD}
     ${symptomCtaHtml}
     ${exportActionsHtml}
+    <h2 class="h6 text-uppercase text-secondary mb-2" style="font-size:0.7rem; letter-spacing:0.05em">Ваша статистика</h2>
     <div class="row g-3 g-md-3 mb-4">
       <div class="col-6 col-sm-3 dashboard-animate">
         <div class="dash-metric h-100">
           <div class="d-flex align-items-center gap-2 gap-md-3">
             <div class="dash-ico text-primary bg-primary bg-opacity-10">
-              <i class="bi bi-diagram-2-fill" aria-hidden="true"></i>
+              <i class="bi bi-diagram-3" aria-hidden="true"></i>
             </div>
             <div>
               <div class="text-muted" style="font-size:0.8rem">Генотипы</div>
@@ -872,6 +974,17 @@ export async function render(pageEl, { api, auth, showAlert }) {
   const pdfB = pageEl.querySelector("#btn-download-report");
   if (pdfB) {
     pdfB.addEventListener("click", async () => {
+      try {
+        await api.patient.downloadReportPdf();
+        showAlert("success", "PDF сохранён.");
+      } catch (e) {
+        showAlert("danger", e?.message);
+      }
+    });
+  }
+  const pdfInline = pageEl.querySelector("#btn-download-report-inline");
+  if (pdfInline) {
+    pdfInline.addEventListener("click", async () => {
       try {
         await api.patient.downloadReportPdf();
         showAlert("success", "PDF сохранён.");

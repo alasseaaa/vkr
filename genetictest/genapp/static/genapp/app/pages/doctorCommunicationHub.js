@@ -8,7 +8,7 @@ const TABS = [
   {
     key: "consultations",
     label: "История консультаций",
-    load: () => import("./patient/consultations.js"),
+    load: () => import("./patient/consultations.js?v=2"),
     route: { name: "patient-consultations" },
   },
 ];
