@@ -37,11 +37,19 @@ export function parseRoute() {
     return { name: "doctor-communication", tab: query.get("tab") || parts[1] || "appointments" };
   if (parts[0] === "materials") return { name: "materials", tab: query.get("tab") || parts[1] || "articles" };
   if (parts[0] === "genotypes") return { name: "genotypes" };
+  if (parts[0] === "vitamins") {
+    if (parts[1] === "focus" && parts[2] && !Number.isNaN(Number(parts[2]))) {
+      return { name: "vitamins", tab: "tests", focusTestId: Number(parts[2]) };
+    }
+    let tab = query.get("tab") || parts[1] || "tests";
+    if (tab !== "intake" && tab !== "tests") tab = "tests";
+    return { name: "vitamins", tab };
+  }
   if (parts[0] === "vitamin-tests") {
     if (parts[1] === "focus" && parts[2] && !Number.isNaN(Number(parts[2]))) {
-      return { name: "vitamin-tests", focusTestId: Number(parts[2]) };
+      return { name: "vitamins", tab: "tests", focusTestId: Number(parts[2]) };
     }
-    return { name: "vitamin-tests" };
+    return { name: "vitamins", tab: "tests" };
   }
   if (parts[0] === "recommendations") return { name: "recommendations" };
   if (parts[0] === "passport") {

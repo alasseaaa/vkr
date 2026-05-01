@@ -151,7 +151,7 @@ function renderEmptyState(withFilters) {
         <p class="text-muted small mb-2">Вот что можно сделать:</p>
         <ol class="small mb-0">
           <li>Добавить генетические данные → <a href="#/genotypes">Мои гены</a></li>
-          <li>Добавить анализы витаминов → <a href="#/vitamin-tests">Анализы витаминов</a></li>
+          <li>Добавить анализы витаминов → <a href="#/vitamins">Витамины</a></li>
           <li>Пройти тест по симптомам → <a href="#/symptom-test">Тест по симптомам</a></li>
         </ol>
       </div>

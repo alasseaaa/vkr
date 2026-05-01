@@ -287,6 +287,7 @@ class Command(BaseCommand):
                 "diet_preferences": p.diet_preferences,
                 "goals_text": p.goals_text,
                 "without_genetic_test": p.without_genetic_test,
+                "patronymic": p.patronymic or "",
                 "birth_date": p.birth_date,
                 "gender": p.gender,
                 "updated_at": p.updated_at,

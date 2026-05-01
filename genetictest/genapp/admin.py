@@ -14,6 +14,7 @@ from .models import (
     GeneSymbolRequest,
     NurseNotification,
     RecommendationReminder,
+    PatientVitaminIntake,
 )
 
 
@@ -93,6 +94,17 @@ admin.site.register(Vitamin)
 class VitaminTestResultAdmin(admin.ModelAdmin):
     list_filter = ('vitamin', 'test_date', 'user')
     search_fields = ('user__username', 'vitamin__name')
+
+
+@admin.register(PatientVitaminIntake)
+class PatientVitaminIntakeAdmin(admin.ModelAdmin):
+    list_display = ("user", "vitamin", "started_on", "ended_on", "dose_note", "suggested_from", "created_at")
+    list_filter = ("vitamin", "started_on", "suggested_from")
+    search_fields = ("user__username", "user__email", "vitamin__name", "notes", "dose_note")
+    raw_id_fields = ("user", "vitamin")
+    readonly_fields = ("created_at", "updated_at")
+
+
 admin.site.register(DoctorPatient)
 
 

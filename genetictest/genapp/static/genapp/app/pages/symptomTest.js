@@ -175,11 +175,11 @@ export async function render(pageEl, { api, showAlert, auth: authInCtx }) {
             </div>
           </div>
           <div class="alert alert-info small border-0 mt-3 mb-0" role="note">
-            <strong>Дальнейшие шаги.</strong> Внести реальные <a href="#/genotypes" class="alert-link">генотипы</a> и <a href="#/vitamin-tests" class="alert-link">анализы</a> в кабинет — тогда <a href="#/recommendations" class="alert-link">рекомендации</a> и паспорт станут персональны. Сужать или расширять панель анализов имеет смысл только вместе с врачом, который знает клиническую картину.
+            <strong>Дальнейшие шаги.</strong> Внести реальные <a href="#/genotypes" class="alert-link">генотипы</a> и <a href="#/vitamins" class="alert-link">анализы</a> в кабинет — тогда <a href="#/recommendations" class="alert-link">рекомендации</a> и паспорт станут персональны. Сужать или расширять панель анализов имеет смысл только вместе с врачом, который знает клиническую картину.
           </div>
           <div class="d-flex flex-wrap gap-2 mt-3">
             <a class="btn btn-primary" href="#/genotypes"><i class="bi bi-dna me-1"></i> К генотипам</a>
-            <a class="btn btn-outline-primary" href="#/vitamin-tests"><i class="bi bi-droplet me-1"></i> К анализам витаминов</a>
+            <a class="btn btn-outline-primary" href="#/vitamins"><i class="bi bi-droplet me-1"></i> К витаминам</a>
             <a class="btn btn-outline-secondary" href="#/recommendations">К рекомендациям</a>
             <button type="button" class="btn btn-outline-dark" id="st-retake">Назад к вопросам</button>
           </div>

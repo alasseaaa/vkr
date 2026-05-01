@@ -22,6 +22,7 @@ from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer, Table, Tabl
 
 from genapp.models import DoctorComment, DoctorPatient
 from genapp.recommendations.services import get_user_recommendations
+from genapp.users.fio import format_fio_ru
 
 _FONT_REGISTERED = False
 _FONT_NAME = "PatientReportTimes"
@@ -96,28 +97,24 @@ def _p(text: str, style: ParagraphStyle) -> Paragraph:
     return Paragraph(t, style)
 
 
-def _user_display_name(u) -> str:
-    return f"{u.first_name or ''} {u.last_name or ''}".strip() or u.username
-
-
 def _treating_doctor_name(user):
     """Один лечащий врач по привязке DoctorPatient; иначе — из последнего комментария."""
     dp = (
         DoctorPatient.objects.filter(patient=user)
-        .select_related("doctor")
+        .select_related("doctor__userprofile")
         .order_by("created_at")
         .first()
     )
     if dp and dp.doctor_id:
-        return _user_display_name(dp.doctor)
+        return format_fio_ru(dp.doctor)
     c = (
         DoctorComment.objects.filter(patient=user, status="published")
-        .select_related("doctor")
+        .select_related("doctor__userprofile")
         .order_by("-created_at")
         .first()
     )
     if c:
-        return _user_display_name(c.doctor)
+        return format_fio_ru(c.doctor)
     return None
 
 
@@ -284,9 +281,7 @@ def build_patient_report_pdf(user) -> bytes:
     now = timezone.localtime(timezone.now())
     doc_number = f"ГП-{user.id}/{now.year}-{now.month:02d}"
     doc_title = "Аналитическая справка по результатам генетического исследования"
-    patient_name = f"{user.last_name or ''} {user.first_name or ''} {getattr(user, 'middle_name', '') or ''}".strip()
-    if not patient_name:
-        patient_name = _user_display_name(user)
+    patient_name = format_fio_ru(user)
 
     profile = getattr(user, "userprofile", None)
     birth_and_age = _format_birth_and_age(getattr(profile, "birth_date", None), now)

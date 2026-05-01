@@ -12,6 +12,7 @@ class DoctorPatientListSerializer(serializers.ModelSerializer):
     """Список пациентов врача с краткой статистикой для фильтров и таблицы."""
 
     profile = serializers.SerializerMethodField()
+    full_name = serializers.SerializerMethodField()
     genotypes_count = serializers.IntegerField(read_only=True)
     vitamin_tests_count = serializers.IntegerField(read_only=True)
     last_login = serializers.DateTimeField(read_only=True, allow_null=True)
@@ -23,11 +24,17 @@ class DoctorPatientListSerializer(serializers.ModelSerializer):
             "username",
             "first_name",
             "last_name",
+            "full_name",
             "profile",
             "genotypes_count",
             "vitamin_tests_count",
             "last_login",
         ]
+
+    def get_full_name(self, obj):
+        from genapp.users.fio import format_fio_ru
+
+        return format_fio_ru(obj)
 
     def get_profile(self, obj):
         try:
@@ -158,9 +165,9 @@ class PatientDoctorCommentReadSerializer(serializers.ModelSerializer):
         ]
 
     def get_doctor_name(self, obj):
-        u = obj.doctor
-        name = f"{u.first_name or ''} {u.last_name or ''}".strip()
-        return name or u.username or str(u.pk)
+        from genapp.users.fio import format_fio_ru
+
+        return format_fio_ru(obj.doctor)
 
     def get_created_at(self, obj):
         dt = timezone.localtime(obj.created_at)

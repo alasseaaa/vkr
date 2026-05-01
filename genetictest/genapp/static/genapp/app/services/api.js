@@ -110,6 +110,40 @@ export async function requestBlob(method, url, { params } = {}) {
   }
 }
 
+async function patientVitaminIntakeFormRequest(method, url, formData) {
+  const headers = {};
+  const auth = getBasicAuthHeaderValue();
+  if (auth) headers.Authorization = auth;
+  const csrf = getCookie("csrftoken");
+  if (csrf) headers["X-CSRFToken"] = csrf;
+  const r = await fetch(url, { method, body: formData, headers, credentials: "same-origin" });
+  const text = await r.text();
+  if (!r.ok) {
+    let msg = text;
+    try {
+      const j = JSON.parse(text);
+      if (typeof j.detail === "string") msg = j.detail;
+      else if (j && typeof j === "object") {
+        msg = Object.entries(j)
+          .map(([k, v]) => {
+            const vv = Array.isArray(v) ? v[0] : v;
+            return `${k}: ${vv}`;
+          })
+          .join("; ");
+      }
+    } catch {
+      /* */
+    }
+    throw new Error(typeof msg === "string" ? msg : "Ошибка сохранения");
+  }
+  if (!text) return {};
+  try {
+    return JSON.parse(text);
+  } catch {
+    return {};
+  }
+}
+
 export const api = {
   /** Комментарии врача (чтение): GET /api/v1/comments/ */
   comments: {
@@ -151,6 +185,49 @@ export const api = {
     updateVitaminTest: (id, payload) =>
       request("put", `/api/patient/vitamin-tests/${id}/`, { data: payload }),
     deleteVitaminTest: (id) => request("delete", `/api/patient/vitamin-tests/${id}/`),
+
+    listVitaminIntakes: () => request("get", "/api/patient/vitamin-intake/"),
+    createVitaminIntake: (payload) =>
+      request("post", "/api/patient/vitamin-intake/", { data: payload }),
+    createVitaminIntakeMultipart: (formData) =>
+      patientVitaminIntakeFormRequest("post", "/api/patient/vitamin-intake/", formData),
+    updateVitaminIntake: (id, payload) =>
+      request("patch", `/api/patient/vitamin-intake/${id}/`, { data: payload }),
+    updateVitaminIntakeMultipart: (id, formData) =>
+      patientVitaminIntakeFormRequest("patch", `/api/patient/vitamin-intake/${id}/`, formData),
+    deleteVitaminIntake: (id) => request("delete", `/api/patient/vitamin-intake/${id}/`),
+    async openVitaminIntakePhotoInNewTab(id) {
+      const url = `/api/patient/vitamin-intake/${id}/photo/`;
+      const headers = {};
+      const a = getBasicAuthHeaderValue();
+      if (a) headers.Authorization = a;
+      const r = await fetch(url, { method: "GET", headers, credentials: "same-origin" });
+      if (!r.ok) {
+        const t = await r.text();
+        let msg = t;
+        try {
+          const j = JSON.parse(t);
+          msg = typeof j.detail === "string" ? j.detail : t;
+        } catch {
+          /* */
+        }
+        throw new Error(typeof msg === "string" ? msg : "Не удалось открыть фото");
+      }
+      const blob = await r.blob();
+      const burl = window.URL.createObjectURL(blob);
+      const w = window.open(burl, "_blank", "noopener");
+      if (!w) {
+        window.URL.revokeObjectURL(burl);
+        throw new Error("Включите всплывающие окна для просмотра или скачайте файл.");
+      }
+      window.setTimeout(() => {
+        try {
+          window.URL.revokeObjectURL(burl);
+        } catch {
+          /* */
+        }
+      }, 600_000);
+    },
 
     getInterpretation: () => request("get", "/api/patient/interpretation/"),
     getRecommendations: () => request("get", "/api/patient/recommendations/"),

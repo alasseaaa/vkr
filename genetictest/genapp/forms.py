@@ -10,6 +10,7 @@ class CustomUserCreationForm(UserCreationForm):
     email = forms.EmailField(required=True, label="Email")
     first_name = forms.CharField(max_length=30, required=True, label="Имя")
     last_name = forms.CharField(max_length=30, required=True, label="Фамилия")
+    patronymic = forms.CharField(max_length=64, min_length=2, required=True, label="Отчество")
     
     class Meta:
         model = User
@@ -49,13 +50,27 @@ class CustomAuthenticationForm(AuthenticationForm):
 class UserProfileForm(forms.ModelForm):
     class Meta:
         model = UserProfile
-        fields = ['height', 'weight', 'activity_level', 'diet_preferences', 
-                  'goals_text', 'birth_date', 'gender']
+        fields = [
+            "patronymic",
+            "height",
+            "weight",
+            "activity_level",
+            "diet_preferences",
+            "goals_text",
+            "birth_date",
+            "gender",
+        ]
         widgets = {
-            'birth_date': forms.DateInput(attrs={'type': 'date'}),
-            'diet_preferences': forms.Textarea(attrs={'rows': 3}),
-            'goals_text': forms.Textarea(attrs={'rows': 3}),
+            "birth_date": forms.DateInput(attrs={"type": "date"}),
+            "diet_preferences": forms.Textarea(attrs={"rows": 3}),
+            "goals_text": forms.Textarea(attrs={"rows": 3}),
         }
+
+    def clean_patronymic(self):
+        v = (self.cleaned_data.get("patronymic") or "").strip()
+        if len(v) < 2:
+            raise ValidationError("Укажите отчество (не менее 2 символов).")
+        return v
 
 
 class UserGenotypeForm(forms.ModelForm):

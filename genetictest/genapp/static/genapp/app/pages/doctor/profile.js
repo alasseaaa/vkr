@@ -103,7 +103,9 @@ export async function render(pageEl, { api, route, showAlert }) {
         <div class="card shadow-sm mb-3">
           <div class="card-header bg-white fw-semibold">Данные пациента</div>
           <div class="card-body">
-            <div class="mb-2"><span class="text-muted small">Имя:</span> <span class="fw-semibold">${escapeHtml(patient?.first_name || "")} ${escapeHtml(patient?.last_name || "")}</span></div>
+            <div class="mb-2"><span class="text-muted small">ФИО:</span> <span class="fw-semibold">${escapeHtml(
+              patient?.full_name || `${patient?.first_name || ""} ${patient?.last_name || ""}`.trim(),
+            )}</span></div>
             <div class="mb-2"><span class="text-muted small">Рост:</span> ${escapeHtml(patientProfile?.height ?? "—")} см</div>
             <div class="mb-2"><span class="text-muted small">Вес:</span> ${escapeHtml(patientProfile?.weight ?? "—")} кг</div>
             <div class="mb-2"><span class="text-muted small">Пол:</span> ${escapeHtml(patientProfile?.gender ?? "—")}</div>

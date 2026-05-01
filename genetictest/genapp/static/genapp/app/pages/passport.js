@@ -1,4 +1,4 @@
-import { doctorCommentsForMarkerHtml } from "../components/doctorComment.js";
+import { doctorCommentsForMarkerHtml } from "../components/doctorComment.js?v=3";
 import { getWithoutGeneticTestFlag } from "../services/wellness.js";
 
 function escapeHtml(str) {

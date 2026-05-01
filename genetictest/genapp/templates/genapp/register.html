@@ -63,6 +63,13 @@
                                 {{ form.last_name }}
                             </div>
                         </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.patronymic.id_for_label }}" class="form-label">
+                                Отчество
+                            </label>
+                            {{ form.patronymic }}
+                        </div>
                         
                         <div class="mb-3">
                             <label for="{{ form.email.id_for_label }}" class="form-label">

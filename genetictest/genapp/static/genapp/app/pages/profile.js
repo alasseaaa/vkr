@@ -56,6 +56,7 @@ function profileCompletion(data) {
   const fields = [
     Boolean(String(data?.first_name || "").trim()),
     Boolean(String(data?.last_name || "").trim()),
+    Boolean(String(data?.patronymic || "").trim()),
     Boolean(String(data?.gender || "").trim()),
     Boolean(String(data?.birth_date || "").trim()),
     data?.height != null && String(data.height) !== "",
@@ -82,11 +83,15 @@ function validateProfilePayload(payload) {
   const nameRe = /^[A-Za-zА-Яа-яЁё\-\s]{2,}$/;
   const first = String(payload.first_name || "").trim();
   const last = String(payload.last_name || "").trim();
+  const pat = String(payload.patronymic || "").trim();
   if (first && !nameRe.test(first)) {
     errors.first_name = "Имя: только буквы, пробел и дефис (минимум 2 символа).";
   }
   if (last && !nameRe.test(last)) {
     errors.last_name = "Фамилия: только буквы, пробел и дефис (минимум 2 символа).";
+  }
+  if (pat && !nameRe.test(pat)) {
+    errors.patronymic = "Отчество: только буквы, пробел и дефис (минимум 2 символа).";
   }
   if (payload.birth_date && isDateAfterToday(payload.birth_date)) {
     errors.birth_date = "Дата рождения не может быть позже текущей даты.";
@@ -253,6 +258,11 @@ export async function render(pageEl, { api, showAlert }) {
             <label class="form-label small">Фамилия</label>
             <input name="last_name" class="form-control" value="${escapeHtml(data.last_name || "")}" />
             <div class="text-danger small field-error mt-1" data-field="last_name"></div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small">Отчество</label>
+            <input name="patronymic" class="form-control" value="${escapeHtml(data.patronymic || "")}" required minlength="2" autocomplete="additional-name" />
+            <div class="text-danger small field-error mt-1" data-field="patronymic"></div>
           </div>
           <div class="col-md-4">
             <label class="form-label small">Дата рождения</label>

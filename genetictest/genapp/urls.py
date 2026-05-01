@@ -14,7 +14,8 @@ urlpatterns = [
     path("recommendations/", views.spa_hash_redirect, {"fragment": "recommendations"}, name="recommendations"),
     path("passport/", views.spa_hash_redirect, {"fragment": "passport"}, name="passport"),
     path("articles/", views.articles_view, name="articles"),
-    path("vitamin-tests/", views.spa_hash_redirect, {"fragment": "vitamin-tests"}, name="vitamin_tests"),
+    path("vitamin-tests/", views.spa_hash_redirect, {"fragment": "vitamins"}, name="vitamin_tests"),
+    path("vitamins/", views.spa_hash_redirect, {"fragment": "vitamins"}, name="vitamins_spa"),
     path(
         "patient/appointments/",
         views.spa_hash_redirect,
@@ -30,7 +31,7 @@ urlpatterns = [
     path(
         "vitamin-tests/delete/<int:pk>/",
         views.spa_hash_redirect,
-        {"fragment": "vitamin-tests"},
+        {"fragment": "vitamins"},
         name="vitamin_test_delete",
     ),
 ]

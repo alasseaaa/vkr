@@ -393,9 +393,10 @@ export async function render(pageEl, { api, auth, showAlert }) {
     try {
       patientProfile = await api.patient.getProfile();
       const p = patientProfile;
-      const full = [p.first_name, p.last_name].filter(Boolean).join(" ").trim();
+      const full = [p.last_name, p.first_name, p.patronymic].filter(Boolean).join(" ").trim();
       patientDisplay = full || p.username || auth.username || "";
       const miss = [];
+      if (!(p.patronymic || "").trim()) miss.push("отчество");
       if (!p.birth_date) miss.push("дата рождения");
       if (!p.gender) miss.push("пол");
       if (!p.height) miss.push("рост");
@@ -527,7 +528,7 @@ export async function render(pageEl, { api, auth, showAlert }) {
           </a>
         </div>
         <div class="col-md-4">
-          <a class="d-block text-decoration-none rounded-3 border p-3 h-100 bg-white shadow-sm" href="#/vitamin-tests">
+          <a class="d-block text-decoration-none rounded-3 border p-3 h-100 bg-white shadow-sm" href="#/vitamins">
             <i class="bi bi-droplet-half text-info fs-3 d-block mb-2"></i>
             <div class="fw-semibold text-dark">Анализы</div>
             <div class="small text-muted">Внести показатели</div>
@@ -577,7 +578,7 @@ export async function render(pageEl, { api, auth, showAlert }) {
           </a>
         </div>
         <div class="col-md-4">
-          <a class="d-block text-decoration-none rounded-3 border p-3 h-100 ${isOnboardingActive("vitamins", stepVitDone) ? "border-primary" : "bg-white"} ${isOnboardingActive("vitamins", stepVitDone) ? "" : "shadow-sm"}" style="${isOnboardingActive("vitamins", stepVitDone) ? "box-shadow: 0 4px 20px rgba(13, 110, 253, 0.12)" : ""}" href="#/vitamin-tests">
+          <a class="d-block text-decoration-none rounded-3 border p-3 h-100 ${isOnboardingActive("vitamins", stepVitDone) ? "border-primary" : "bg-white"} ${isOnboardingActive("vitamins", stepVitDone) ? "" : "shadow-sm"}" style="${isOnboardingActive("vitamins", stepVitDone) ? "box-shadow: 0 4px 20px rgba(13, 110, 253, 0.12)" : ""}" href="#/vitamins">
             <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
               <div class="fw-semibold text-dark"><i class="bi bi-droplet me-1"></i> 3. Анализы</div>
               <span class="badge ${stepVitDone ? "text-bg-success" : "text-bg-primary"}">${stepVitDone ? "✅ Заполнено" : "➕ Заполнить"}</span>
@@ -738,7 +739,7 @@ export async function render(pageEl, { api, auth, showAlert }) {
       </a>
     </div>
     <div class="col-6 col-md-3 dashboard-animate">
-      <a class="dash-cta ${ctaVdone ? "dash-cta--done" : ""}" href="#/vitamin-tests">
+      <a class="dash-cta ${ctaVdone ? "dash-cta--done" : ""}" href="#/vitamins">
         ${ctaVdone ? '<i class="bi bi-check-circle-fill dash-cta__check" aria-hidden="true"></i>' : ""}
         <div class="text-info text-uppercase mb-1" style="font-size:0.68rem">+ Анализ</div>
         <div class="fw-semibold">Витамины</div>
@@ -759,7 +760,7 @@ export async function render(pageEl, { api, auth, showAlert }) {
     <div class="card-header bg-light border-0 small fw-semibold">Профиль</div>
     <div class="card-body py-3 small text-muted"><p class="mb-0">${
       wellnessMode
-        ? 'Продолжайте вести <a href="#/vitamin-tests">витамины</a>.'
+        ? 'Продолжайте вести <a href="#/vitamins">витамины</a>.'
         : profileHint || "Заполните данные в профиле."
     }</p></div>
   </div>`
@@ -777,13 +778,13 @@ export async function render(pageEl, { api, auth, showAlert }) {
   const stepperItems = wellnessMode
     ? [
         { key: "profile", label: "Профиль", icon: "bi-person-circle", done: stepProfileDone, href: "#/profile" },
-        { key: "vitamins", label: "Витамины", icon: "bi-droplet", done: stepVitDone, href: "#/vitamin-tests" },
+        { key: "vitamins", label: "Витамины", icon: "bi-droplet", done: stepVitDone, href: "#/vitamins" },
         { key: "report", label: "Отчёт", icon: "bi-file-text", done: reportReady, href: "#/dashboard" },
       ]
     : [
         { key: "profile", label: "Профиль", icon: "bi-person-circle", done: stepProfileDone, href: "#/profile" },
         { key: "genes", label: "Генетика", icon: "bi-diagram-3", done: stepGeneDone, href: "#/genotypes" },
-        { key: "vitamins", label: "Витамины", icon: "bi-droplet", done: stepVitDone, href: "#/vitamin-tests" },
+        { key: "vitamins", label: "Витамины", icon: "bi-droplet", done: stepVitDone, href: "#/vitamins" },
         { key: "report", label: "Отчёт", icon: "bi-file-text", done: reportReady, href: "#/dashboard" },
       ];
   const stepperHtml = `<div class="dash-stepper small">${stepperItems.map((s) => renderHeroStep(s)).join("")}</div>`;
@@ -922,7 +923,7 @@ export async function render(pageEl, { api, auth, showAlert }) {
         <div class="card border-0 shadow-sm h-100" style="border-radius: 16px">
           <div class="card-header bg-light border-0 d-flex flex-wrap align-items-center justify-content-between">
             <span class="fw-semibold"><i class="bi bi-graph-up-arrow me-1 text-primary"></i> Динамика витаминов</span>
-            <a class="btn btn-sm btn-outline-primary" href="#/vitamin-tests">Витамины</a>
+            <a class="btn btn-sm btn-outline-primary" href="#/vitamins">Витамины</a>
           </div>
           <div class="card-body">
             <div class="d-flex align-items-end gap-1 mb-1 small text-info" style="min-height: 220px">
@@ -957,15 +958,15 @@ export async function render(pageEl, { api, auth, showAlert }) {
         <div class="card border-0 shadow-sm h-100" style="border-radius: 16px">
           <div class="card-header bg-light border-0 d-flex flex-wrap align-items-center justify-content-between">
             <span class="fw-semibold"><i class="bi bi-droplet me-1 text-info" aria-hidden="true"></i> Анализы (последние)</span>
-            ${!emptyVit ? '<a class="btn btn-sm btn-link" href="#/vitamin-tests">все</a>' : ""}
+            ${!emptyVit ? '<a class="btn btn-sm btn-link" href="#/vitamins">все</a>' : ""}
           </div>
           <div class="card-body p-0 p-md-0">
             ${
               emptyVit
-                ? `<div class="text-center text-muted py-4 small"><i class="bi bi-droplet d-block fs-1 mb-2 opacity-50" aria-hidden="true"></i> Нет внесённых анализов<br><a class="btn btn-sm btn-primary mt-2" href="#/vitamin-tests">Добавить</a></div>`
+                ? `<div class="text-center text-muted py-4 small"><i class="bi bi-droplet d-block fs-1 mb-2 opacity-50" aria-hidden="true"></i> Нет внесённых анализов<br><a class="btn btn-sm btn-primary mt-2" href="#/vitamins">Добавить</a></div>`
                 : `<div class="table-responsive"><table class="table table-sm table-hover align-middle mb-0"><thead class="table-light small"><tr><th>Витамин</th><th>Знач.</th><th>Статус</th><th>Дата</th></tr></thead><tbody id="dashboard-vitamin-tbody">${vitRowsH}${
                     vitaminTests.length > 5
-                      ? '<tr><td colspan="4" class="text-center small border-0 pt-2"><a href="#/vitamin-tests">Смотреть все</a></td></tr>'
+                      ? '<tr><td colspan="4" class="text-center small border-0 pt-2"><a href="#/vitamins">Смотреть все</a></td></tr>'
                       : ""
                   }</tbody></table></div>`
             }

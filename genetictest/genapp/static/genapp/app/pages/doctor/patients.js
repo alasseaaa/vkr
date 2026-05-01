@@ -2,6 +2,15 @@ function safe(v) {
   return v === null || v === undefined ? "—" : String(v);
 }
 
+function escapeHtml(str) {
+  return String(str ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
 function formatDateTime(iso) {
   if (!iso) return "—";
   try {
@@ -149,7 +158,7 @@ export async function render(pageEl, { api, showAlert }) {
                   <tr>
                     <td class="text-muted">${p.id}</td>
                     <td>
-                      <div class="fw-semibold">${p.first_name || ""} ${p.last_name || ""}</div>
+                      <div class="fw-semibold">${escapeHtml(p.full_name || `${p.first_name || ""} ${p.last_name || ""}`.trim())}</div>
                       <div class="text-muted small">@${p.username}</div>
                     </td>
                     <td>

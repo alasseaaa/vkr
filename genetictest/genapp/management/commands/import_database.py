@@ -286,6 +286,7 @@ class Command(BaseCommand):
                     "diet_preferences": p.get("diet_preferences") or "",
                     "goals_text": p.get("goals_text") or "",
                     "without_genetic_test": p.get("without_genetic_test", False),
+                    "patronymic": p.get("patronymic") or "",
                     "birth_date": p.get("birth_date") or None,
                     "gender": p.get("gender") or "",
                 },

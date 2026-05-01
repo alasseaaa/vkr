@@ -14,7 +14,34 @@ function escapeHtml(str) {
     .replaceAll("'", "&#039;");
 }
 
-import { doctorCommentsForMarkerHtml } from "../components/doctorComment.js";
+/** Дата анализа из API (YYYY-MM-DD) → дд.мм.гггг для отображения. */
+function formatTestDateRu(testDateStr) {
+  if (testDateStr == null || testDateStr === "") return "—";
+  const s = String(testDateStr);
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(s);
+  if (m) return `${m[3]}.${m[2]}.${m[1]}`;
+  return s;
+}
+
+function testDateSortKey(testDateStr) {
+  if (!testDateStr) return 0;
+  const t = new Date(testDateStr).getTime();
+  return Number.isFinite(t) ? t : 0;
+}
+
+/** Новее — выше; при одной дате — больший id (обычно позже созданная запись). */
+function sortVitaminTestsChronologicallyDesc(testsList) {
+  if (!Array.isArray(testsList)) return [];
+  if (testsList.length < 2) return testsList;
+  return [...testsList].sort((a, b) => {
+    const db = testDateSortKey(b.test_date);
+    const da = testDateSortKey(a.test_date);
+    if (db !== da) return db - da;
+    return Number(b.id) - Number(a.id);
+  });
+}
+
+import { doctorCommentsForMarkerHtml } from "../components/doctorComment.js?v=3";
 
 function vitaminOptionsHtml(vitamins) {
   if (!vitamins?.length) {
@@ -91,6 +118,56 @@ function buildSuggestionsCard(suggestedPayload, escapeHtmlFn) {
   </div>`;
 }
 
+/** Сравнение первого и последнего замера по каждому витамину (хронологически). */
+function buildVitaminComparisonSummary(tests, formatDateRuFn, escapeHtmlFn) {
+  const byV = new Map();
+  for (const t of tests) {
+    const id = t.vitamin;
+    if (id == null) continue;
+    if (!byV.has(id)) {
+      byV.set(id, { name: t.vitamin_name || "—", unit: t.vitamin_unit_test || "", rows: [] });
+    }
+    byV.get(id).rows.push(t);
+  }
+  const blocks = [];
+  for (const [, g] of byV) {
+    g.rows.sort((a, b) => testDateSortKey(a.test_date) - testDateSortKey(b.test_date));
+    if (g.rows.length < 2) continue;
+    const first = g.rows[0];
+    const last = g.rows[g.rows.length - 1];
+    const va = Number(first.test_value);
+    const vb = Number(last.test_value);
+    if (!Number.isFinite(va) || !Number.isFinite(vb)) continue;
+    const d = vb - va;
+    let pctStr = "";
+    if (va !== 0) {
+      const pct = ((d / va) * 100).toFixed(0);
+      pctStr = ` (${d >= 0 ? "+" : ""}${pct}%)`;
+    }
+    const arrow = d > 0 ? "↑" : d < 0 ? "↓" : "→";
+    const clr = d > 0 ? "text-success" : d < 0 ? "text-danger" : "text-secondary";
+    const deltaStr = `${d >= 0 ? "+" : ""}${d.toFixed(2)}`;
+    blocks.push(`<div class="border rounded-3 p-3 mb-2 bg-white">
+      <div class="d-flex flex-wrap align-items-baseline justify-content-between gap-2">
+        <div class="fw-semibold">${escapeHtmlFn(g.name)} <span class="text-muted small fw-normal">${escapeHtmlFn(g.unit)}</span></div>
+        <div class="small text-muted">${g.rows.length} замер(ов)</div>
+      </div>
+      <div class="mt-2 small">
+        <span class="text-muted">${escapeHtmlFn(formatDateRuFn(first.test_date))}</span>:
+        <strong class="ms-1">${escapeHtmlFn(String(va))}</strong>
+        <span class="text-muted mx-1">→</span>
+        <span class="text-muted">${escapeHtmlFn(formatDateRuFn(last.test_date))}</span>:
+        <strong class="ms-1">${escapeHtmlFn(String(vb))}</strong>
+        <span class="${clr} fw-semibold ms-2">${arrow} ${escapeHtmlFn(deltaStr)}${escapeHtmlFn(pctStr)}</span>
+      </div>
+    </div>`);
+  }
+  if (!blocks.length) {
+    return `<p class="small text-muted mb-0">Когда по одному витамину будет минимум два анализа с разными датами, здесь появится наглядное сравнение «первый замер → последний».</p>`;
+  }
+  return `<div class="vitamin-comparison-blocks">${blocks.join("")}</div>`;
+}
+
 export async function render(pageEl, { api, showAlert, route } = {}) {
   if (pageEl._vitaminClickHandler) {
     pageEl.removeEventListener("click", pageEl._vitaminClickHandler);
@@ -137,6 +214,7 @@ export async function render(pageEl, { api, showAlert, route } = {}) {
   if (!suggestedPayload || typeof suggestedPayload !== "object") {
     suggestedPayload = { suggestions: [], symptom_test_updated_at: null };
   }
+  tests = sortVitaminTestsChronologicallyDesc(tests);
   const suggestionsCardHtml = buildSuggestionsCard(suggestedPayload, escapeHtml);
 
   const byTest = new Map();
@@ -161,6 +239,18 @@ export async function render(pageEl, { api, showAlert, route } = {}) {
     </div>
 
     ${suggestionsCardHtml}
+
+    <div class="card app-card shadow-sm mb-3">
+      <div class="card-header bg-white">
+        <div class="fw-semibold">Сравнение показателей</div>
+        <div class="text-muted small">Краткий отчёт «первый замер → последний» по каждому витамину. График динамики — на вкладке «Приём добавок».</div>
+      </div>
+      <div class="card-body">
+        <div id="vitamin-comparison-summary">
+          ${buildVitaminComparisonSummary(tests, formatTestDateRu, escapeHtml)}
+        </div>
+      </div>
+    </div>
 
     <div class="card app-card shadow-sm mb-3">
       <div class="card-header bg-white">
@@ -223,7 +313,7 @@ export async function render(pageEl, { api, showAlert, route } = {}) {
                   </td>
                   <td>${t.test_value}</td>
                   <td>${statusBadge(t.status)}</td>
-                  <td>${t.test_date}</td>
+                  <td>${escapeHtml(formatTestDateRu(t.test_date))}</td>
                   <td class="text-end">
                     <button class="btn btn-sm btn-outline-primary me-2" data-action="edit" data-id="${t.id}">
                       Изменить
@@ -235,7 +325,7 @@ export async function render(pageEl, { api, showAlert, route } = {}) {
                 </tr>
                 ${
                   docHtml
-                    ? `<tr class="border-0"><td colspan="5" class="bg-transparent pt-0 pb-3 border-0">${docHtml}</td></tr>`
+                    ? `<tr class="border-0"><td colspan="5" class="bg-transparent pt-4 pb-3 border-0">${docHtml}</td></tr>`
                     : ""
                 }
               `;

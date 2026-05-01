@@ -171,7 +171,7 @@ def register_view(request):
             user = form.save()
             
             # Создаем профиль пользователя
-            UserProfile.objects.create(user=user)
+            UserProfile.objects.create(user=user, patronymic=(form.cleaned_data.get("patronymic") or "").strip())
             
             # Автоматически входим
             login(request, user)

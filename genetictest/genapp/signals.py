@@ -2,6 +2,7 @@ from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 
 from genapp.models import DoctorComment, PatientNotification
+from genapp.users.fio import format_fio_ru
 
 
 @receiver(pre_save, sender=DoctorComment)
@@ -27,7 +28,7 @@ def _should_create_patient_notification(instance, created):
 
 def _notification_title_body(comment):
     doctor = comment.doctor
-    dname = f"{doctor.first_name or ''} {doctor.last_name or ''}".strip() or doctor.username
+    dname = format_fio_ru(doctor)
     if comment.genotype_id:
         title = "Комментарий к генетическому маркеру"
     elif comment.vitamin_test_id:

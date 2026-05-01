@@ -274,6 +274,15 @@ class PatientOwnProfileAPIView(APIView):
         user.save()
 
         profile, _ = UserProfile.objects.get_or_create(user=user)
+        touch = set(data.keys()) - {"without_genetic_test"}
+        effective_patronymic = (profile.patronymic or "").strip()
+        if "patronymic" in data:
+            effective_patronymic = (data["patronymic"] or "").strip()
+        if touch and not effective_patronymic:
+            return Response(
+                {"patronymic": ["Укажите отчество."]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         for field in (
             "height",
             "weight",
@@ -283,6 +292,7 @@ class PatientOwnProfileAPIView(APIView):
             "diet_preferences",
             "goals_text",
             "without_genetic_test",
+            "patronymic",
         ):
             if field in data:
                 setattr(profile, field, data[field])
@@ -337,6 +347,7 @@ class DoctorPatientsListAPIView(APIView):
         patient_ids = DoctorPatient.objects.filter(doctor=request.user).values_list("patient_id", flat=True)
         qs = (
             User.objects.filter(id__in=patient_ids)
+            .select_related("userprofile")
             .annotate(
                 genotypes_count=Count("usergenotype", distinct=True),
                 vitamin_tests_count=Count("vitamin_tests", distinct=True),
@@ -363,6 +374,7 @@ class DoctorPatientsListAPIView(APIView):
                     | Q(weight__isnull=True)
                     | Q(gender="")
                     | Q(birth_date__isnull=True)
+                    | Q(patronymic="")
                 )
             )
             qs = qs.filter(no_profile | incomplete_fields)
@@ -390,7 +402,7 @@ class DoctorPatientProfileAPIView(APIView):
         if not check_doctor_access(request.user.id, patient_id):
             return Response({"detail": "Нет доступа к этому пациенту."}, status=status.HTTP_403_FORBIDDEN)
 
-        patient = get_object_or_404(User, pk=patient_id)
+        patient = get_object_or_404(User.objects.select_related("userprofile"), pk=patient_id)
 
         genotypes = (
             UserGenotype.objects.filter(user_id=patient_id)
@@ -483,7 +495,11 @@ class DoctorCommentListAPIView(APIView):
         history_exists = DoctorCommentHistory.objects.filter(comment_id=OuterRef("pk"))
         qs = (
             DoctorComment.objects.filter(patient_id=target_patient_id)
-            .select_related("doctor", "genotype__gene_variant__gene", "vitamin_test__vitamin")
+            .select_related(
+                "doctor__userprofile",
+                "genotype__gene_variant__gene",
+                "vitamin_test__vitamin",
+            )
             .annotate(_was_edited=Exists(history_exists))
         )
 

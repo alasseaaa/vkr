@@ -42,6 +42,7 @@ from genapp.api.genetic_report import (
     NursePatientSummaryAPIView,
     PatientGeneticReportViewSet,
 )
+from genapp.api.vitamin_intake import PatientVitaminIntakeViewSet
 from genapp.api.views import (
     AdminGeneVariantViewSet,
     AdminGeneViewSet,
@@ -70,6 +71,7 @@ from genapp.api.views import (
 router = DefaultRouter()
 router.register(r"patient/genotypes", PatientGenotypeViewSet, basename="patient-genotypes")
 router.register(r"patient/vitamin-tests", PatientVitaminTestViewSet, basename="patient-vitamin-tests")
+router.register(r"patient/vitamin-intake", PatientVitaminIntakeViewSet, basename="patient-vitamin-intake")
 router.register(r"patient/genetic-reports", PatientGeneticReportViewSet, basename="patient-genetic-reports")
 
 router.register(r"admin/genes", AdminGeneViewSet, basename="admin-genes")

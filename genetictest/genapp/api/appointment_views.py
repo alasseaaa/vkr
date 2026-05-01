@@ -13,11 +13,11 @@ from genapp.api.appointment_serializers import (
 from genapp.api.permissions import IsDoctor, IsPatientOrAdmin, get_user_role
 from genapp.doctor.services import check_doctor_access
 from genapp.models import DoctorPatient, InPersonAppointment, PatientNotification
+from genapp.users.fio import format_fio_ru
 
 
 def _doctor_label(user):
-    n = f"{user.first_name or ''} {user.last_name or ''}".strip()
-    return n or user.username
+    return format_fio_ru(user)
 
 
 def _notify_appointment(appointment, title, body):
@@ -53,7 +53,7 @@ class PatientLinkedDoctorsAPIView(APIView):
                 {"detail": "Раздел доступен только пациенту."},
                 status=status.HTTP_403_FORBIDDEN,
             )
-        links = DoctorPatient.objects.filter(patient=request.user).select_related("doctor")
+        links = DoctorPatient.objects.filter(patient=request.user).select_related("doctor__userprofile")
         doctors = [link.doctor for link in links]
         data = PatientLinkedDoctorSerializer(doctors, many=True).data
         return Response(data, status=status.HTTP_200_OK)
@@ -68,7 +68,9 @@ class PatientInPersonAppointmentListCreateAPIView(APIView):
                 {"detail": "Раздел доступен только пациенту."},
                 status=status.HTTP_403_FORBIDDEN,
             )
-        qs = InPersonAppointment.objects.filter(patient=request.user).select_related("doctor", "patient")
+        qs = InPersonAppointment.objects.filter(patient=request.user).select_related(
+            "doctor__userprofile", "patient__userprofile"
+        )
         data = InPersonAppointmentReadSerializer(qs, many=True).data
         return Response(data, status=status.HTTP_200_OK)
 
@@ -81,7 +83,7 @@ class PatientInPersonAppointmentListCreateAPIView(APIView):
         ser = InPersonAppointmentCreateSerializer(data=request.data, context={"request": request})
         ser.is_valid(raise_exception=True)
         appt = ser.save()
-        appt = InPersonAppointment.objects.select_related("doctor", "patient").get(pk=appt.pk)
+        appt = InPersonAppointment.objects.select_related("doctor__userprofile", "patient__userprofile").get(pk=appt.pk)
         return Response(InPersonAppointmentReadSerializer(appt).data, status=status.HTTP_201_CREATED)
 
 
@@ -118,7 +120,9 @@ class DoctorInPersonAppointmentListAPIView(APIView):
     permission_classes = [IsDoctor]
 
     def get(self, request):
-        qs = InPersonAppointment.objects.filter(doctor=request.user).select_related("doctor", "patient")
+        qs = InPersonAppointment.objects.filter(doctor=request.user).select_related(
+            "doctor__userprofile", "patient__userprofile"
+        )
         st = request.query_params.get("status")
         if st:
             qs = qs.filter(status=st)
@@ -131,7 +135,7 @@ class DoctorInPersonAppointmentDetailAPIView(APIView):
 
     def patch(self, request, pk):
         appt = get_object_or_404(
-            InPersonAppointment.objects.select_related("patient", "doctor"),
+            InPersonAppointment.objects.select_related("patient__userprofile", "doctor__userprofile"),
             pk=pk,
             doctor=request.user,
         )

@@ -14,6 +14,7 @@ def register_user(
     email: str,
     first_name: str,
     last_name: str,
+    patronymic: str,
     password1: str,
     password2: str,
     without_genetic_test: bool = False,
@@ -40,7 +41,11 @@ def register_user(
     user.set_password(password1)
     user.save()
 
-    kwargs = {"user": user, "without_genetic_test": bool(without_genetic_test)}
+    kwargs = {
+        "user": user,
+        "without_genetic_test": bool(without_genetic_test),
+        "patronymic": (patronymic or "").strip(),
+    }
     if consent_personal_data:
         kwargs["consent_personal_data_at"] = timezone.now()
         kwargs["consent_text_version"] = (consent_text_version or "1")[:32]

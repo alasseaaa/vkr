@@ -3,7 +3,7 @@ function tabBtn(href, label, active) {
 }
 
 const TABS = [
-  { key: "vitamins", label: "Анализы витаминов", href: "/vitamin-tests" },
+  { key: "vitamins", label: "Анализы витаминов", href: "/vitamins?tab=tests" },
   { key: "recommendations", label: "Рекомендации", href: "/recommendations" },
 ];
 

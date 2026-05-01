@@ -83,7 +83,7 @@ export function renderSidebar() {
       items.push({ href: "/genetics", label: "Генетика", icon: "bi-diagram-3" });
       items.push({ href: "/recommendations", label: "Рекомендации", icon: "bi-stars" });
     }
-    items.push({ href: "/vitamin-tests", label: "Анализы витаминов", icon: "bi-droplet-half" });
+    items.push({ href: "/vitamins", label: "Витамины", icon: "bi-droplet-half" });
     items.push({ href: "/doctor-communication", label: "Связь с врачом", icon: "bi-chat-dots" });
     items.push({ href: "/materials", label: "Материалы", icon: "bi-journal-bookmark-fill" });
   } 

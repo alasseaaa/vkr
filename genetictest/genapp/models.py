@@ -38,6 +38,13 @@ class UserProfile(models.Model):
         blank=True,
         verbose_name="Пол"
     )
+    patronymic = models.CharField(
+        max_length=64,
+        blank=True,
+        default="",
+        verbose_name="Отчество",
+        help_text="Обязательно для полного ФИО в сервисе.",
+    )
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Обновлено")
 
     def __str__(self):
@@ -395,6 +402,61 @@ class VitaminTestResult(models.Model):
         verbose_name = "Результат анализа на витамин"
         verbose_name_plural = "Результаты анализов на витамины"
         ordering = ['-test_date']
+
+
+class PatientVitaminIntake(models.Model):
+    """Курс приёма добавки (витамина) — даты и опционально фото упаковки."""
+
+    SUGGESTED_FROM = [
+        ("manual", "Вручную"),
+        ("symptoms", "Тест симптомов"),
+        ("genetics", "Генетика"),
+        ("both", "Симптомы и генетика"),
+    ]
+
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        verbose_name="Пользователь",
+        related_name="vitamin_intakes",
+    )
+    vitamin = models.ForeignKey(Vitamin, on_delete=models.CASCADE, verbose_name="Витамин")
+    started_on = models.DateField(verbose_name="Начало приёма")
+    ended_on = models.DateField(
+        null=True,
+        blank=True,
+        verbose_name="Окончание приёма",
+        help_text="Пусто — принимаю сейчас",
+    )
+    dose_note = models.CharField(
+        max_length=255,
+        blank=True,
+        verbose_name="Дозировка / форма",
+        help_text="Например: 400 МЕ, капсулы",
+    )
+    notes = models.TextField(blank=True, verbose_name="Заметки")
+    photo = models.ImageField(
+        upload_to="vitamin_intake/%Y/%m/",
+        blank=True,
+        null=True,
+        verbose_name="Фото упаковки",
+    )
+    suggested_from = models.CharField(
+        max_length=16,
+        choices=SUGGESTED_FROM,
+        blank=True,
+        verbose_name="Источник подсказки",
+    )
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Создано")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Обновлено")
+
+    class Meta:
+        verbose_name = "Приём витамина (курс)"
+        verbose_name_plural = "Приёмы витаминов (курсы)"
+        ordering = ["-started_on", "-id"]
+
+    def __str__(self):
+        return f"{self.user_id}: {self.vitamin.name} с {self.started_on}"
 
 
 class DoctorPatient(models.Model):

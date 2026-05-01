@@ -56,10 +56,11 @@ export async function render(pageEl, { api, showAlert }) {
   const doctorOptions =
     doctors.length > 0
       ? doctors
-          .map(
-            (d) =>
-              `<option value="${d.id}">${escapeHtml(`${d.first_name || ""} ${d.last_name || ""}`.trim() || d.username)}</option>`,
-          )
+          .map((d) => {
+            const label =
+              (d.full_name || `${d.first_name || ""} ${d.last_name || ""}`.trim() || d.username || "").trim();
+            return `<option value="${d.id}">${escapeHtml(label)}</option>`;
+          })
           .join("")
       : "";
 

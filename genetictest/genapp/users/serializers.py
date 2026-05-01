@@ -14,6 +14,7 @@ class RegisterSerializer(serializers.Serializer):
     email = serializers.EmailField()
     first_name = serializers.CharField(max_length=30)
     last_name = serializers.CharField(max_length=30)
+    patronymic = serializers.CharField(max_length=64, min_length=2)
     password1 = serializers.CharField(write_only=True)
     password2 = serializers.CharField(write_only=True)
     without_genetic_test = serializers.BooleanField(required=False, default=False)
@@ -31,6 +32,7 @@ class RegisterSerializer(serializers.Serializer):
             email=data["email"],
             first_name=data["first_name"],
             last_name=data["last_name"],
+            patronymic=data["patronymic"],
             password1=data["password1"],
             password2=data["password2"],
             without_genetic_test=without_genetic_test,
@@ -52,6 +54,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
             "weight",
             "gender",
             "birth_date",
+            "patronymic",
             "activity_level",
             "diet_preferences",
             "goals_text",
@@ -66,6 +69,7 @@ class UserProfileSerializer(serializers.ModelSerializer):
 class PatientOwnProfileUpdateSerializer(serializers.Serializer):
     first_name = serializers.CharField(required=False, allow_blank=True, max_length=150)
     last_name = serializers.CharField(required=False, allow_blank=True, max_length=150)
+    patronymic = serializers.CharField(required=False, allow_blank=True, max_length=64, min_length=2)
     height = serializers.IntegerField(required=False, allow_null=True, min_value=40, max_value=280)
     weight = serializers.IntegerField(required=False, allow_null=True, min_value=2, max_value=500)
     gender = serializers.CharField(required=False, allow_blank=True, allow_null=True, max_length=16)
@@ -93,10 +97,16 @@ class PatientOwnProfileUpdateSerializer(serializers.Serializer):
 
 class PatientProfileSerializer(serializers.ModelSerializer):
     profile = serializers.SerializerMethodField()
+    full_name = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ["id", "username", "first_name", "last_name", "profile"]
+        fields = ["id", "username", "first_name", "last_name", "full_name", "profile"]
+
+    def get_full_name(self, obj):
+        from genapp.users.fio import format_fio_ru
+
+        return format_fio_ru(obj)
 
     def get_profile(self, obj):
         try:

@@ -40,6 +40,10 @@ export async function render(pageEl, { api, showAlert }) {
             <input name="last_name" type="text" class="form-control" required />
           </div>
         </div>
+        <div class="mb-3">
+          <label class="form-label">Отчество</label>
+          <input name="patronymic" type="text" class="form-control" required minlength="2" autocomplete="additional-name" />
+        </div>
         <div class="row g-2">
           <div class="col-md-6 mb-3">
             <label class="form-label">Пароль</label>

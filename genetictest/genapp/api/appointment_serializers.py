@@ -3,14 +3,20 @@ from django.utils import timezone
 from rest_framework import serializers
 
 from genapp.models import DoctorPatient, InPersonAppointment
+from genapp.users.fio import format_fio_ru
 
 User = get_user_model()
 
 
 class PatientLinkedDoctorSerializer(serializers.ModelSerializer):
+    full_name = serializers.SerializerMethodField()
+
     class Meta:
         model = User
-        fields = ["id", "username", "first_name", "last_name"]
+        fields = ["id", "username", "first_name", "last_name", "full_name"]
+
+    def get_full_name(self, obj):
+        return format_fio_ru(obj)
 
 
 class InPersonAppointmentReadSerializer(serializers.ModelSerializer):
@@ -36,14 +42,10 @@ class InPersonAppointmentReadSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
     def get_doctor_name(self, obj):
-        d = obj.doctor
-        n = f"{d.first_name or ''} {d.last_name or ''}".strip()
-        return n or d.username
+        return format_fio_ru(obj.doctor)
 
     def get_patient_name(self, obj):
-        p = obj.patient
-        n = f"{p.first_name or ''} {p.last_name or ''}".strip()
-        return n or p.username
+        return format_fio_ru(obj.patient)
 
 
 class InPersonAppointmentCreateSerializer(serializers.ModelSerializer):
