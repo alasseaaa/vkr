@@ -27,7 +27,11 @@ from genapp.api.gene_symbol_request import (
     AdminGeneSymbolRequestPendingCountView,
     PatientGeneSymbolRequestListCreateView,
 )
-from genapp.api.myth_truth import MythTruthQuestionListAPIView, MythTruthSubmitAPIView
+from genapp.api.myth_truth import (
+    MythTruthQuestionListAPIView,
+    MythTruthSubmitAPIView,
+    PatientMythTruthStatusAPIView,
+)
 from genapp.api.push_views import PushUserSettingsAPIView
 from genapp.api.symptom_vitamin import (
     PatientSuggestedVitaminsAPIView,
@@ -109,6 +113,7 @@ urlpatterns = [
     path("patient/vitamins/suggested/", PatientSuggestedVitaminsAPIView.as_view()),
     path("patient/symptom-test/snapshot/", PatientSymptomTestSnapshotAPIView.as_view()),
     path("patient/symptom-test/submit/", PatientSymptomTestSubmitAPIView.as_view()),
+    path("patient/myth-truth/status/", PatientMythTruthStatusAPIView.as_view()),
     path("patient/genes/catalog/", PatientGeneCatalogAPIView.as_view()),
     path("patient/gene-variants/catalog/", PatientGeneVariantCatalogAPIView.as_view()),
     path("patient/gene-symbol-requests/", PatientGeneSymbolRequestListCreateView.as_view()),

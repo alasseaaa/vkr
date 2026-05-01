@@ -2,7 +2,7 @@ import { parseRoute } from "./router.js?v=13";
 import { showAlert, clearAlert } from "./components/alerts.js?v=2";
 import { renderSidebar } from "./components/sidebar.js?v=13";
 import { getAuth, isAuthed, setStoredRole, getEffectiveRole, NURSE_PROBE_ONCE_KEY } from "./services/auth.js?v=8";
-import { api } from "./services/api.js?v=18";
+import { api } from "./services/api.js?v=19";
 import {
   startAdminGeneRequestPolling,
   stopAdminGeneRequestPolling,
@@ -17,28 +17,105 @@ import {
 } from "./services/nurseNotifications.js";
 import { getWithoutGeneticTestFlag, syncPatientWellnessFromProfile } from "./services/wellness.js";
 
-function closeSidebarMobile() {
-  document.body.classList.remove("sidebar-open");
+/** Как в base.html: ключ sidebarCollapsed, класс .active на сайдбаре и на основном блоке. */
+const SIDEBAR_COLLAPSED_LS = "sidebarCollapsed";
+
+function closeSpaSidebarMobile() {
+  if (!window.matchMedia("(max-width: 768px)").matches) return;
+  const sb = document.getElementById("app-shell-sidebar");
+  const mainEl = document.getElementById("spa-main");
+  const btn = document.getElementById("sidebarCollapse");
+  if (!sb || !mainEl || !btn) return;
+  if (!sb.classList.contains("active")) return;
+  sb.classList.remove("active");
+  mainEl.classList.remove("active");
+  btn.classList.remove("active");
+  try {
+    localStorage.setItem(SIDEBAR_COLLAPSED_LS, "false");
+  } catch {
+    /* */
+  }
 }
 
-function bindSidebarMobileControls() {
-  const toggleBtn = document.getElementById("sidebar-toggle");
-  const backdrop = document.getElementById("sidebar-backdrop");
-  if (toggleBtn && !toggleBtn.dataset.bound) {
-    toggleBtn.dataset.bound = "1";
-    toggleBtn.addEventListener("click", () => {
-      document.body.classList.toggle("sidebar-open");
-    });
+function initSpaSidebarLayoutOnce() {
+  const sb = document.getElementById("app-shell-sidebar");
+  const mainEl = document.getElementById("spa-main");
+  const btn = document.getElementById("sidebarCollapse");
+  if (!sb || !mainEl || !btn || initSpaSidebarLayoutOnce._done) return;
+  initSpaSidebarLayoutOnce._done = true;
+
+  try {
+    if (localStorage.getItem("spa_sidebar_hidden") === "1") {
+      if (localStorage.getItem(SIDEBAR_COLLAPSED_LS) === null) {
+        localStorage.setItem(SIDEBAR_COLLAPSED_LS, "true");
+      }
+      localStorage.removeItem("spa_sidebar_hidden");
+    }
+  } catch {
+    /* */
   }
-  if (backdrop && !backdrop.dataset.bound) {
-    backdrop.dataset.bound = "1";
-    backdrop.addEventListener("click", closeSidebarMobile);
+
+  btn.addEventListener("click", () => {
+    sb.classList.toggle("active");
+    mainEl.classList.toggle("active");
+    btn.classList.toggle("active");
+    try {
+      localStorage.setItem(SIDEBAR_COLLAPSED_LS, String(sb.classList.contains("active")));
+    } catch {
+      /* */
+    }
+  });
+
+  mainEl.addEventListener("click", () => {
+    if (!window.matchMedia("(max-width: 768px)").matches) return;
+    closeSpaSidebarMobile();
+  });
+
+  window.addEventListener("resize", () => {
+    if (window.matchMedia("(max-width: 768px)").matches) {
+      if (!sb.classList.contains("active")) {
+        sb.classList.add("active");
+        mainEl.classList.add("active");
+        btn.classList.add("active");
+        try {
+          localStorage.setItem(SIDEBAR_COLLAPSED_LS, "true");
+        } catch {
+          /* */
+        }
+      }
+    } else if (sb.classList.contains("active") && localStorage.getItem(SIDEBAR_COLLAPSED_LS) !== "true") {
+      sb.classList.remove("active");
+      mainEl.classList.remove("active");
+      btn.classList.remove("active");
+    }
+  });
+
+  try {
+    if (localStorage.getItem(SIDEBAR_COLLAPSED_LS) === "true") {
+      sb.classList.add("active");
+      mainEl.classList.add("active");
+      btn.classList.add("active");
+    }
+  } catch {
+    /* */
   }
+
+  if (window.matchMedia("(max-width: 768px)").matches) {
+    sb.classList.add("active");
+    mainEl.classList.add("active");
+    btn.classList.add("active");
+    try {
+      localStorage.setItem(SIDEBAR_COLLAPSED_LS, "true");
+    } catch {
+      /* */
+    }
+  }
+}
+
+function bindSpaSidebarNavClose() {
   document.querySelectorAll("#sidebar a[data-href], #sidebar a[data-external]").forEach((a) => {
-    if (a.dataset.mobileCloseBound) return;
-    a.dataset.mobileCloseBound = "1";
     a.addEventListener("click", () => {
-      if (window.matchMedia("(max-width: 767.98px)").matches) closeSidebarMobile();
+      if (window.matchMedia("(max-width: 768px)").matches) closeSpaSidebarMobile();
     });
   });
 }
@@ -170,12 +247,12 @@ async function renderPage(route) {
   const moduleMap = {
     login: () => import("./pages/login.js"),
     register: () => import("./pages/register.js?v=4"),
-    articles: () => import("./pages/articles.js?v=2"),
-    "myth-truth": () => import("./pages/mythTruth.js?v=2"),
+    articles: () => import("./pages/articles.js?v=3"),
+    "myth-truth": () => import("./pages/mythTruth.js?v=3"),
     consent: () => import("./pages/consent.js?v=2"),
     "symptom-test": () => import("./pages/symptomTest.js?v=8"),
-    "article-detail": () => import("./pages/articles.js?v=2"),
-    dashboard: () => import("./pages/dashboard.js?v=32"),
+    "article-detail": () => import("./pages/articles.js?v=3"),
+    dashboard: () => import("./pages/dashboard.js?v=34"),
     genetics: () => import("./pages/geneticsHub.js?v=1"),
     "health-insights": () => import("./pages/healthInsightsHub.js?v=1"),
     "doctor-communication": () => import("./pages/doctorCommunicationHub.js?v=2"),
@@ -186,7 +263,7 @@ async function renderPage(route) {
     "nurse-profile": () => import("./pages/nurse/profile.js?v=4"),
     vitamins: () => import("./pages/vitaminsHub.js?v=7"),
     recommendations: () => import("./pages/recommendations.js?v=5"),
-    passport: () => import("./pages/passport.js?v=6"),
+    passport: () => import("./pages/passport.js?v=7"),
     "patient-consultations": () => import("./pages/patient/consultations.js?v=5"),
     "patient-appointments": () => import("./pages/patient/appointments.js?v=4"),
     profile: () => import("./pages/profile.js?v=6"),
@@ -272,7 +349,8 @@ async function renderApp() {
     }
   }
   renderSidebar();
-  bindSidebarMobileControls();
+  initSpaSidebarLayoutOnce();
+  bindSpaSidebarNavClose();
   const route = parseRoute();
   try {
     if (!(await ensureConsentForPatientRoutes(route))) {
@@ -325,7 +403,7 @@ async function renderApp() {
 }
 
 window.addEventListener("hashchange", () => {
-  closeSidebarMobile();
+  closeSpaSidebarMobile();
   renderApp();
 });
 

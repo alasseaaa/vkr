@@ -96,6 +96,13 @@
         min-height: 100vh;
         padding: 20px;
     }
+
+    /* Главная для авторизованных: без сайдбара */
+    #content.content-no-sidebar {
+        width: 100%;
+        margin-left: 0;
+        max-width: 100%;
+    }
     
     #content.active {
         width: 100%;
@@ -374,6 +381,7 @@
   </style>
 </head>
 <body>
+  {% if not hide_sidebar %}
   <!-- Компактный сайдбар -->
   <nav id="sidebar">
     <div class="sidebar-header">
@@ -459,9 +467,10 @@
     <span></span>
     <span></span>
   </button>
+  {% endif %}
   
   <!-- Основной контент -->
-  <div id="content">
+  <div id="content"{% if hide_sidebar %} class="content-no-sidebar"{% endif %}>
     {% if messages %}
       <div class="messages-container">
         {% for message in messages %}
@@ -522,44 +531,41 @@
     })();
   </script>
   <script>
-    // Переключение сайдбара
+    // Переключение сайдбара (только если разметка с сайдбаром есть)
     $(document).ready(function() {
-      $('#sidebarCollapse').on('click', function() {
-        $('#sidebar').toggleClass('active');
-        $('#content').toggleClass('active');
-        $(this).toggleClass('active');
-        
-        // Сохраняем состояние
-        const isCollapsed = $('#sidebar').hasClass('active');
-        localStorage.setItem('sidebarCollapsed', isCollapsed);
-      });
-      
-      // Закрытие сайдбара на мобильных при клике на контент
-      $('#content').on('click', function() {
-        if ($(window).width() <= 768 && $('#sidebar').hasClass('active')) {
-          $('#sidebar').removeClass('active');
-          $('#content').removeClass('active');
-          $('#sidebarCollapse').removeClass('active');
-          localStorage.setItem('sidebarCollapsed', 'false');
+      var $sidebar = $('#sidebar');
+      var $collapse = $('#sidebarCollapse');
+      if ($sidebar.length) {
+        $collapse.on('click', function() {
+          $sidebar.toggleClass('active');
+          $('#content').toggleClass('active');
+          $(this).toggleClass('active');
+          localStorage.setItem('sidebarCollapsed', $sidebar.hasClass('active'));
+        });
+
+        $('#content').on('click', function() {
+          if ($(window).width() <= 768 && $sidebar.hasClass('active')) {
+            $sidebar.removeClass('active');
+            $('#content').removeClass('active');
+            $collapse.removeClass('active');
+            localStorage.setItem('sidebarCollapsed', 'false');
+          }
+        });
+
+        if (localStorage.getItem('sidebarCollapsed') === 'true') {
+          $sidebar.addClass('active');
+          $('#content').addClass('active');
+          $collapse.addClass('active');
         }
-      });
-      
-      // Восстановление состояния
-      if (localStorage.getItem('sidebarCollapsed') === 'true') {
-        $('#sidebar').addClass('active');
-        $('#content').addClass('active');
-        $('#sidebarCollapse').addClass('active');
+
+        if ($(window).width() <= 768) {
+          $sidebar.addClass('active');
+          $('#content').addClass('active');
+          $collapse.addClass('active');
+          localStorage.setItem('sidebarCollapsed', 'true');
+        }
       }
-      
-      // Автоматическое закрытие на мобильных
-      if ($(window).width() <= 768) {
-        $('#sidebar').addClass('active');
-        $('#content').addClass('active');
-        $('#sidebarCollapse').addClass('active');
-        localStorage.setItem('sidebarCollapsed', 'true');
-      }
-      
-      // Показ сообщений
+
       const alerts = document.querySelectorAll('.alert');
       alerts.forEach(alert => {
         new bootstrap.Toast(alert, {
@@ -568,21 +574,23 @@
         }).show();
       });
     });
-    
-    // Обработка изменения размера окна
+
     $(window).resize(function() {
+      var $sidebar = $('#sidebar');
+      var $collapse = $('#sidebarCollapse');
+      if (!$sidebar.length) return;
       if ($(window).width() <= 768) {
-        if (!$('#sidebar').hasClass('active')) {
-          $('#sidebar').addClass('active');
+        if (!$sidebar.hasClass('active')) {
+          $sidebar.addClass('active');
           $('#content').addClass('active');
-          $('#sidebarCollapse').addClass('active');
+          $collapse.addClass('active');
           localStorage.setItem('sidebarCollapsed', 'true');
         }
       } else {
-        if ($('#sidebar').hasClass('active') && localStorage.getItem('sidebarCollapsed') !== 'true') {
-          $('#sidebar').removeClass('active');
+        if ($sidebar.hasClass('active') && localStorage.getItem('sidebarCollapsed') !== 'true') {
+          $sidebar.removeClass('active');
           $('#content').removeClass('active');
-          $('#sidebarCollapse').removeClass('active');
+          $collapse.removeClass('active');
         }
       }
     });

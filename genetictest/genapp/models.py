@@ -257,6 +257,32 @@ class MythTruthQuestion(models.Model):
         return (self.statement[:80] + "…") if len(self.statement) > 80 else self.statement
 
 
+class PatientMythTruthResult(models.Model):
+    """Последний сохранённый результат теста «Миф или правда» (пациент / админ в интерфейсе)."""
+
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name="myth_truth_result",
+        verbose_name="Пользователь",
+    )
+    question_set_signature = models.CharField(
+        max_length=64,
+        verbose_name="Подпись набора активных вопросов",
+    )
+    score = models.PositiveSmallIntegerField(verbose_name="Верных ответов")
+    total = models.PositiveSmallIntegerField(verbose_name="Всего вопросов")
+    result_items = models.JSONField(default=list, verbose_name="Разбор по пунктам")
+    completed_at = models.DateTimeField(auto_now=True, verbose_name="Завершено")
+
+    class Meta:
+        verbose_name = "Результат теста «Миф или правда»"
+        verbose_name_plural = "Результаты теста «Миф или правда»"
+
+    def __str__(self):
+        return f"user {self.user_id}: {self.score}/{self.total}"
+
+
 class SymptomTestItem(models.Model):
     """Пункт теста «Анализы по симптомам»; редактирует админ через SPA."""
 

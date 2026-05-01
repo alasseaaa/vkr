@@ -1,4 +1,4 @@
-import { getAuth, isAuthed } from "../services/auth.js?v=3";
+import { isAuthed, getEffectiveRole } from "../services/auth.js?v=8";
 import { getWithoutGeneticTestFlag } from "../services/wellness.js";
 
 const CATEGORY_LABELS = {
@@ -73,15 +73,13 @@ async function renderList(pageEl, { api, showAlert, auth }) {
 
   const mount = (list, state) => {
     const { q, category, showWellnessHint } = state;
-    const a = getAuth();
-    const ar = String(a?.role || "").toLowerCase().trim();
-    const showMythBtn = isAuthed() && (ar === "patient" || ar === "admin");
+    const r = getEffectiveRole();
+    const showMythBtn = isAuthed() && (r === "patient" || r === "admin");
     pageEl.innerHTML = `
       <div class="app-page">
         <div class="app-page-header d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
           <div>
             <h1 class="app-page-title h3 mb-1">Статьи</h1>
-            <p class="text-muted small mb-0">Материалы доступны без входа. Поиск по названию и тексту.</p>
           </div>
           <div class="d-flex flex-wrap gap-2 align-items-center">
             ${
@@ -101,22 +99,10 @@ async function renderList(pageEl, { api, showAlert, auth }) {
             : ""
         }
 
-        <div class="row g-3 mb-4">
-          <div class="col-lg-6">
-            <div class="card app-card border-0 shadow-sm bg-primary bg-opacity-10">
-              <div class="card-body">
-                <div class="fw-semibold text-primary mb-1"><i class="bi bi-journal-text me-2"></i>Научно-популярные материалы</div>
-                <p class="small text-muted mb-0">Подборка статей по метаболизму, витаминам, спорту и питанию — с указанием категории и даты.</p>
-              </div>
-            </div>
-          </div>
-          <div class="col-lg-6">
-            <div class="card app-card border-0 shadow-sm">
-              <div class="card-body">
-                <div class="fw-semibold mb-1"><i class="bi bi-funnel me-2"></i>Фильтры и поиск</div>
-                <p class="small text-muted mb-0">Введите слово в поле поиска — ищем и в заголовке, и в тексте. Категорию можно сузить отдельным списком.</p>
-              </div>
-            </div>
+        <div class="card app-card border-0 shadow-sm bg-primary bg-opacity-10 mb-4">
+          <div class="card-body">
+            <div class="fw-semibold text-primary mb-1"><i class="bi bi-journal-text me-2"></i>Научно-популярные материалы</div>
+            <p class="small text-muted mb-0">Актуальные материалы о метаболизме, нутрициологии и биохакинге. Изучайте статьи и разборы, адаптированные под ваши цели в области здоровья.</p>
           </div>
         </div>
 
@@ -195,7 +181,7 @@ async function renderList(pageEl, { api, showAlert, auth }) {
 
   try {
     const defaultWellness =
-      auth?.role === "patient" && getWithoutGeneticTestFlag() ? "wellness" : "";
+      getEffectiveRole() === "patient" && getWithoutGeneticTestFlag() ? "wellness" : "";
     let list = await api.public.listArticles(articleParams("", defaultWellness));
     if (!Array.isArray(list)) list = [];
     mount(list, {
@@ -215,10 +201,17 @@ async function renderDetail(pageEl, { api, route, showAlert }) {
   try {
     const a = await api.public.getArticle(id);
     const sourceHref = safeExternalUrl(a.source_url);
+    const r = getEffectiveRole();
+    const showMythBtn = isAuthed() && (r === "patient" || r === "admin");
     pageEl.innerHTML = `
       <div class="app-page">
-        <div class="mb-3">
+        <div class="mb-3 d-flex flex-wrap align-items-center gap-2">
           <a href="#/articles" class="btn btn-outline-secondary btn-sm">← К списку статей</a>
+          ${
+            showMythBtn
+              ? `<a href="#/myth-truth" class="btn btn-outline-secondary btn-sm"><i class="bi bi-patch-question me-1"></i>Миф или правда?</a>`
+              : ""
+          }
         </div>
         <article class="card app-card shadow-sm">
           <div class="card-body">

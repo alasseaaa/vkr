@@ -127,7 +127,7 @@ export async function render(pageEl, { api, showAlert, route }) {
       ${wellnessBanner}
       <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
         <h3 class="mb-0">Генетический паспорт</h3>
-        <a class="btn btn-outline-secondary btn-sm" href="#/dashboard">На дашборд</a>
+        <a class="btn btn-outline-secondary btn-sm" href="#/recommendations">Перейти к рекомендациям</a>
       </div>
       <p class="text-muted small mb-3">В списке представлены символы генов, их названия и ваши результаты. Нажмите "Подробнее", чтобы увидеть подробную интерпретацию, оценку рисков и персональные рекомендации врача.</p>
       <style>

@@ -28,6 +28,7 @@ from genapp.models import (
     GeneVitamin,
     InPersonAppointment,
     MythTruthQuestion,
+    PatientMythTruthResult,
     PatientNotification,
     Recommendation,
     UserGenotype,
@@ -412,6 +413,22 @@ class Command(BaseCommand):
                     "is_read": n.get("is_read", False),
                 },
             )
+
+        for x in data.get("patient_myth_truth_results") or []:
+            uid = x.get("user_id")
+            if not uid or not User.objects.filter(pk=uid).exists():
+                continue
+            obj, _ = PatientMythTruthResult.objects.update_or_create(
+                user_id=uid,
+                defaults={
+                    "question_set_signature": x.get("question_set_signature") or "",
+                    "score": x.get("score") or 0,
+                    "total": x.get("total") or 0,
+                    "result_items": x.get("result_items") or [],
+                },
+            )
+            if x.get("completed_at"):
+                PatientMythTruthResult.objects.filter(pk=obj.pk).update(completed_at=x["completed_at"])
         self.stdout.write("  user-related tables: ok")
 
 

@@ -3,7 +3,7 @@ const TABS = [
   {
     key: "passport",
     label: "Генетический паспорт",
-    load: () => import("./passport.js?v=3"),
+    load: () => import("./passport.js?v=7"),
     route: { name: "passport" },
   },
 ];

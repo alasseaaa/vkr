@@ -239,7 +239,9 @@ def profile_view(request):
 
 def home_view(request):
     context = {}
-    
+    # Главная без бокового меню для вошедших (пациент / врач / медсестра / админ).
+    context["hide_sidebar"] = request.user.is_authenticated
+
     if request.user.is_authenticated:
         # Для авторизованных пользователей показываем статистику
         try:
@@ -247,7 +249,7 @@ def home_view(request):
             context['profile'] = profile
         except UserProfile.DoesNotExist:
             pass
-    
+
     return render(request, 'genapp/home.html', context)
 
 

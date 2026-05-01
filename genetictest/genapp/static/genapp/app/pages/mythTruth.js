@@ -1,3 +1,5 @@
+import { getEffectiveRole, isAuthed } from "../services/auth.js?v=8";
+
 function escapeHtml(str) {
   return String(str ?? "")
     .replaceAll("&", "&amp;")
@@ -45,9 +47,31 @@ export async function render(pageEl, { api, showAlert }) {
     return;
   }
 
+  let savedAttempt = null;
+  if (isAuthed()) {
+    const role = getEffectiveRole();
+    if (role === "patient" || role === "admin") {
+      try {
+        const st = await api.patient.getMythTruthStatus();
+        savedAttempt = st.attempt ?? null;
+      } catch {
+        /* статус недоступен — только локальное прохождение */
+      }
+    }
+  }
+
   const answers = {};
   let step = 0;
   let results = null;
+  let viewingStaleResult = false;
+
+  if (savedAttempt && !savedAttempt.is_stale) {
+    results = {
+      score: savedAttempt.score,
+      total: savedAttempt.total,
+      items: savedAttempt.items,
+    };
+  }
 
   const root = document.createElement("div");
   root.className = "app-page";
@@ -57,13 +81,20 @@ export async function render(pageEl, { api, showAlert }) {
   const paint = () => {
     if (results) {
       const pct = Math.round((results.score / results.total) * 100);
+      const staleNotice =
+        viewingStaleResult && savedAttempt?.is_stale
+          ? `<div class="alert alert-warning border-0 small mb-3">Показан результат прошлого набора вопросов. Пройдите тест заново, чтобы учесть обновления.</div>`
+          : "";
+      const retryLabel =
+        viewingStaleResult && savedAttempt?.is_stale ? "Пройти обновлённый тест" : "Пройти снова";
       root.innerHTML = `
+        ${staleNotice}
         <div class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-3">
           <div>
             <h1 class="app-page-title h3 mb-1">Результат</h1>
             <p class="text-muted small mb-0">Образовательный тест, не медицинское заключение.</p>
           </div>
-          <button type="button" class="btn btn-outline-secondary btn-sm" id="myth-retry">Пройти снова</button>
+          <button type="button" class="btn btn-outline-secondary btn-sm" id="myth-retry">${retryLabel}</button>
         </div>
         <div class="card app-card border-0 shadow-sm mb-4">
           <div class="card-body">
@@ -100,6 +131,7 @@ export async function render(pageEl, { api, showAlert }) {
         Object.keys(answers).forEach((k) => delete answers[k]);
         step = 0;
         results = null;
+        viewingStaleResult = false;
         paint();
       });
       return;
@@ -110,6 +142,14 @@ export async function render(pageEl, { api, showAlert }) {
     const picked = answers[q.id];
     const atEnd = step === n - 1;
 
+    const staleQuizBanner =
+      savedAttempt && savedAttempt.is_stale
+        ? `<div class="alert alert-info border-0 small mb-3 d-flex flex-wrap align-items-center justify-content-between gap-2">
+             <span class="mb-0">В тесте появились новые или изменённые вопросы. Рекомендуем пройти его заново.</span>
+             <button type="button" class="btn btn-sm btn-outline-primary flex-shrink-0" id="myth-show-saved">Прошлый результат</button>
+           </div>`
+        : "";
+
     root.innerHTML = `
       <div class="d-flex flex-wrap align-items-start justify-content-between gap-2 mb-3">
         <div>
@@ -118,6 +158,7 @@ export async function render(pageEl, { api, showAlert }) {
         </div>
         <a href="#/articles" class="btn btn-outline-secondary btn-sm">К статьям</a>
       </div>
+      ${staleQuizBanner}
       <div class="alert alert-light border small mb-3">
         Это не диагноз и не индивидуальная рекомендация: формулировки упрощены. Спорные темы лучше обсудить со специалистом.
       </div>
@@ -142,6 +183,17 @@ export async function render(pageEl, { api, showAlert }) {
         <button type="button" class="btn btn-outline-secondary" id="myth-prev" ${step === 0 ? "disabled" : ""}>Назад</button>
         <button type="button" class="btn btn-primary" id="myth-next" ${picked ? "" : "disabled"}>${atEnd ? "Показать результат" : "Далее"}</button>
       </div>`;
+
+    root.querySelector("#myth-show-saved")?.addEventListener("click", () => {
+      if (!savedAttempt) return;
+      viewingStaleResult = true;
+      results = {
+        score: savedAttempt.score,
+        total: savedAttempt.total,
+        items: savedAttempt.items,
+      };
+      paint();
+    });
 
     root.querySelectorAll("[data-pick]").forEach((btn) => {
       const v = btn.getAttribute("data-pick");
@@ -172,6 +224,18 @@ export async function render(pageEl, { api, showAlert }) {
       });
       try {
         results = await api.public.submitMythTruth(payload);
+        viewingStaleResult = false;
+        if (isAuthed()) {
+          const role = getEffectiveRole();
+          if (role === "patient" || role === "admin") {
+            try {
+              const st = await api.patient.getMythTruthStatus();
+              savedAttempt = st.attempt ?? null;
+            } catch {
+              /* */
+            }
+          }
+        }
         paint();
       } catch (e) {
         showAlert("danger", e.message || "Не удалось проверить ответы");

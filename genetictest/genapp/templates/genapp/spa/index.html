@@ -9,7 +9,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
-    <link href="{% static 'genapp/app/css/dashboard.css' %}?{% if debug %}v={% now 'U' %}{% else %}v=5{% endif %}" rel="stylesheet" />
+    <link href="{% static 'genapp/app/css/dashboard.css' %}?{% if debug %}v={% now 'U' %}{% else %}v=6{% endif %}" rel="stylesheet" />
 
     <style>
       :root {
@@ -20,17 +20,98 @@
         font-family: "Inter", system-ui, -apple-system, sans-serif;
         font-size: 0.925rem;
       }
-      .sidebar {
-        position: sticky;
-        top: 0;
-        align-self: flex-start;
-        min-height: 100vh;
-        max-height: 100vh;
-        overflow-y: auto;
+      /* Макет и сворачивание меню — как в genapp/base.html (#sidebar / #content / #sidebarCollapse) */
+      #app-shell-sidebar.spa-sidebar {
+        min-width: 220px;
+        max-width: 220px;
+        width: 220px;
         background: #ffffff;
-        border-right: 1px solid rgba(0,0,0,0.06);
-        transition: transform 0.22s ease, box-shadow 0.22s ease;
-        z-index: 1045;
+        color: #212529;
+        border-right: 1px solid rgba(0, 0, 0, 0.08);
+        transition: all 0.2s;
+        height: 100vh;
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 1000;
+        box-shadow: 2px 0 12px rgba(0, 0, 0, 0.04);
+        overflow-y: auto;
+      }
+      #app-shell-sidebar.spa-sidebar.active {
+        margin-left: -220px;
+      }
+      #spa-main.app-main {
+        width: calc(100% - 220px);
+        margin-left: 220px;
+        transition: all 0.2s;
+        min-height: 100vh;
+        padding: 20px;
+      }
+      #spa-main.app-main.active {
+        width: 100%;
+        margin-left: 0;
+      }
+      #sidebarCollapse {
+        position: fixed;
+        top: 15px;
+        right: 15px;
+        z-index: 999;
+        background: #0d6efd;
+        border: none;
+        color: white;
+        border-radius: 6px;
+        width: 35px;
+        height: 35px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        transition: all 0.2s;
+        padding: 0;
+      }
+      #sidebarCollapse:hover {
+        background: #0b5ed7;
+        transform: scale(1.05);
+      }
+      #sidebarCollapse span {
+        display: block;
+        width: 16px;
+        height: 2px;
+        background: white;
+        margin: 2.5px 0;
+        transition: all 0.2s;
+      }
+      #sidebarCollapse.active span:nth-child(1) {
+        transform: rotate(45deg) translate(4px, 4px);
+      }
+      #sidebarCollapse.active span:nth-child(2) {
+        opacity: 0;
+      }
+      #sidebarCollapse.active span:nth-child(3) {
+        transform: rotate(-45deg) translate(5px, -5px);
+      }
+      @media (max-width: 768px) {
+        #app-shell-sidebar.spa-sidebar {
+          margin-left: -220px;
+        }
+        #app-shell-sidebar.spa-sidebar.active {
+          margin-left: 0;
+        }
+        #spa-main.app-main {
+          width: 100%;
+          margin-left: 0;
+          padding: 15px;
+        }
+        #spa-main.app-main.active {
+          width: 100%;
+          margin-left: 0;
+        }
+        #sidebarCollapse {
+          display: flex;
+          top: 10px;
+          right: 10px;
+        }
       }
       .sidebar-brand {
         padding-bottom: 0.65rem;
@@ -47,17 +128,12 @@
         background: rgba(13,110,253,0.1);
         color: #0d6efd;
       }
-      .sidebar-brand .brand-title {
+      .sidebar-brand .brand-title,
+      .sidebar-brand .brand-subtitle {
         font-size: 1rem;
         font-weight: 700;
-        line-height: 1.1;
-      }
-      .sidebar-brand .brand-subtitle {
-        color: #6c757d;
-        font-size: 0.78rem;
-      }
-      .app-main {
-        padding: 1.25rem 1rem;
+        line-height: 1.15;
+        color: inherit;
       }
       .spa-footer {
         margin-top: 1rem;
@@ -112,9 +188,10 @@
       #alert-area {
         position: fixed;
         top: 0.9rem;
-        right: 0.9rem;
+        right: 3.75rem;
         z-index: 1080;
         width: min(92vw, 380px);
+        max-width: calc(100vw - 5rem);
         pointer-events: none;
       }
       #alert-area .toast,
@@ -134,48 +211,13 @@
       .sidebar-section-title {
         color: #6c757d;
       }
-      .sidebar-mobile-toggle {
-        display: none;
-      }
-      .sidebar-backdrop {
-        display: none;
-      }
-      @media (max-width: 767.98px) {
-        .sidebar-mobile-toggle {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          width: 2.1rem;
-          height: 2.1rem;
-        }
-        .sidebar {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: min(84vw, 320px);
-          max-height: 100vh;
-          transform: translateX(-100%);
-          box-shadow: 0 8px 36px rgba(15, 43, 74, 0.22);
-        }
-        body.sidebar-open .sidebar {
-          transform: translateX(0);
-        }
-        .sidebar-backdrop {
-          position: fixed;
-          inset: 0;
-          background: rgba(15, 23, 42, 0.42);
-          z-index: 1040;
-        }
-        body.sidebar-open .sidebar-backdrop {
-          display: block;
-        }
-        .app-main {
-          padding-top: 0.75rem;
-        }
+      @media (max-width: 768px) {
         #alert-area {
+          top: 3.25rem;
           right: 0.65rem;
           left: 0.65rem;
           width: auto;
+          max-width: none;
         }
       }
       .badge-status {
@@ -217,70 +259,68 @@
     </style>
   </head>
   <body>
-    <div id="app-shell" class="container-fluid g-0">
-      <div class="row g-0">
-        <aside class="col-md-3 col-lg-2 sidebar px-3 pt-3">
-          <div class="d-flex align-items-center justify-content-between mb-3">
-            <button id="sidebar-toggle" class="btn btn-outline-primary btn-sm sidebar-mobile-toggle" type="button" aria-label="Открыть меню">
-              <i class="bi bi-list"></i>
-            </button>
-            <div class="d-flex align-items-center gap-2 sidebar-brand flex-grow-1 ms-1 ms-md-0">
-              <span class="brand-icon"><i class="bi bi-heart-pulse"></i></span>
-              <div>
-                <div class="brand-title">Персональный</div>
-                <div class="brand-subtitle">паспорт здоровья</div>
-              </div>
+    <div id="app-shell">
+      <aside id="app-shell-sidebar" class="spa-sidebar px-3 pt-3">
+        <div class="d-flex align-items-center gap-2 sidebar-brand mb-3">
+          <span class="brand-icon"><i class="bi bi-heart-pulse"></i></span>
+          <div>
+            <div class="brand-title">Персональный</div>
+            <div class="brand-subtitle">паспорт здоровья</div>
+          </div>
+        </div>
+
+        <div id="sidebar"></div>
+
+        <div class="my-3" style="height:1px;background:rgba(0,0,0,0.05)"></div>
+        <div class="pb-2">
+          <div class="text-muted small">Аккаунт</div>
+          <div id="account-block" class="small"></div>
+          <button id="btn-logout" class="btn btn-outline-secondary btn-sm w-100 mt-2 d-none">
+            Выйти
+          </button>
+        </div>
+      </aside>
+
+      <button type="button" id="sidebarCollapse" aria-label="Меню">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+
+      <main id="spa-main" class="app-main">
+        <div id="alert-area"></div>
+        <div class="app-content-wrap mx-auto">
+          <div id="page"></div>
+          <footer class="spa-footer mt-3" role="contentinfo">
+            <div class="footer-grid">
+              <section>
+                <div class="footer-title">Контакты</div>
+                <ul class="footer-list">
+                  <li><a href="mailto:info@nasongene.ru">info@nasongene.ru</a></li>
+                  <li><a href="tel:+74951234567">+7 (495) 123-45-67</a></li>
+                  <li>Москва, Каширское шоссе, д. 34А</li>
+                </ul>
+              </section>
+              <section>
+                <div class="footer-title"><a href="/privacy-policy/">Политика конфиденциальности</a></div>
+                <div class="footer-disclaimer">
+                  Обращаем ваше внимание, что материалы сайта носят информационный характер и не заменяют очную консультацию врача.
+                  Интерпретация генетических данных зависит от полноты и качества исходных материалов. Сервис — цифровой помощник, а не средство постановки диагнозов.
+                  Перед применением рекомендаций проконсультируйтесь с вашим лечащим врачом.
+                </div>
+              </section>
             </div>
-          </div>
-
-          <div id="sidebar"></div>
-
-          <div class="my-3" style="height:1px;background:rgba(0,0,0,0.05)"></div>
-          <div class="pb-2">
-            <div class="text-muted small">Аккаунт</div>
-            <div id="account-block" class="small"></div>
-            <button id="btn-logout" class="btn btn-outline-secondary btn-sm w-100 mt-2 d-none">
-              Выйти
-            </button>
-          </div>
-        </aside>
-
-        <main class="col-md-9 col-lg-10 app-main">
-          <div id="sidebar-backdrop" class="sidebar-backdrop" aria-hidden="true"></div>
-          <div id="alert-area"></div>
-          <div class="app-content-wrap mx-auto">
-            <div id="page"></div>
-            <footer class="spa-footer mt-3" role="contentinfo">
-              <div class="footer-grid">
-                <section>
-                  <div class="footer-title">Контакты</div>
-                  <ul class="footer-list">
-                    <li><a href="mailto:info@nasongene.ru">info@nasongene.ru</a></li>
-                    <li><a href="tel:+74951234567">+7 (495) 123-45-67</a></li>
-                    <li>Москва, Каширское шоссе, д. 34А</li>
-                  </ul>
-                </section>
-                <section>
-                  <div class="footer-title"><a href="/privacy-policy/">Политика конфиденциальности</a></div>
-                  <div class="footer-disclaimer">
-                    Обращаем ваше внимание, что материалы сайта носят информационный характер и не заменяют очную консультацию врача.
-                    Интерпретация генетических данных зависит от полноты и качества исходных материалов. Сервис — цифровой помощник, а не средство постановки диагнозов.
-                    Перед применением рекомендаций проконсультируйтесь с вашим лечащим врачом.
-                  </div>
-                </section>
-              </div>
-              <div class="footer-copy">&copy; 2026 «Персональный паспорт здоровья» — ФГБНУ НИИР им. В.А. Насоновой. Все права защищены.</div>
-            </footer>
-          </div>
-        </main>
-      </div>
+            <div class="footer-copy">&copy; 2026 «Персональный паспорт здоровья» — ФГБНУ НИИР им. В.А. Насоновой. Все права защищены.</div>
+          </footer>
+        </div>
+      </main>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     {# В DEBUG query сбрасывает кэш модулей при перезагрузке; в prod меняйте v= после правок JS #}
-    <script type="module" src="{% static 'genapp/app/main.js' %}?{% if debug %}v={% now 'U' %}{% else %}v=96{% endif %}"></script>
+    <script type="module" src="{% static 'genapp/app/main.js' %}?{% if debug %}v={% now 'U' %}{% else %}v=99{% endif %}"></script>
   </body>
 </html>
 

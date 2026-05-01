@@ -30,6 +30,7 @@ from genapp.models import (
     GeneVitamin,
     InPersonAppointment,
     MythTruthQuestion,
+    PatientMythTruthResult,
     PatientNotification,
     Recommendation,
     UserGenotype,
@@ -418,6 +419,21 @@ class Command(BaseCommand):
                 "created_at": a.created_at,
             }
             for a in aps
+        ]
+
+        mtr = list(PatientMythTruthResult.objects.select_related("user").all().order_by("user_id"))
+        data["counts"]["PatientMythTruthResult"] = len(mtr)
+        data["patient_myth_truth_results"] = [
+            {
+                "user_id": x.user_id,
+                "user": ulabel(x.user_id),
+                "question_set_signature": x.question_set_signature,
+                "score": x.score,
+                "total": x.total,
+                "result_items": x.result_items,
+                "completed_at": x.completed_at,
+            }
+            for x in mtr
         ]
 
         pns = list(

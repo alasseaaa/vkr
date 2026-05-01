@@ -257,6 +257,8 @@ export const api = {
     resetSymptomTestSnapshot: () => request("delete", "/api/patient/symptom-test/snapshot/"),
     submitSymptomTest: (payload) =>
       request("post", "/api/patient/symptom-test/submit/", { data: payload }),
+    /** Сохранённый результат «Миф или правда» и флаг устаревания набора вопросов. */
+    getMythTruthStatus: () => request("get", "/api/patient/myth-truth/status/"),
     listGeneCatalog: () => request("get", "/api/patient/genes/catalog/"),
     listGeneVariantCatalog: (params) =>
       request("get", "/api/patient/gene-variants/catalog/", { params }),

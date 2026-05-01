@@ -9,6 +9,7 @@ from .models import (
     InPersonAppointment,
     PatientNotification,
     PatientSymptomTestSnapshot,
+    PatientMythTruthResult,
     MythTruthQuestion,
     GeneticReportUpload,
     GeneSymbolRequest,
@@ -74,6 +75,14 @@ class PatientSymptomTestSnapshotAdmin(admin.ModelAdmin):
     @admin.display(description="Витаминов")
     def vitamins_count(self, obj):
         return len(obj.vitamin_ids or [])
+
+
+@admin.register(PatientMythTruthResult)
+class PatientMythTruthResultAdmin(admin.ModelAdmin):
+    list_display = ("user", "score", "total", "question_set_signature", "completed_at")
+    search_fields = ("user__username", "user__email")
+    raw_id_fields = ("user",)
+    readonly_fields = ("completed_at",)
 
 
 @admin.register(MythTruthQuestion)

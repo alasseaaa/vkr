@@ -679,16 +679,18 @@ export async function render(pageEl, { api, auth, showAlert }) {
     isPatient || isAdmin
       ? `<a href="#/symptom-test" class="dash-symptom-cta text-decoration-none text-body d-block rounded-3 position-relative overflow-hidden mb-3 mb-md-4 dashboard-animate" role="link" aria-label="Перейти к тесту по симптомам">
   <div class="d-flex flex-column flex-sm-row align-items-stretch">
-    <div class="d-flex flex-grow-1 p-3 p-sm-4 gap-3">
-      <div class="flex-shrink-0">
-        <span class="dash-symptom-cta__icon d-inline-flex align-items-center justify-content-center rounded-3 text-white" aria-hidden="true">
-          <i class="bi bi-clipboard2-pulse fs-2"></i>
-        </span>
-      </div>
-      <div class="min-w-0">
-        <div class="dash-symptom-cta__kicker text-uppercase small mb-1">4–5 минут</div>
-        <h2 class="h5 mb-1 text-white">Тест по симптомам</h2>
-        <p class="mb-0 small dash-symptom-cta__sub">Свяжем жалобы с витаминами и генетическими маркерами — ориентиры для обсуждения с врачом.</p>
+    <div class="d-flex flex-grow-1 p-3 p-sm-4 flex-column justify-content-center">
+      <div class="d-flex gap-3 align-items-center w-100 min-w-0">
+        <div class="flex-shrink-0">
+          <span class="dash-symptom-cta__icon d-inline-flex align-items-center justify-content-center rounded-3 text-white" aria-hidden="true">
+            <i class="bi bi-clipboard2-pulse fs-2 lh-1"></i>
+          </span>
+        </div>
+        <div class="min-w-0">
+          <div class="dash-symptom-cta__kicker text-uppercase small mb-1">2-3 минуты</div>
+          <h2 class="h5 mb-1 text-white">Опросник по симптомам</h2>
+          <p class="mb-0 small dash-symptom-cta__sub">Узнайте, как генетика влияет на ваши симптомы и выявите связь между вашим состоянием и дефицитами витаминов и получите персональную «дорожную карту» для проверки здоровья.</p>
+        </div>
       </div>
     </div>
     <div class="d-flex align-items-center justify-content-center px-3 py-3 py-sm-4 flex-shrink-0 dash-symptom-cta__action">
