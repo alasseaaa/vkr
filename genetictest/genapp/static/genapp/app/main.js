@@ -1,5 +1,5 @@
 import { parseRoute } from "./router.js?v=13";
-import { showAlert, clearAlert } from "./components/alerts.js?v=2";
+import { showAlert, clearAlert } from "./components/alerts.js?v=3";
 import { renderSidebar } from "./components/sidebar.js?v=13";
 import { getAuth, isAuthed, setStoredRole, getEffectiveRole, NURSE_PROBE_ONCE_KEY } from "./services/auth.js?v=8";
 import { api } from "./services/api.js?v=19";
@@ -10,7 +10,7 @@ import {
 import {
   startPatientNotificationPolling,
   stopPatientNotificationPolling,
-} from "./services/patientNotifications.js";
+} from "./services/patientNotifications.js?v=2";
 import {
   startNurseNotificationPolling,
   stopNurseNotificationPolling,
@@ -252,7 +252,7 @@ async function renderPage(route) {
     consent: () => import("./pages/consent.js?v=2"),
     "symptom-test": () => import("./pages/symptomTest.js?v=8"),
     "article-detail": () => import("./pages/articles.js?v=3"),
-    dashboard: () => import("./pages/dashboard.js?v=34"),
+    dashboard: () => import("./pages/dashboard.js?v=37"),
     genetics: () => import("./pages/geneticsHub.js?v=1"),
     "health-insights": () => import("./pages/healthInsightsHub.js?v=1"),
     "doctor-communication": () => import("./pages/doctorCommunicationHub.js?v=2"),

@@ -156,7 +156,7 @@ def ensure_due_recommendation_reminders(user):
         PatientNotification.objects.create(
             user=user,
             user_recommendation=ur,
-            title="Напоминание по рекомендации",
+            title=ur.recommendation.title,
             body=text,
         )
         ur.last_reminder_sent_at = now
