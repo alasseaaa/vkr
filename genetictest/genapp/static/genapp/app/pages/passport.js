@@ -87,14 +87,22 @@ export async function render(pageEl, { api, showAlert, route }) {
           <details class="card app-card shadow-sm mb-2 passport-gene-card" id="passport-genotype-${g.id}">
             <summary class="d-flex align-items-start justify-content-between gap-2 py-2 px-3 user-select-none">
               <div class="min-w-0 flex-grow-1">
-                <div class="fw-semibold text-truncate" title="${titleTip}">${sym}${fullName ? ` <span class="text-muted fw-normal small">· ${escapeHtml(fullName.length > 48 ? `${fullName.slice(0, 46)}…` : fullName)}</span>` : ""}</div>
-                <div class="mt-1 small text-muted">
-                  <span class="font-monospace text-dark">${variant}</span>
+                <div class="fw-semibold d-flex flex-wrap align-items-center gap-2">
+                  <span class="text-body">${sym}</span>
+                  <span class="badge text-bg-light border font-monospace">${variant}</span>
                   ${commentHint}
                 </div>
                 ${
+                  fullName
+                    ? `<div class="small text-muted mt-1 text-truncate" title="${titleTip}">${escapeHtml(fullName)}</div>`
+                    : ""
+                }
+                ${
                   teaser
-                    ? `<div class="mt-1 small text-body-secondary text-truncate" title="${teaserSource.length > 110 ? escapeHtml(teaserSource) : ""}">${escapeHtml(teaser)}</div>`
+                    ? `<div class="mt-2 small">
+                        <span class="text-uppercase fw-semibold text-muted me-1" style="font-size:0.68rem; letter-spacing:0.04em;">Эффект:</span>
+                        <span class="text-body">${escapeHtml(teaser)}</span>
+                      </div>`
                     : ""
                 }
               </div>
@@ -121,7 +129,7 @@ export async function render(pageEl, { api, showAlert, route }) {
         <h3 class="mb-0">Генетический паспорт</h3>
         <a class="btn btn-outline-secondary btn-sm" href="#/dashboard">На дашборд</a>
       </div>
-      <p class="text-muted small mb-3">В строке — символ, название, ваш вариант и краткая выдержка из описания. Полные тексты, уровень риска и комментарии врача — после раскрытия карточки.</p>
+      <p class="text-muted small mb-3">В списке представлены символы генов, их названия и ваши результаты. Нажмите "Подробнее", чтобы увидеть подробную интерпретацию, оценку рисков и персональные рекомендации врача.</p>
       <style>
         .passport-gene-card > summary { list-style: none; cursor: pointer; }
         .passport-gene-card > summary::-webkit-details-marker { display: none; }

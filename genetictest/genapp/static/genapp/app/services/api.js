@@ -253,6 +253,8 @@ export const api = {
     /** Подсказки: тест симптомов + генетика (категория «Витамины»). */
     listSuggestedVitamins: () => request("get", "/api/patient/vitamins/suggested/"),
     /** Сохранить отмеченные пункты теста симптомов (selected_item_ids — slug из API пунктов). */
+    getSymptomTestSnapshot: () => request("get", "/api/patient/symptom-test/snapshot/"),
+    resetSymptomTestSnapshot: () => request("delete", "/api/patient/symptom-test/snapshot/"),
     submitSymptomTest: (payload) =>
       request("post", "/api/patient/symptom-test/submit/", { data: payload }),
     listGeneCatalog: () => request("get", "/api/patient/genes/catalog/"),
@@ -309,6 +311,8 @@ export const api = {
       request("patch", `/api/patient/appointments/${id}/`, { data: { cancel: true } }),
   },
   doctor: {
+    getMyProfile: () => request("get", "/api/doctor/profile/"),
+    updateMyProfile: (payload) => request("patch", "/api/doctor/profile/", { data: payload }),
     listPatients: (params) => request("get", "/api/doctor/patients/", { params: params || {} }),
     getActivityFeed: (params) => request("get", "/api/doctor/activity/", { params: params || {} }),
     listAppointments: (params) => request("get", "/api/doctor/appointments/", { params: params || {} }),

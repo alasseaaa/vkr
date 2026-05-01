@@ -111,8 +111,8 @@ function buildIntakeSuggestionsCard(suggestedPayload, activeVitaminIds, escapeHt
       <div class="d-flex align-items-start gap-2">
         <i class="bi bi-capsule text-success fs-3 flex-shrink-0" aria-hidden="true"></i>
         <div>
-          <div class="fw-bold text-dark mb-1">Возможно принимаете</div>
-          <p class="small mb-0 text-body-secondary">По симптомам и генетике отмечены витамины в зоне внимания. Укажите дату начала курса; дату окончания можно будет отметить позже, когда приём завершите.</p>
+          <div class="fw-bold text-dark mb-1">Рекомендовано к учету</div>
+          <p class="small mb-0 text-body-secondary">Система определила эти нутриенты как ключевые для коррекции вашего состояния. Если вы уже начали их прием, внесите данные в кабинет, чтобы активировать расширенную аналитику по этим показателям.</p>
         </div>
       </div>
     </div>
@@ -219,8 +219,8 @@ export async function render(pageEl, { api, showAlert } = {}) {
 
       <div class="card app-card shadow-sm mb-3">
         <div class="card-header bg-white">
-          <div class="fw-semibold">Новый курс</div>
-          <div class="text-muted small">Дата начала и по желанию фото упаковки (до 5 МБ, JPEG/PNG/WebP/GIF). Окончание курса отмечается позже в «Изменить» или кнопкой «Завершить» в таблице.</div>
+          <div class="fw-semibold">Новый курс добавок</div>
+          <div class="text-muted small">Укажите дату начала приема и, при необходимости, прикрепите фото упаковки (до 5 МБ). Вы всегда сможете отредактировать статус или завершить курс в общем списке.</div>
         </div>
         <div class="card-body">
           <form id="intake-create-form" class="row g-2">

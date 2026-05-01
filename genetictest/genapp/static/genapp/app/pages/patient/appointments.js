@@ -52,17 +52,10 @@ export async function render(pageEl, { api, showAlert }) {
 
   doctors = Array.isArray(doctors) ? doctors : [];
   items = Array.isArray(items) ? items : [];
-
-  const doctorOptions =
-    doctors.length > 0
-      ? doctors
-          .map((d) => {
-            const label =
-              (d.full_name || `${d.first_name || ""} ${d.last_name || ""}`.trim() || d.username || "").trim();
-            return `<option value="${d.id}">${escapeHtml(label)}</option>`;
-          })
-          .join("")
-      : "";
+  const assignedDoctor = doctors[0] || null;
+  const assignedDoctorLabel = assignedDoctor
+    ? (assignedDoctor.full_name || `${assignedDoctor.first_name || ""} ${assignedDoctor.last_name || ""}`.trim() || assignedDoctor.username || "").trim()
+    : "";
 
   const listHtml = items.length
     ? items
@@ -101,7 +94,7 @@ export async function render(pageEl, { api, showAlert }) {
         <a class="btn btn-outline-secondary btn-sm" href="#/dashboard">На дашборд</a>
       </div>
       <p class="text-muted small mb-4">
-        Оставьте заявку с удобным временем. Врач подтвердит, предложит другое время или отклонит запись. Уведомление придёт в колокольчик.
+        Оставьте заявку с удобным временем. Врач подтвердит, предложит другое время или отклонит запись.
       </p>
 
       ${
@@ -112,9 +105,14 @@ export async function render(pageEl, { api, showAlert }) {
         <div class="card-body">
           <h5 class="card-title">Новая заявка</h5>
           <form id="form-new-appt" class="row g-3">
-            <div class="col-md-6">
-              <label class="form-label">Врач</label>
-              <select class="form-select" name="doctor" required>${doctorOptions}</select>
+            <div class="col-12">
+              <label class="form-label">Лечащий врач</label>
+              <input class="form-control" value="${escapeHtml(assignedDoctorLabel)}" disabled />
+              ${
+                doctors.length > 1
+                  ? `<div class="form-text">Назначено несколько врачей. Заявка создается на основного закрепленного врача.</div>`
+                  : ""
+              }
             </div>
             <div class="col-md-6">
               <label class="form-label">Желаемые дата и время</label>
@@ -142,13 +140,12 @@ export async function render(pageEl, { api, showAlert }) {
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
       const fd = new FormData(form);
-      const doctor = Number(fd.get("doctor"));
       const localDt = fd.get("requested_start");
       const patient_note = (fd.get("patient_note") || "").trim();
-      if (!doctor || !localDt) return;
+      if (!localDt) return;
       const requested_start = new Date(localDt).toISOString();
       try {
-        await api.patient.createAppointment({ doctor, requested_start, patient_note });
+        await api.patient.createAppointment({ requested_start, patient_note });
         showAlert("success", "Заявка отправлена.");
         await render(pageEl, { api, showAlert });
       } catch (err) {

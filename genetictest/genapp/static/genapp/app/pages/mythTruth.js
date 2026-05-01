@@ -95,10 +95,7 @@ export async function render(pageEl, { api, showAlert }) {
             </div>`,
             )
             .join("")}
-        </div>
-        <p class="small text-muted mt-4 mb-0">
-          При симптомах или перед изменением режима сна, питания и нагрузок обратитесь к врачу.
-        </p>`;
+        </div>`;
       root.querySelector("#myth-retry")?.addEventListener("click", () => {
         Object.keys(answers).forEach((k) => delete answers[k]);
         step = 0;

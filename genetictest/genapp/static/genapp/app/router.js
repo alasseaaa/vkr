@@ -74,6 +74,9 @@ export function parseRoute() {
   if (parts[0] === "doctor" && parts[1] === "appointments") {
     return { name: "doctor-appointments" };
   }
+  if (parts[0] === "doctor" && parts[1] === "profile") {
+    return { name: "doctor-my-profile" };
+  }
   if (parts[0] === "doctor" && parts[1] === "patients") {
     if (parts[2]) return { name: "doctor-profile", patientId: Number(parts[2]) };
     return { name: "doctor-patients" };

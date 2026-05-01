@@ -1,8 +1,8 @@
-import { parseRoute } from "./router.js?v=12";
+import { parseRoute } from "./router.js?v=13";
 import { showAlert, clearAlert } from "./components/alerts.js?v=2";
-import { renderSidebar } from "./components/sidebar.js?v=11";
+import { renderSidebar } from "./components/sidebar.js?v=13";
 import { getAuth, isAuthed, setStoredRole, getEffectiveRole, NURSE_PROBE_ONCE_KEY } from "./services/auth.js?v=8";
-import { api } from "./services/api.js?v=16";
+import { api } from "./services/api.js?v=18";
 import {
   startAdminGeneRequestPolling,
   stopAdminGeneRequestPolling,
@@ -112,7 +112,7 @@ async function renderPage(route) {
   }
 
   if (route.name === "profile" && isAuthed() && r === "doctor") {
-    window.location.hash = "#/doctor/patients";
+    window.location.hash = "#/doctor/profile";
     return;
   }
   if (route.name === "profile" && isAuthed() && r === "nurse") {
@@ -171,15 +171,15 @@ async function renderPage(route) {
     login: () => import("./pages/login.js"),
     register: () => import("./pages/register.js?v=4"),
     articles: () => import("./pages/articles.js?v=2"),
-    "myth-truth": () => import("./pages/mythTruth.js?v=1"),
+    "myth-truth": () => import("./pages/mythTruth.js?v=2"),
     consent: () => import("./pages/consent.js?v=2"),
-    "symptom-test": () => import("./pages/symptomTest.js?v=7"),
+    "symptom-test": () => import("./pages/symptomTest.js?v=8"),
     "article-detail": () => import("./pages/articles.js?v=2"),
     dashboard: () => import("./pages/dashboard.js?v=32"),
     genetics: () => import("./pages/geneticsHub.js?v=1"),
     "health-insights": () => import("./pages/healthInsightsHub.js?v=1"),
     "doctor-communication": () => import("./pages/doctorCommunicationHub.js?v=2"),
-    materials: () => import("./pages/materialsHub.js?v=1"),
+    materials: () => import("./pages/materialsHub.js?v=2"),
     genotypes: () => import("./pages/genotypes.js?v=11"),
     "nurse-genetic-uploads": () => import("./pages/nurse/geneticUploads.js?v=3"),
     "nurse-patient-genotypes": () => import("./pages/nurse/patientGenotypes.js?v=3"),
@@ -188,9 +188,10 @@ async function renderPage(route) {
     recommendations: () => import("./pages/recommendations.js?v=5"),
     passport: () => import("./pages/passport.js?v=6"),
     "patient-consultations": () => import("./pages/patient/consultations.js?v=5"),
-    "patient-appointments": () => import("./pages/patient/appointments.js?v=3"),
+    "patient-appointments": () => import("./pages/patient/appointments.js?v=4"),
     profile: () => import("./pages/profile.js?v=6"),
     "doctor-appointments": () => import("./pages/doctor/appointments.js"),
+    "doctor-my-profile": () => import("./pages/doctor/myProfile.js?v=1"),
     "doctor-patients": () => import("./pages/doctor/patients.js?v=2"),
     "doctor-profile": () => import("./pages/doctor/profile.js?v=2"),
     "admin-genes": () => import("./pages/admin/genes.js"),

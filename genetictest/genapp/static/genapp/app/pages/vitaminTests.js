@@ -242,8 +242,8 @@ export async function render(pageEl, { api, showAlert, route } = {}) {
 
     <div class="card app-card shadow-sm mb-3">
       <div class="card-header bg-white">
-        <div class="fw-semibold">Сравнение показателей</div>
-        <div class="text-muted small">Краткий отчёт «первый замер → последний» по каждому витамину. График динамики — на вкладке «Приём добавок».</div>
+        <div class="fw-semibold">Динамика изменений</div>
+        <div class="text-muted small">Наглядный отчет «первый замер → текущий статус» по каждому нутриенту. Детальные графики корреляции уровня витаминов доступны на вкладке «Прием добавок».</div>
       </div>
       <div class="card-body">
         <div id="vitamin-comparison-summary">

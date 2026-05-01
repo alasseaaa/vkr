@@ -1,7 +1,7 @@
 const TABS = [
   { key: "articles", label: "Статьи", load: () => import("./articles.js?v=2"), route: { name: "articles" } },
-  { key: "myth", label: "Миф или правда?", load: () => import("./mythTruth.js?v=1"), route: { name: "myth-truth" } },
-  { key: "symptoms", label: "Тест по симптомам", load: () => import("./symptomTest.js?v=6"), route: { name: "symptom-test" } },
+  { key: "myth", label: "Миф или правда?", load: () => import("./mythTruth.js?v=2"), route: { name: "myth-truth" } },
+  { key: "symptoms", label: "Тест по симптомам", load: () => import("./symptomTest.js?v=8"), route: { name: "symptom-test" } },
 ];
 
 function tabNavBtn(tab, active) {

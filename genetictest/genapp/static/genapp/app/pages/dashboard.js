@@ -712,6 +712,20 @@ export async function render(pageEl, { api, auth, showAlert }) {
 </div>`
     : "";
 
+  const educationCtaHtml =
+    isPatient || isAdmin
+      ? `<div class="card border-0 shadow-sm mb-3 mb-md-4 dashboard-animate" style="border-radius: 16px">
+  <div class="card-body py-3 py-md-4 d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3">
+    <div>
+      <div class="small text-uppercase text-muted mb-1" style="letter-spacing:0.05em">база знаний</div>
+      <div class="fw-semibold mb-1"><i class="bi bi-journal-bookmark me-1 text-primary" aria-hidden="true"></i>Как хорошо вы знаете свой организм?</div>
+      <div class="small text-muted">Углубите знания: почему это работает и как закрепить результат. Статьи, тесты и наглядные разборы.</div>
+    </div>
+    <a class="btn btn-outline-primary btn-sm" href="#/materials">Перейти к материалам</a>
+  </div>
+</div>`
+      : "";
+
   const ctaBlock = `<div class="row g-2 g-md-3 mb-4">
     <div class="col-6 col-md-3 dashboard-animate">
       ${
@@ -833,8 +847,6 @@ export async function render(pageEl, { api, auth, showAlert }) {
             <p class="text-muted small mb-0"><i class="bi bi-activity me-1 text-primary" aria-hidden="true"></i>Последняя активность: <strong class="text-body fw-medium">${lastActivity === "—" ? "—" : escapeHtml(lastActivity)}</strong></p>
           </div>
           <div class="d-none d-md-block text-end small">
-            <div>Рекомендации: <span class="fw-medium text-body">${recItems}</span> в <span class="text-body fw-medium">${recCats}</span> раздел.</div>
-            <div class="text-muted">Паспорт (ДНК): <span class="text-body">${escapeHtml(passportStatus)}</span></div>
           </div>
         </div>
         <div class="row g-3 align-items-stretch mt-1">
@@ -918,11 +930,12 @@ export async function render(pageEl, { api, auth, showAlert }) {
     </div>
     <h2 class="h6 text-uppercase text-secondary mb-2" style="font-size:0.7rem; letter-spacing:0.05em">Быстрые действия</h2>
     ${ctaBlock}
+    ${educationCtaHtml}
     <div class="row g-3">
       <div class="col-lg-7 dashboard-animate">
         <div class="card border-0 shadow-sm h-100" style="border-radius: 16px">
           <div class="card-header bg-light border-0 d-flex flex-wrap align-items-center justify-content-between">
-            <span class="fw-semibold"><i class="bi bi-graph-up-arrow me-1 text-primary"></i> Динамика витаминов</span>
+            <span class="fw-semibold"><i class="bi bi-graph-up-arrow me-1 text-primary"></i> Динамика анализов</span>
             <a class="btn btn-sm btn-outline-primary" href="#/vitamins">Витамины</a>
           </div>
           <div class="card-body">

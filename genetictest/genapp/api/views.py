@@ -47,6 +47,7 @@ from genapp.doctor.serializers import (
     PatientDoctorCommentReadSerializer,
 )
 from genapp.users.serializers import (
+    DoctorOwnProfileUpdateSerializer,
     LoginSerializer,
     PatientOwnProfileUpdateSerializer,
     PatientProfileSerializer,
@@ -393,6 +394,56 @@ class DoctorActivityFeedAPIView(APIView):
         lim = min(max(lim, 1), 100)
         data = get_doctor_patient_activity(request.user, limit=lim)
         return Response(data, status=status.HTTP_200_OK)
+
+
+class DoctorOwnProfileAPIView(APIView):
+    """Минимальный профиль врача: ФИО и отчество (User + UserProfile)."""
+
+    permission_classes = [IsDoctor]
+
+    def get(self, request):
+        user = request.user
+        profile, _ = UserProfile.objects.get_or_create(user=user)
+        return Response(
+            {
+                "id": user.id,
+                "username": user.username,
+                "email": user.email or "",
+                "first_name": user.first_name or "",
+                "last_name": user.last_name or "",
+                "patronymic": profile.patronymic or "",
+            }
+        )
+
+    def patch(self, request):
+        serializer = DoctorOwnProfileUpdateSerializer(data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+        if not data:
+            return self.get(request)
+
+        user = request.user
+        profile, _ = UserProfile.objects.get_or_create(user=user)
+        effective_patronymic = (profile.patronymic or "").strip()
+        if "patronymic" in data:
+            effective_patronymic = (data["patronymic"] or "").strip()
+        if not effective_patronymic:
+            return Response(
+                {"patronymic": ["Укажите отчество."]},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        if "first_name" in data:
+            user.first_name = data["first_name"]
+        if "last_name" in data:
+            user.last_name = data["last_name"]
+        user.save()
+
+        if "patronymic" in data:
+            profile.patronymic = data["patronymic"]
+            profile.save(update_fields=["patronymic", "updated_at"])
+
+        return self.get(request)
 
 
 class DoctorPatientProfileAPIView(APIView):

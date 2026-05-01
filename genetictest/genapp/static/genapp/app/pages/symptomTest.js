@@ -44,6 +44,15 @@ function escapeHtml(str) {
     .replaceAll("'", "&#039;");
 }
 
+function formatSavedAt(iso) {
+  if (!iso) return "";
+  try {
+    return new Date(iso).toLocaleString("ru-RU", { dateStyle: "short", timeStyle: "short" });
+  } catch {
+    return String(iso);
+  }
+}
+
 export async function render(pageEl, { api, showAlert, auth: authInCtx }) {
   const auth = authInCtx || getAuth();
   const role = String(auth?.role ?? "").toLowerCase();
@@ -85,6 +94,21 @@ export async function render(pageEl, { api, showAlert, auth: authInCtx }) {
   const symbolToGene = new Map((genes || []).map((g) => [g.symbol, g]));
   const selected = new Set();
   let showResults = false;
+  let hasPersistedSnapshot = false;
+  let snapshotUpdatedAt = null;
+
+  try {
+    const snap = await api.patient.getSymptomTestSnapshot();
+    const snapIds = Array.isArray(snap?.selected_item_ids) ? snap.selected_item_ids : [];
+    if (snapIds.length > 0) {
+      snapIds.forEach((id) => selected.add(String(id)));
+      hasPersistedSnapshot = true;
+      snapshotUpdatedAt = snap?.updated_at || null;
+      showResults = true;
+    }
+  } catch {
+    // Не блокируем страницу теста из-за ошибки чтения сохраненного снимка.
+  }
 
   const root = document.createElement("div");
   root.className = "app-page";
@@ -116,6 +140,13 @@ export async function render(pageEl, { api, showAlert, auth: authInCtx }) {
       : `<p class="text-muted small mb-0">Нет отмеченных пунктов.</p>`;
 
     return `
+      ${
+        hasPersistedSnapshot
+          ? `<div class="alert alert-secondary small border-0 mb-3">
+               Показан сохраненный результат теста${snapshotUpdatedAt ? ` от ${escapeHtml(formatSavedAt(snapshotUpdatedAt))}` : ""}.
+             </div>`
+          : ""
+      }
       <div class="card bg-light border mb-3">
         <div class="card-body py-3">
           <div class="fw-semibold small mb-2">Что вы отметили (сводка)</div>
@@ -175,13 +206,13 @@ export async function render(pageEl, { api, showAlert, auth: authInCtx }) {
             </div>
           </div>
           <div class="alert alert-info small border-0 mt-3 mb-0" role="note">
-            <strong>Дальнейшие шаги.</strong> Внести реальные <a href="#/genotypes" class="alert-link">генотипы</a> и <a href="#/vitamins" class="alert-link">анализы</a> в кабинет — тогда <a href="#/recommendations" class="alert-link">рекомендации</a> и паспорт станут персональны. Сужать или расширять панель анализов имеет смысл только вместе с врачом, который знает клиническую картину.
+            <strong>Дальнейшие шаги.</strong> Наполните профиль данными: внесите результаты генетических тестов и лабораторных анализов. Это позволит системе сформировать ваш персональный паспорт здоровья.
           </div>
           <div class="d-flex flex-wrap gap-2 mt-3">
             <a class="btn btn-primary" href="#/genotypes"><i class="bi bi-dna me-1"></i> К генотипам</a>
             <a class="btn btn-outline-primary" href="#/vitamins"><i class="bi bi-droplet me-1"></i> К витаминам</a>
             <a class="btn btn-outline-secondary" href="#/recommendations">К рекомендациям</a>
-            <button type="button" class="btn btn-outline-dark" id="st-retake">Назад к вопросам</button>
+            <button type="button" class="btn btn-outline-dark" id="st-retake">Пройти тест заново</button>
           </div>
         </div>
       </div>
@@ -200,8 +231,18 @@ export async function render(pageEl, { api, showAlert, auth: authInCtx }) {
         </div>
         ${renderResults()}`;
       root.querySelector("#st-retake")?.addEventListener("click", () => {
-        showResults = false;
-        paint();
+        (async () => {
+          try {
+            await api.patient.resetSymptomTestSnapshot();
+          } catch {
+            // Если сброс не удался, все равно даем пройти заново локально.
+          }
+          selected.clear();
+          hasPersistedSnapshot = false;
+          snapshotUpdatedAt = null;
+          showResults = false;
+          paint();
+        })();
       });
       return;
     }
@@ -289,7 +330,11 @@ export async function render(pageEl, { api, showAlert, auth: authInCtx }) {
       const ids = Array.from(selected);
       try {
         await api.patient.submitSymptomTest({ selected_item_ids: ids });
+        hasPersistedSnapshot = true;
+        snapshotUpdatedAt = new Date().toISOString();
       } catch (e) {
+        hasPersistedSnapshot = false;
+        snapshotUpdatedAt = null;
         showAlert(
           "warning",
           `Результат показан, но не сохранён в кабинете: ${e.message || "ошибка"}. Повторите при стабильной сети.`,

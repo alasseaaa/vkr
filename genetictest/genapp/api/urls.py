@@ -31,6 +31,7 @@ from genapp.api.myth_truth import MythTruthQuestionListAPIView, MythTruthSubmitA
 from genapp.api.push_views import PushUserSettingsAPIView
 from genapp.api.symptom_vitamin import (
     PatientSuggestedVitaminsAPIView,
+    PatientSymptomTestSnapshotAPIView,
     PatientSymptomTestSubmitAPIView,
 )
 from genapp.api.genetic_report import (
@@ -53,6 +54,7 @@ from genapp.api.views import (
     DoctorCommentUpdateAPIView,
     DoctorConclusionCreateAPIView,
     DoctorActivityFeedAPIView,
+    DoctorOwnProfileAPIView,
     DoctorPatientsListAPIView,
     DoctorPatientProfileAPIView,
     LoginAPIView,
@@ -105,6 +107,7 @@ urlpatterns = [
     path("patient/report/pdf/", PatientReportPDFAPIView.as_view()),
     path("patient/vitamins/catalog/", PatientVitaminCatalogAPIView.as_view()),
     path("patient/vitamins/suggested/", PatientSuggestedVitaminsAPIView.as_view()),
+    path("patient/symptom-test/snapshot/", PatientSymptomTestSnapshotAPIView.as_view()),
     path("patient/symptom-test/submit/", PatientSymptomTestSubmitAPIView.as_view()),
     path("patient/genes/catalog/", PatientGeneCatalogAPIView.as_view()),
     path("patient/gene-variants/catalog/", PatientGeneVariantCatalogAPIView.as_view()),
@@ -140,6 +143,7 @@ urlpatterns = [
     path("nurse/patients/<int:patient_id>/", NursePatientSummaryAPIView.as_view()),
 
     path("doctor/activity/", DoctorActivityFeedAPIView.as_view()),
+    path("doctor/profile/", DoctorOwnProfileAPIView.as_view()),
     path("doctor/appointments/", DoctorInPersonAppointmentListAPIView.as_view()),
     path("doctor/appointments/<int:pk>/", DoctorInPersonAppointmentDetailAPIView.as_view()),
 

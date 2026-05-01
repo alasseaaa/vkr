@@ -95,6 +95,12 @@ class PatientOwnProfileUpdateSerializer(serializers.Serializer):
         return value
 
 
+class DoctorOwnProfileUpdateSerializer(serializers.Serializer):
+    first_name = serializers.CharField(required=False, allow_blank=True, max_length=150)
+    last_name = serializers.CharField(required=False, allow_blank=True, max_length=150)
+    patronymic = serializers.CharField(required=False, allow_blank=True, max_length=64, min_length=2)
+
+
 class PatientProfileSerializer(serializers.ModelSerializer):
     profile = serializers.SerializerMethodField()
     full_name = serializers.SerializerMethodField()

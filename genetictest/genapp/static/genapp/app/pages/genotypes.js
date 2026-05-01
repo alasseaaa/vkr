@@ -200,6 +200,22 @@ function greqStatusRu(s) {
   return m[s] || s || "—";
 }
 
+function formatDateRu(value) {
+  if (value == null || value === "") return "—";
+  const raw = String(value).trim();
+  if (!raw) return "—";
+  const d = new Date(raw);
+  if (!Number.isNaN(d.getTime())) {
+    const dd = String(d.getDate()).padStart(2, "0");
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const yyyy = String(d.getFullYear());
+    return `${dd}.${mm}.${yyyy}`;
+  }
+  const m = raw.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (m) return `${m[3]}.${m[2]}.${m[1]}`;
+  return raw;
+}
+
 export async function render(
   pageEl,
   {
@@ -241,11 +257,7 @@ export async function render(
 
   let pdfTask = null;
   let pdfTaskErr = null;
-  const shortWhen = (iso) => {
-    if (iso == null || iso === "") return "—";
-    const s = String(iso);
-    return s.length >= 16 ? s.slice(0, 16).replace("T", " ") : s;
-  };
+  const shortWhen = (iso) => formatDateRu(iso);
   if (isNurse && pdfTaskUploadId != null) {
     const uir = Number(pdfTaskUploadId);
     if (Number.isFinite(uir) && uir > 0 && api.nurse?.getGeneticReport) {
@@ -421,8 +433,8 @@ export async function render(
       ? ""
       : `<div class="card app-card shadow-sm mb-3" id="card-gene-request">
       <div class="card-header bg-white">
-        <div class="fw-semibold">Нет гена в справочнике</div>
-        <div class="text-muted small">Если нужного <strong>символа</strong> нет в подсказках, введите его вручную. Администратору придёт уведомление в панели; пока гена нет в базе, вариант к паспорту не привязывается — сначала добавьте варианты, когда гены появятся в списке.</div>
+        <div class="fw-semibold">Запрос на добавление маркера</div>
+        <div class="text-muted small">Если нужного <strong>гена</strong> нет в справочнике, введите его символ вручную. Администратор получит уведомление и добавит маркер в базу. Персональная интерпретация станет доступна сразу после обновления справочника.</div>
       </div>
       <div class="card-body">
         <div class="row g-2 align-items-end">
@@ -475,11 +487,7 @@ export async function render(
                       ? "text-bg-warning text-dark"
                       : "text-bg-secondary"
                   }">${escapeHtml(greqStatusRu(q.status))}</span></td>
-                  <td class="text-muted small">${
-                    q.created_at != null && String(q.created_at).length >= 10
-                      ? String(q.created_at).slice(0, 10)
-                      : "—"
-                  }</td>
+                  <td class="text-muted small">${escapeHtml(formatDateRu(q.created_at))}</td>
                   <td class="text-muted small">${
                     q.status === "rejected" && (q.admin_note && String(q.admin_note).trim())
                       ? escapeHtml(String(q.admin_note).trim())
@@ -502,8 +510,8 @@ export async function render(
       ? ""
       : `<div class="card app-card shadow-sm mb-3" id="card-pdf-upload">
       <div class="card-header bg-white">
-        <div class="fw-semibold">Скан или PDF</div>
-        <div class="text-muted small">Прикрепите PDF с результатами анализов. Медсестра получит уведомление и внесёт варианты в ваш профиль. До 5 МБ, только .pdf</div>
+        <div class="fw-semibold">Оцифровка результатов</div>
+        <div class="text-muted small">Загрузите результаты анализов в формате PDF. Наши специалисты оцифруют данные и добавят их в ваш медицинский профиль.</div>
       </div>
       <div class="card-body">
         <div class="d-flex flex-wrap gap-2 align-items-center">
@@ -529,9 +537,7 @@ export async function render(
                       .map(
                         (r) => `
                 <tr>
-                  <td>${escapeHtml((r.created_at != null && String(r.created_at).length >= 10
-                    ? String(r.created_at).slice(0, 10)
-                    : "—") || "—")}</td>
+                  <td>${escapeHtml(formatDateRu(r.created_at))}</td>
                   <td>${escapeHtml(statusUploadRu(r.status))}</td>
                   <td class="text-muted small">${escapeHtml(
                     (r.admin_note && String(r.admin_note).trim()) || "—",
@@ -574,9 +580,7 @@ export async function render(
     <div class="card app-card shadow-sm mb-3">
       <div class="card-header bg-white">
         <div class="fw-semibold">Добавить варианты</div>
-        <div class="text-muted small">Введите <strong>символ</strong>, название или rsID — подсказки появятся при вводе; гены, которые уже есть ${
-          isNurse ? "у пациента" : "у вас"
-        } в таблице или в очереди ниже, в списке не показываются. Выберите вариант и нажмите «В список».</div>
+        <div class="text-muted small">Начните вводить символ гена, название или rsID. Система предложит подходящие варианты из базы. Уже добавленные гены автоматически исключаются из поиска. Выберите нужный маркер и нажмите «В список».</div>
       </div>
       <div class="card-body">
         ${
@@ -628,13 +632,13 @@ export async function render(
     ${greqBlock}
     <div class="card app-card shadow-sm">
       <div class="card-header bg-white">
-        <div class="fw-semibold">Уже сохранённые генотипы</div>
+        <div class="fw-semibold">Сохранённые генотипы</div>
       </div>
       <div class="card-body p-0">
         <table class="table table-hover mb-0 align-middle">
           <thead class="table-light">
             <tr>
-              <th>ID</th>
+              <th>№</th>
               <th>Ген</th>
               <th>Вариант</th>
               <th>Риск</th>
@@ -647,13 +651,13 @@ export async function render(
               genotypes.length
                 ? genotypes
                     .map(
-                      (g) => `
+                      (g, idx) => `
                 <tr>
-                  <td class="text-muted">${g.id}</td>
+                  <td class="text-muted">${idx + 1}</td>
                   <td>${escapeHtml(g.gene_symbol || "")}</td>
                   <td>${escapeHtml(g.variant_genotype || "")}</td>
                   <td>${escapeHtml(g.risk_type ? riskLabel(g.risk_type) : "")}</td>
-                  <td>${escapeHtml(g.created_at ? String(g.created_at).slice(0, 10) : "")}</td>
+                  <td>${escapeHtml(formatDateRu(g.created_at))}</td>
                   <td class="text-end">
                     <button class="btn btn-sm btn-outline-primary me-2" data-action="edit" data-id="${g.id}">Изменить</button>
                     <button class="btn btn-sm btn-outline-danger" data-action="delete" data-id="${g.id}">Удалить</button>

@@ -49,7 +49,7 @@ class InPersonAppointmentReadSerializer(serializers.ModelSerializer):
 
 
 class InPersonAppointmentCreateSerializer(serializers.ModelSerializer):
-    doctor = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    doctor = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=False)
 
     class Meta:
         model = InPersonAppointment
@@ -64,9 +64,15 @@ class InPersonAppointmentCreateSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         patient = self.context["request"].user
-        doctor = attrs["doctor"]
-        if not DoctorPatient.objects.filter(patient=patient, doctor=doctor).exists():
-            raise serializers.ValidationError({"doctor": "Этот врач не закреплён за вами."})
+        links = (
+            DoctorPatient.objects.filter(patient=patient)
+            .select_related("doctor")
+            .order_by("created_at", "id")
+        )
+        if not links.exists():
+            raise serializers.ValidationError({"doctor": "У вас нет закреплённого врача."})
+        # В заявке всегда используется основной закрепленный врач (первый по назначению).
+        attrs["doctor"] = links.first().doctor
         return attrs
 
     def create(self, validated_data):

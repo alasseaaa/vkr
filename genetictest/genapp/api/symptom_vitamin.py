@@ -52,6 +52,39 @@ class PatientSymptomTestSubmitAPIView(APIView):
         )
 
 
+class PatientSymptomTestSnapshotAPIView(APIView):
+    """Получить/сбросить сохраненный результат теста по симптомам."""
+
+    permission_classes = [IsPatientOrAdmin]
+
+    def get(self, request):
+        if get_user_role(request.user) not in ("patient", "admin"):
+            return Response(
+                {"detail": "Результат теста доступен только пациенту."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        snap = getattr(request.user, "symptom_test_snapshot", None)
+        if not snap:
+            return Response({"exists": False, "selected_item_ids": [], "vitamin_ids": [], "updated_at": None})
+        return Response(
+            {
+                "exists": True,
+                "selected_item_ids": list(snap.selected_item_ids or []),
+                "vitamin_ids": list(snap.vitamin_ids or []),
+                "updated_at": snap.updated_at.isoformat(),
+            }
+        )
+
+    def delete(self, request):
+        if get_user_role(request.user) not in ("patient", "admin"):
+            return Response(
+                {"detail": "Сброс результата теста доступен только пациенту."},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+        PatientSymptomTestSnapshot.objects.filter(user=request.user).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
 class PatientSuggestedVitaminsAPIView(APIView):
     """Подсказки по витаминам (симптомы + генетика). Позиции с уже внесённым анализом не исключаются — для наблюдения и повторного внесения."""
 
