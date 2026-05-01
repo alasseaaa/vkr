@@ -135,8 +135,6 @@ class Command(BaseCommand):
                     "category": r.get("category") or "",
                 },
             )
-            if r.get("created_at"):
-                Recommendation.objects.filter(pk=r["id"]).update(created_at=r["created_at"])
             n += 1
         self.stdout.write(f"  recommendations: {n}")
 

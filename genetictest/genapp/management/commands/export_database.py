@@ -162,7 +162,6 @@ class Command(BaseCommand):
                 "title": r.title,
                 "description": r.description,
                 "category": r.category,
-                "created_at": r.created_at,
             }
             for r in recs
         ]

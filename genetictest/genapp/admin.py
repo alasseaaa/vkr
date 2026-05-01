@@ -8,6 +8,7 @@ from .models import (
     Article, SymptomTestItem, Vitamin, GeneVitamin, VitaminGenotypeEffect, Vitamin, VitaminTestResult, DoctorComment, DoctorPatient, DoctorCommentHistory,
     InPersonAppointment,
     PatientNotification,
+    PatientSymptomTestSnapshot,
     MythTruthQuestion,
     GeneticReportUpload,
     GeneSymbolRequest,
@@ -56,6 +57,22 @@ class SymptomTestItemAdmin(admin.ModelAdmin):
     list_filter = ("is_active",)
     search_fields = ("item_id", "label", "group")
     ordering = ("sort_order", "item_id")
+
+
+@admin.register(PatientSymptomTestSnapshot)
+class PatientSymptomTestSnapshotAdmin(admin.ModelAdmin):
+    list_display = ("user", "updated_at", "items_count", "vitamins_count")
+    search_fields = ("user__username", "user__email")
+    raw_id_fields = ("user",)
+    readonly_fields = ("updated_at",)
+
+    @admin.display(description="Пунктов")
+    def items_count(self, obj):
+        return len(obj.selected_item_ids or [])
+
+    @admin.display(description="Витаминов")
+    def vitamins_count(self, obj):
+        return len(obj.vitamin_ids or [])
 
 
 @admin.register(MythTruthQuestion)

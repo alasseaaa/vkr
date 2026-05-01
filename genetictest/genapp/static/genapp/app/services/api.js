@@ -173,6 +173,11 @@ export const api = {
       request("post", "/api/patient/notifications/mark-read/", { data: { ids } }),
 
     listVitaminCatalog: () => request("get", "/api/patient/vitamins/catalog/"),
+    /** Подсказки: тест симптомов + генетика (категория «Витамины»). */
+    listSuggestedVitamins: () => request("get", "/api/patient/vitamins/suggested/"),
+    /** Сохранить отмеченные пункты теста симптомов (selected_item_ids — slug из API пунктов). */
+    submitSymptomTest: (payload) =>
+      request("post", "/api/patient/symptom-test/submit/", { data: payload }),
     listGeneCatalog: () => request("get", "/api/patient/genes/catalog/"),
     listGeneVariantCatalog: (params) =>
       request("get", "/api/patient/gene-variants/catalog/", { params }),

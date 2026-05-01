@@ -31,6 +31,66 @@ function vitaminOptionsHtml(vitamins) {
   );
 }
 
+/** Карточка подсказок: симптомы + генетика. */
+function buildSuggestionsCard(suggestedPayload, escapeHtmlFn) {
+  const data = suggestedPayload && typeof suggestedPayload === "object" ? suggestedPayload : {};
+  const sugList = Array.isArray(data.suggestions) ? data.suggestions : [];
+  if (!sugList.length) {
+    return `<div class="card app-card shadow-sm mb-3 border-0" style="border-left:4px solid #0d6efd!important;background:linear-gradient(180deg,#f0f7ff 0%,#fff 100%)">
+      <div class="card-body py-3">
+        <div class="d-flex align-items-start gap-2 mb-2">
+          <i class="bi bi-clipboard-pulse text-primary fs-4 flex-shrink-0" aria-hidden="true"></i>
+          <div>
+            <div class="fw-bold text-dark mb-1">Что сдать в лаборатории</div>
+            <p class="small text-secondary mb-0">Подсказки появятся после <a href="#/symptom-test" class="fw-semibold">теста симптомов</a> или генотипов с рекомендациями по витаминам.</p>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }
+  const rows = sugList
+    .map((s) => {
+      const v = s.vitamin || {};
+      const vid = v.id;
+      const srcOrder = { symptoms: 0, genetics: 1 };
+      const srcLabels = (s.sources || [])
+        .slice()
+        .sort((a, b) => (srcOrder[a] ?? 9) - (srcOrder[b] ?? 9))
+        .map((x) => (x === "symptoms" ? "симптомы" : x === "genetics" ? "генетика" : ""))
+        .filter(Boolean);
+      const sourceInline =
+        srcLabels.length > 0
+          ? `<span class="text-secondary small fw-normal" style="opacity:0.72">· ${srcLabels.join(", ")}</span>`
+          : "";
+      const hasTest = Boolean(s.has_test);
+      const actionBtn = hasTest
+        ? `<button type="button" class="btn btn-sm btn-primary flex-shrink-0" data-action="prefill-vitamin" data-vitamin-id="${vid}">Внести повторно</button>`
+        : `<button type="button" class="btn btn-sm btn-primary flex-shrink-0" data-action="prefill-vitamin" data-vitamin-id="${vid}">Внести анализ</button>`;
+      return `<div class="d-flex flex-wrap align-items-start justify-content-between gap-2 py-2 border-bottom border-light">
+      <div class="min-w-0 flex-grow-1">
+        <div class="d-flex flex-wrap align-items-baseline column-gap-1 row-gap-0">
+        <span class="fw-semibold">${escapeHtmlFn(v.name || "")}</span>
+        <span class="text-muted small">${escapeHtmlFn(v.unit_test ? ` (${v.unit_test})` : "")}</span>${sourceInline}
+        </div>
+      </div>
+      <div class="flex-shrink-0 align-self-center">${actionBtn}</div>
+    </div>`;
+    })
+    .join("");
+  return `<div class="card app-card shadow-sm mb-3" style="border-left:4px solid #0d6efd!important">
+    <div class="card-header border-bottom py-3" style="background:linear-gradient(180deg,#e8f2ff 0%,#fff 100%)">
+      <div class="d-flex align-items-start gap-2">
+        <i class="bi bi-clipboard-pulse text-primary fs-3 flex-shrink-0" aria-hidden="true"></i>
+        <div>
+          <div class="fw-bold text-dark mb-1">Рекомендуемые анализы</div>
+          <p class="small mb-0 text-body-secondary">На основе вашего генетического паспорта и отмеченных симптомов выделены показатели, которые находятся в зоне риска. Лабораторный тест поможет подтвердить или опровергнуть текущий дефицит.</p>
+        </div>
+      </div>
+    </div>
+    <div class="card-body py-0">${rows}</div>
+  </div>`;
+}
+
 export async function render(pageEl, { api, showAlert, route } = {}) {
   if (pageEl._vitaminClickHandler) {
     pageEl.removeEventListener("click", pageEl._vitaminClickHandler);
@@ -40,6 +100,7 @@ export async function render(pageEl, { api, showAlert, route } = {}) {
   pageEl.innerHTML = `<div class="card app-card"><div class="card-body">Загрузка…</div></div>`;
 
   let vitamins = [];
+  let suggestedPayload;
   try {
     vitamins = await api.patient.listVitaminCatalog();
     if (!Array.isArray(vitamins)) vitamins = [];
@@ -54,14 +115,29 @@ export async function render(pageEl, { api, showAlert, route } = {}) {
     return Array.isArray(data) ? data : [];
   };
 
-  let tests = await load();
+  let tests;
   let allComments = [];
   try {
-    const data = await api.comments.list({});
-    allComments = Array.isArray(data) ? data : [];
+    const [tdata, cdata, sdata] = await Promise.all([
+      load(),
+      api.comments.list({}).catch(() => []),
+      api.patient.listSuggestedVitamins().catch(() => null),
+    ]);
+    tests = tdata;
+    allComments = Array.isArray(cdata) ? cdata : [];
+    suggestedPayload =
+      sdata && typeof sdata === "object"
+        ? sdata
+        : { suggestions: [], symptom_test_updated_at: null };
   } catch {
+    tests = await load();
     allComments = [];
+    suggestedPayload = { suggestions: [], symptom_test_updated_at: null };
   }
+  if (!suggestedPayload || typeof suggestedPayload !== "object") {
+    suggestedPayload = { suggestions: [], symptom_test_updated_at: null };
+  }
+  const suggestionsCardHtml = buildSuggestionsCard(suggestedPayload, escapeHtml);
 
   const byTest = new Map();
   for (const c of allComments) {
@@ -83,6 +159,8 @@ export async function render(pageEl, { api, showAlert, route } = {}) {
       <h1 class="app-page-title h3 mb-0">Анализы витаминов</h1>
       <a class="btn btn-outline-secondary btn-sm" href="#/recommendations">К рекомендациям</a>
     </div>
+
+    ${suggestionsCardHtml}
 
     <div class="card app-card shadow-sm mb-3">
       <div class="card-header bg-white">
@@ -247,6 +325,18 @@ export async function render(pageEl, { api, showAlert, route } = {}) {
         await refresh();
       } catch (err) {
         showAlert("danger", err.message);
+      }
+      return;
+    }
+
+    if (action === "prefill-vitamin") {
+      const vid = Number(btn.dataset.vitaminId);
+      if (!vid) return;
+      const sel = createForm?.querySelector('select[name="vitamin"]');
+      if (sel) {
+        sel.value = String(vid);
+        createForm.scrollIntoView({ behavior: "smooth", block: "start" });
+        sel.focus();
       }
       return;
     }

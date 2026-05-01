@@ -279,13 +279,22 @@ export async function render(pageEl, { api, showAlert, auth: authInCtx }) {
       paint();
     });
 
-    root.querySelector("#st-submit")?.addEventListener("click", () => {
+    root.querySelector("#st-submit")?.addEventListener("click", async () => {
       if (selected.size === 0) {
         showAlert("warning", "Отметьте хотя бы один пункт.");
         return;
       }
       showResults = true;
       paint();
+      const ids = Array.from(selected);
+      try {
+        await api.patient.submitSymptomTest({ selected_item_ids: ids });
+      } catch (e) {
+        showAlert(
+          "warning",
+          `Результат показан, но не сохранён в кабинете: ${e.message || "ошибка"}. Повторите при стабильной сети.`,
+        );
+      }
     });
   };
 

@@ -2,7 +2,7 @@ import { parseRoute } from "./router.js?v=11";
 import { showAlert, clearAlert } from "./components/alerts.js?v=2";
 import { renderSidebar } from "./components/sidebar.js?v=10";
 import { getAuth, isAuthed, setStoredRole, getEffectiveRole, NURSE_PROBE_ONCE_KEY } from "./services/auth.js?v=8";
-import { api } from "./services/api.js?v=14";
+import { api } from "./services/api.js?v=15";
 import {
   startAdminGeneRequestPolling,
   stopAdminGeneRequestPolling,
@@ -173,7 +173,7 @@ async function renderPage(route) {
     articles: () => import("./pages/articles.js?v=2"),
     "myth-truth": () => import("./pages/mythTruth.js?v=1"),
     consent: () => import("./pages/consent.js?v=2"),
-    "symptom-test": () => import("./pages/symptomTest.js?v=6"),
+    "symptom-test": () => import("./pages/symptomTest.js?v=7"),
     "article-detail": () => import("./pages/articles.js?v=2"),
     dashboard: () => import("./pages/dashboard.js?v=30"),
     genetics: () => import("./pages/geneticsHub.js?v=1"),
@@ -184,7 +184,7 @@ async function renderPage(route) {
     "nurse-genetic-uploads": () => import("./pages/nurse/geneticUploads.js?v=3"),
     "nurse-patient-genotypes": () => import("./pages/nurse/patientGenotypes.js?v=3"),
     "nurse-profile": () => import("./pages/nurse/profile.js?v=4"),
-    "vitamin-tests": () => import("./pages/vitaminTests.js"),
+    "vitamin-tests": () => import("./pages/vitaminTests.js?v=7"),
     recommendations: () => import("./pages/recommendations.js?v=5"),
     passport: () => import("./pages/passport.js?v=3"),
     "patient-consultations": () => import("./pages/patient/consultations.js?v=2"),

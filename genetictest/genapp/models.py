@@ -124,7 +124,6 @@ class Recommendation(models.Model):
         blank=True,
         verbose_name="Категория",
     )
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
 
     def __str__(self):
         return self.title
@@ -144,8 +143,6 @@ class RecommendationReminder(models.Model):
     prompt_text = models.TextField(verbose_name="Текст напоминания")
     interval_days = models.PositiveIntegerField(default=7, verbose_name="Интервал повтора (дни)")
     is_active = models.BooleanField(default=True, verbose_name="Активно")
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Создано")
-    updated_at = models.DateTimeField(auto_now=True, verbose_name="Обновлено")
 
     class Meta:
         verbose_name = "Напоминание к рекомендации"
@@ -271,6 +268,30 @@ class SymptomTestItem(models.Model):
 
     def __str__(self):
         return self.label[:80] if self.label else self.item_id
+
+
+class PatientSymptomTestSnapshot(models.Model):
+    """Последний сохранённый результат теста по симптомам (подсказки витаминов для раздела анализов)."""
+
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name="symptom_test_snapshot",
+        verbose_name="Пользователь",
+    )
+    selected_item_ids = models.JSONField(default=list, verbose_name="Отмеченные пункты (item_id)")
+    vitamin_ids = models.JSONField(
+        default=list,
+        verbose_name="ID витаминов из каталога (порядок — по убыванию релевантности)",
+    )
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Обновлено")
+
+    class Meta:
+        verbose_name = "Снимок теста по симптомам"
+        verbose_name_plural = "Снимки теста по симптомам"
+
+    def __str__(self):
+        return f"user {self.user_id}: {len(self.selected_item_ids)} пункт(ов)"
 
 
 class Vitamin(models.Model):

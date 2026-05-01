@@ -6,6 +6,6 @@ from genapp.models import Recommendation
 class RecommendationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recommendation
-        fields = ["id", "title", "description", "category", "created_at"]
-        read_only_fields = ["id", "created_at"]
+        fields = ["id", "title", "description", "category"]
+        read_only_fields = ["id"]
 

@@ -111,12 +111,7 @@
                                     {% endif %}
                                     
                                     <!-- Дополнительная информация -->
-                                    <div class="d-flex justify-content-between align-items-center mt-3">
-                                        <small class="text-muted">
-                                            <i class="bi bi-calendar me-1"></i>
-                                            {{ rec.created_at|date:"d.m.Y" }}
-                                        </small>
-                                        
+                                    <div class="d-flex justify-content-end align-items-center mt-3">
                                         <button type="button" 
                                                 class="btn btn-sm btn-outline-primary"
                                                 data-bs-toggle="modal" 
@@ -146,10 +141,6 @@
                                                     {% else %}bg-secondary{% endif %}">
                                                     {{ category_data.label }}
                                                 </span>
-                                                <small class="text-muted ms-2">
-                                                    <i class="bi bi-calendar me-1"></i>
-                                                    {{ rec.created_at|date:"d.m.Y" }}
-                                                </small>
                                             </div>
                                             
                                             <div class="recommendation-content mb-4">
