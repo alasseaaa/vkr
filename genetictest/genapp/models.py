@@ -193,11 +193,9 @@ class UserRecommendation(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Пользователь")
     recommendation = models.ForeignKey(Recommendation, on_delete=models.CASCADE, verbose_name="Рекомендация")
     status = models.CharField(max_length=16, choices=STATUS_CHOICES, default='new', verbose_name="Статус")
-    last_completed_at = models.DateTimeField(null=True, blank=True, verbose_name="Последнее выполнение")
     last_reminder_sent_at = models.DateTimeField(null=True, blank=True, verbose_name="Последнее отправленное напоминание")
     is_habit_tracking_enabled = models.BooleanField(default=True, verbose_name="Отслеживание привычки включено")
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Создано")
-    updated_at = models.DateTimeField(auto_now=True, verbose_name="Обновлено")
 
     def __str__(self):
         return f'{self.user.username}: {self.recommendation.title} ({self.status})'

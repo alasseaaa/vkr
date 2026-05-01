@@ -13,7 +13,7 @@ class PushUserSettingsAPIView(APIView):
         rows = (
             UserRecommendation.objects.select_related("recommendation")
             .filter(user=request.user)
-            .order_by("-updated_at")
+            .order_by("-id")
         )
         data = [
             {
@@ -21,7 +21,6 @@ class PushUserSettingsAPIView(APIView):
                 "recommendation_id": r.recommendation_id,
                 "title": r.recommendation.title,
                 "is_habit_tracking_enabled": bool(r.is_habit_tracking_enabled),
-                "last_completed_at": r.last_completed_at,
                 "last_reminder_sent_at": r.last_reminder_sent_at,
             }
             for r in rows

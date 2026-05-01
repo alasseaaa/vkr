@@ -107,7 +107,6 @@ def get_user_recommendations(user):
         "recommendation_id",
         "status",
         "is_habit_tracking_enabled",
-        "last_completed_at",
         "last_reminder_sent_at",
     )
     state_map = {x["recommendation_id"]: x for x in state_qs}
@@ -120,7 +119,6 @@ def get_user_recommendations(user):
             rec["is_habit_tracking_enabled"] = (
                 bool(state.get("is_habit_tracking_enabled")) if state else True
             )
-            rec["last_completed_at"] = state.get("last_completed_at") if state else None
             rec["last_reminder_sent_at"] = state.get("last_reminder_sent_at") if state else None
 
     return interpretation
@@ -142,7 +140,7 @@ def ensure_due_recommendation_reminders(user):
     for ur in user_recs:
         reminder = next((r for r in ur.recommendation.reminders.all() if r.is_active), None)
         interval_days = reminder.interval_days if reminder else 7
-        base_dt = ur.last_reminder_sent_at or ur.updated_at or now
+        base_dt = ur.last_reminder_sent_at or ur.created_at or now
         if base_dt + timedelta(days=interval_days) > now:
             continue
         has_unread = PatientNotification.objects.filter(
@@ -160,7 +158,7 @@ def ensure_due_recommendation_reminders(user):
             body=text,
         )
         ur.last_reminder_sent_at = now
-        ur.save(update_fields=["last_reminder_sent_at", "updated_at"])
+        ur.save(update_fields=["last_reminder_sent_at"])
         created += 1
     return created
 
