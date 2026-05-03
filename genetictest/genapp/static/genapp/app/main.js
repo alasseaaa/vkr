@@ -262,7 +262,7 @@ async function renderPage(route) {
     "nurse-patient-genotypes": () => import("./pages/nurse/patientGenotypes.js?v=3"),
     "nurse-profile": () => import("./pages/nurse/profile.js?v=4"),
     vitamins: () => import("./pages/vitaminsHub.js?v=7"),
-    recommendations: () => import("./pages/recommendations.js?v=5"),
+    recommendations: () => import("./pages/recommendations.js?v=6"),
     passport: () => import("./pages/passport.js?v=7"),
     "patient-consultations": () => import("./pages/patient/consultations.js?v=5"),
     "patient-appointments": () => import("./pages/patient/appointments.js?v=4"),

@@ -86,8 +86,51 @@ function recommendationScore(rec) {
   if (rec.priority === "high") return 300;
   if (rec.priority === "medium") return 200;
   if (rec.priority === "low") return 100;
-  if ((rec.genes || []).length) return 50 + (rec.genes || []).length;
+  const vCount = (rec.vitamin_genotype_effects || []).length;
+  if ((rec.genes || []).length) return 50 + (rec.genes || []).length + vCount;
+  if (vCount) return 40 + vCount;
   return 0;
+}
+
+function impactBadgeClass(level) {
+  if (level === "high") return "danger";
+  if (level === "medium") return "warning text-dark";
+  if (level === "low") return "secondary";
+  return "secondary";
+}
+
+function renderVitaminGenotypeEffects(effects) {
+  const list = Array.isArray(effects) ? effects : [];
+  if (!list.length) return "";
+  return `
+    <div class="mt-3 pt-3 border-top">
+      <div class="small text-uppercase text-muted fw-semibold mb-2" style="font-size:0.68rem; letter-spacing:0.06em">Влияние генотипа на витамины</div>
+      ${list
+        .map(
+          (eff) => `
+        <article class="rec-item rec-item--vit-effect py-3 mt-2 border rounded-3 px-3 bg-body-secondary bg-opacity-25">
+          <div class="d-flex align-items-start justify-content-between gap-2 mb-2">
+            <div class="min-w-0">
+              <div class="fw-semibold text-dark">${escapeHtml(eff.vitamin_name || "Витамин")}</div>
+              <div class="text-muted small mt-1">
+                Маркер: <span class="text-body">${escapeHtml(eff.gene_symbol || "")}:${escapeHtml(eff.genotype || "")}</span>
+                ${
+                  eff.impact_label
+                    ? `<span class="badge text-bg-${impactBadgeClass(eff.impact_level)} ms-1">${escapeHtml(eff.impact_label)}</span>`
+                    : ""
+                }
+              </div>
+            </div>
+          </div>
+          ${
+            eff.effect_text
+              ? `<div class="rec-description text-body small" style="white-space: pre-wrap;">${escapeHtml(eff.effect_text)}</div>`
+              : ""
+          }
+        </article>`,
+        )
+        .join("")}
+    </div>`;
 }
 
 function normalizeAndFilter(rawCats, categoryKey, q, onlyFav, favSet, auth) {
@@ -104,7 +147,10 @@ function normalizeAndFilter(rawCats, categoryKey, q, onlyFav, favSet, auth) {
       .filter((rec) => {
         if (onlyFav && !favSet.has(rec._uid)) return false;
         if (!txt) return true;
-        const blob = `${rec.title || ""} ${rec.description || ""} ${(rec.genes || []).join(" ")}`.toLowerCase();
+        const vfx = (rec.vitamin_genotype_effects || [])
+          .map((e) => `${e.vitamin_name || ""} ${e.effect_text || ""} ${e.gene_symbol || ""} ${e.genotype || ""} ${e.impact_label || ""}`)
+          .join(" ");
+        const blob = `${rec.title || ""} ${rec.description || ""} ${(rec.genes || []).join(" ")} ${vfx}`.toLowerCase();
         return blob.includes(txt);
       })
       .sort((a, b) => recommendationScore(b) - recommendationScore(a));
@@ -189,6 +235,7 @@ function renderCategories(categories, favSet) {
                     </button>
                   </div>
                   <div class="rec-description text-body" style="white-space: pre-wrap;">${escapeHtml(rec.description || "")}</div>
+                  ${renderVitaminGenotypeEffects(rec.vitamin_genotype_effects)}
                   <div class="mt-2 p-2 rounded border bg-light-subtle">
                     <div class="form-check form-switch mb-2">
                       <input class="form-check-input" type="checkbox" data-action="habit-toggle" data-user-rec-id="${escapeHtml(rec.user_recommendation_id || "")}" ${rec.is_habit_tracking_enabled ? "" : "checked"}>

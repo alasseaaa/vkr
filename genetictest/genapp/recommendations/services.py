@@ -10,6 +10,7 @@ from genapp.models import (
     RecommendationReminder,
     UserGenotype,
     UserRecommendation,
+    VitaminGenotypeEffect,
 )
 
 
@@ -29,7 +30,7 @@ def get_interpretation(user):
         "<category>": {
           "label": "...",
           "recommendations": [
-             {"id":..., "title":..., "description":..., "genes":[...]}
+             {"id":..., "title":..., "description":..., "genes":[...], "vitamin_genotype_effects":[...]}
           ]
         }
       }
@@ -55,14 +56,52 @@ def get_interpretation(user):
     )
 
     rec_to_genes = defaultdict(set)  # rec_id -> set("GENE:GT")
+    rec_to_variant_ids = defaultdict(set)  # rec_id -> gene_variant_id
     for link in links_qs:
         gene = link.gene_variant.gene
         rec_to_genes[link.recommendation_id].add(f"{gene.symbol}:{link.gene_variant.genotype}")
+        rec_to_variant_ids[link.recommendation_id].add(link.gene_variant_id)
+
+    effects_by_variant = defaultdict(list)
+    for eff in (
+        VitaminGenotypeEffect.objects.filter(gene_variant_id__in=variant_ids)
+        .select_related("vitamin", "gene_variant__gene")
+        .order_by("vitamin__name", "gene_variant__gene__symbol", "id")
+    ):
+        effects_by_variant[eff.gene_variant_id].append(eff)
+
+    def serialize_vitamin_effect(eff):
+        return {
+            "id": eff.id,
+            "vitamin_id": eff.vitamin_id,
+            "vitamin_name": eff.vitamin.name,
+            "gene_symbol": eff.gene_variant.gene.symbol,
+            "genotype": eff.gene_variant.genotype,
+            "impact_level": eff.impact_level or "",
+            "impact_label": eff.get_impact_level_display() if eff.impact_level else "",
+            "effect_text": (eff.effect_text or "").strip(),
+        }
 
     grouped = {}
     for rec in recommendations:
         if rec.category not in grouped:
             grouped[rec.category] = {"label": rec.get_category_display(), "recommendations": []}
+
+        v_effs = []
+        seen_eff_ids: set[int] = set()
+        for vid in rec_to_variant_ids.get(rec.id, ()):
+            for eff in effects_by_variant.get(vid, ()):
+                if eff.id in seen_eff_ids:
+                    continue
+                seen_eff_ids.add(eff.id)
+                v_effs.append(serialize_vitamin_effect(eff))
+        v_effs.sort(
+            key=lambda x: (
+                (x["vitamin_name"] or "").lower(),
+                (x["gene_symbol"] or "").lower(),
+                (x["genotype"] or "").lower(),
+            )
+        )
 
         grouped[rec.category]["recommendations"].append(
             {
@@ -70,6 +109,7 @@ def get_interpretation(user):
                 "title": rec.title,
                 "description": rec.description,
                 "genes": sorted(rec_to_genes.get(rec.id, [])),
+                "vitamin_genotype_effects": v_effs,
             }
         )
 
