@@ -42,7 +42,7 @@ export function parseRoute() {
       return { name: "vitamins", tab: "tests", focusTestId: Number(parts[2]) };
     }
     let tab = query.get("tab") || parts[1] || "tests";
-    if (tab !== "intake" && tab !== "tests") tab = "tests";
+    if (!["intake", "tests", "reference"].includes(tab)) tab = "tests";
     return { name: "vitamins", tab };
   }
   if (parts[0] === "vitamin-tests") {

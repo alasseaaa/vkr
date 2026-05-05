@@ -114,9 +114,6 @@ class Command(BaseCommand):
                 defaults={
                     "name": v.get("name") or "",
                     "description": v.get("description") or "",
-                    "daily_norm_value": v.get("daily_norm_value"),
-                    "upper_limit_value": v.get("upper_limit_value"),
-                    "unit": v.get("unit") or "",
                     "unit_test": v.get("unit_test") or "",
                     "category": v.get("category") or "",
                     "ref_min": v.get("ref_min"),

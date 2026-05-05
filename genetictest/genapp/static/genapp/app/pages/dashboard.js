@@ -22,19 +22,6 @@ function statusBadge(status) {
   return `<span class="badge bg-secondary badge-status">${status || "—"}</span>`;
 }
 
-function vitStatusToBarClass(st) {
-  if (st === "Дефицит") return "bg-danger";
-  if (st === "Норма") return "bg-success";
-  if (st === "Профицит") return "bg-warning";
-  return "bg-secondary";
-}
-
-function vitStatusToFillPercent(st) {
-  if (st === "Норма") return 100;
-  if (st === "Профицит" || st === "Дефицит") return 50;
-  return 25;
-}
-
 function formatDateRu(value) {
   if (!value) return "—";
   const d = new Date(value);
@@ -630,12 +617,7 @@ export async function render(pageEl, { api, auth, showAlert }) {
       <td><div class="fw-medium">${escapeHtml(t.vitamin_name)}</div><div class="text-muted small">${escapeHtml(t.vitamin_unit_test || "")}</div></td>
       <td>${escapeHtml(String(t.test_value))}</td>
       <td>
-        <div class="d-flex flex-wrap align-items-center gap-2">
-          ${statusBadge(t.status)}
-          <div class="progress flex-grow-1" style="height:0.45rem; min-width:4rem; max-width:9rem">
-            <div class="progress-bar ${vitStatusToBarClass(t.status)}" style="width:${vitStatusToFillPercent(t.status)}%"></div>
-          </div>
-        </div>
+        ${statusBadge(t.status)}
       </td>
       <td class="text-nowrap text-muted small">${escapeHtml(formatDateRu(t.test_date))}</td>
     </tr>`,

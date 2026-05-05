@@ -41,6 +41,16 @@ function articleParams(q, category) {
   return params;
 }
 
+function formatDateRu(value) {
+  if (!value) return "";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return String(value).slice(0, 10);
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const yyyy = d.getFullYear();
+  return `${dd}.${mm}.${yyyy}`;
+}
+
 function renderArticleCards(list) {
   if (!list.length) {
     return `<div class="col-12"><div class="alert alert-light border text-muted mb-0">Ничего не найдено. Измените запрос или сбросьте фильтры.</div></div>`;
@@ -53,7 +63,7 @@ function renderArticleCards(list) {
         <div class="card-body d-flex flex-column">
           <div class="mb-2">
             <span class="badge bg-secondary">${escapeHtml(categoryLabel(a.category))}</span>
-            ${a.created_at ? `<span class="text-muted small ms-2">${String(a.created_at).slice(0, 10)}</span>` : ""}
+            ${a.created_at ? `<span class="text-muted small ms-2">${formatDateRu(a.created_at)}</span>` : ""}
           </div>
           <h2 class="h6 fw-semibold mb-2">${escapeHtml(a.title)}</h2>
           ${a.author ? `<div class="text-muted small mb-2">${escapeHtml(a.author)}</div>` : ""}
@@ -218,7 +228,7 @@ async function renderDetail(pageEl, { api, route, showAlert }) {
             <h1 class="h4 mb-2">${escapeHtml(a.title)}</h1>
             <div class="d-flex flex-wrap gap-2 align-items-center text-muted small mb-3">
               <span class="badge bg-secondary">${escapeHtml(categoryLabel(a.category))}</span>
-              <span>${a.created_at ? String(a.created_at).slice(0, 10) : ""}</span>
+              <span>${a.created_at ? formatDateRu(a.created_at) : ""}</span>
               ${a.author ? `<span>${escapeHtml(a.author)}</span>` : ""}
               ${a.gene_symbol ? `<span>Ген: ${escapeHtml(a.gene_symbol)}</span>` : ""}
             </div>

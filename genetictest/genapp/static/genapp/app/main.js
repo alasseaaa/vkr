@@ -1,6 +1,6 @@
-import { parseRoute } from "./router.js?v=13";
+import { parseRoute } from "./router.js?v=14";
 import { showAlert, clearAlert } from "./components/alerts.js?v=3";
-import { renderSidebar } from "./components/sidebar.js?v=13";
+import { renderSidebar } from "./components/sidebar.js?v=14";
 import { getAuth, isAuthed, setStoredRole, getEffectiveRole, NURSE_PROBE_ONCE_KEY } from "./services/auth.js?v=8";
 import { api } from "./services/api.js?v=19";
 import {
@@ -261,7 +261,7 @@ async function renderPage(route) {
     "nurse-genetic-uploads": () => import("./pages/nurse/geneticUploads.js?v=3"),
     "nurse-patient-genotypes": () => import("./pages/nurse/patientGenotypes.js?v=3"),
     "nurse-profile": () => import("./pages/nurse/profile.js?v=4"),
-    vitamins: () => import("./pages/vitaminsHub.js?v=7"),
+    vitamins: () => import("./pages/vitaminsHub.js?v=11"),
     recommendations: () => import("./pages/recommendations.js?v=6"),
     passport: () => import("./pages/passport.js?v=7"),
     "patient-consultations": () => import("./pages/patient/consultations.js?v=5"),

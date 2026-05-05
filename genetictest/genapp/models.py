@@ -328,9 +328,6 @@ class PatientSymptomTestSnapshot(models.Model):
 class Vitamin(models.Model):
     name = models.CharField(max_length=64, verbose_name="Название")
     description = models.TextField(blank=True, verbose_name="Описание")
-    daily_norm_value = models.FloatField(null=True, blank=True, verbose_name="Дневная норма")
-    upper_limit_value = models.FloatField(null=True, blank=True, verbose_name="Верхний предел")
-    unit = models.CharField(max_length=16, blank=True, verbose_name="Ед. измерения прием внутрь")  # mg / mcg
     unit_test = models.CharField(max_length=16, blank=True, verbose_name="Ед. измерения в анализе")
     category = models.CharField(
         max_length=32,

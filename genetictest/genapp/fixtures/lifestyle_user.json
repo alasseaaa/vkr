@@ -907,9 +907,6 @@
     "fields": {
       "name": "Биотин (B7, H)",
       "description": "Витамин красоты — критичен для здоровья волос, кожи, ногтей, участвует в синтезе кератина",
-      "daily_norm_value": 30,
-      "upper_limit_value": null,
-      "unit": "мкг",
       "category": "water-soluble",
       "ref_min": 200,
       "ref_max": 800,
@@ -922,9 +919,6 @@
     "fields": {
       "name": "Витамин K2 (менахинон)",
       "description": "Направляет кальций в кости и зубы, предотвращая его отложение в сосудах, активирует матриксный Gla-белок",
-      "daily_norm_value": 90,
-      "upper_limit_value": null,
-      "unit": "мкг",
       "category": "fat-soluble",
       "ref_min": null,
       "ref_max": null,
@@ -937,9 +931,6 @@
     "fields": {
       "name": "Цинк",
       "description": "Микроэлемент — кофактор более 300 ферментов, важен для синтеза коллагена, заживления ран, иммунитета, здоровья волос",
-      "daily_norm_value": 11,
-      "upper_limit_value": 40,
-      "unit": "мг",
       "category": "water-soluble",
       "ref_min": 70,
       "ref_max": 120,
@@ -952,9 +943,6 @@
     "fields": {
       "name": "Медь",
       "description": "Микроэлемент — кофактор лизилоксидазы, необходим для сшивания коллагена и эластина, влияет на пигментацию",
-      "daily_norm_value": 0.9,
-      "upper_limit_value": 10,
-      "unit": "мг",
       "category": "water-soluble",
       "ref_min": 70,
       "ref_max": 140,
@@ -967,9 +955,6 @@
     "fields": {
       "name": "Кремний",
       "description": "Микроэлемент, необходимый для синтеза коллагена, эластина, укрепления соединительной ткани, волос и ногтей",
-      "daily_norm_value": 15,
-      "upper_limit_value": null,
-      "unit": "мг",
       "category": "water-soluble",
       "ref_min": null,
       "ref_max": null,
@@ -982,9 +967,6 @@
     "fields": {
       "name": "Ликопин",
       "description": "Мощный каротиноид-антиоксидант, защищает кожу от УФ-повреждений, снижает риск фотостарения",
-      "daily_norm_value": 10,
-      "upper_limit_value": null,
-      "unit": "мг",
       "category": "fat-soluble",
       "ref_min": null,
       "ref_max": null,
@@ -997,9 +979,6 @@
     "fields": {
       "name": "Астаксантин",
       "description": "Самый мощный природный антиоксидант, защищает кожу от УФ и окислительного стресса, улучшает эластичность",
-      "daily_norm_value": 6,
-      "upper_limit_value": null,
-      "unit": "мг",
       "category": "fat-soluble",
       "ref_min": null,
       "ref_max": null,
@@ -1012,9 +991,6 @@
     "fields": {
       "name": "Магний",
       "description": "Макроэлемент — кофактор синтеза коллагена, важен для сна, нервной системы, мышечной функции",
-      "daily_norm_value": 400,
-      "upper_limit_value": null,
-      "unit": "мг",
       "category": "water-soluble",
       "ref_min": 1.7,
       "ref_max": 2.4,
@@ -1027,9 +1003,6 @@
     "fields": {
       "name": "Коэнзим Q10 (убихинон)",
       "description": "Антиоксидант, критичен для производства энергии в митохондриях, защищает кожу от старения",
-      "daily_norm_value": 100,
-      "upper_limit_value": null,
-      "unit": "мг",
       "category": "fat-soluble",
       "ref_min": null,
       "ref_max": null,
@@ -1042,9 +1015,6 @@
     "fields": {
       "name": "Витамин B6 (пиридоксин)",
       "description": "Водорастворимый витамин, участвует в синтезе нейромедиаторов, метаболизме гомоцистеина, здоровье кожи",
-      "daily_norm_value": 1.3,
-      "upper_limit_value": 100,
-      "unit": "мг",
       "category": "water-soluble",
       "ref_min": 5,
       "ref_max": 50,

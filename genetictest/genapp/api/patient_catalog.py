@@ -7,9 +7,25 @@ from genapp.models import Gene, GeneVariant, Vitamin
 
 
 class VitaminChoiceSerializer(serializers.ModelSerializer):
+    """Каталог витаминов: базовые поля для форм + category/description для справки."""
+
+    category_label = serializers.SerializerMethodField()
+
     class Meta:
         model = Vitamin
-        fields = ["id", "name", "unit_test", "ref_min", "ref_max"]
+        fields = [
+            "id",
+            "name",
+            "unit_test",
+            "ref_min",
+            "ref_max",
+            "category",
+            "category_label",
+            "description",
+        ]
+
+    def get_category_label(self, obj):
+        return (obj.get_category_display() or "").strip()
 
 
 class GeneChoiceSerializer(serializers.ModelSerializer):

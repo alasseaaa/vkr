@@ -48,9 +48,6 @@ def _add_vitamins_2_8(rows: list) -> list:
                 "fields": {
                     "name": "Витамин C (аскорбиновая кислота)",
                     "description": "Справочник: кофактор синтеза коллагена (для связей ген–витамин).",
-                    "daily_norm_value": 90,
-                    "upper_limit_value": 2000,
-                    "unit": "мг",
                     "unit_test": "мг/л",
                     "category": "water-soluble",
                     "ref_min": 0.2,
@@ -67,9 +64,6 @@ def _add_vitamins_2_8(rows: list) -> list:
                 "fields": {
                     "name": "Селен",
                     "description": "Справочник: кофактор антиоксидантных ферментов.",
-                    "daily_norm_value": 55,
-                    "upper_limit_value": 400,
-                    "unit": "мкг",
                     "unit_test": "мкг/л",
                     "category": "water-soluble",
                     "ref_min": 70,
