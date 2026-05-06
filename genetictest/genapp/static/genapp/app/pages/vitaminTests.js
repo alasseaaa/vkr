@@ -114,8 +114,16 @@ function buildSuggestionsCard(suggestedPayload, escapeHtmlFn) {
         </div>
       </div>
     </div>
-    <div class="card-body py-0">${rows}</div>
+    <div class="card-body py-0" style="max-height:260px; overflow-y:auto">${rows}</div>
   </div>`;
+}
+
+function paginate(list, page, pageSize) {
+  const total = list.length;
+  const pages = Math.max(1, Math.ceil(total / pageSize));
+  const safePage = Math.min(Math.max(1, page), pages);
+  const start = (safePage - 1) * pageSize;
+  return { items: list.slice(start, start + pageSize), pages, page: safePage, total };
 }
 
 /** Сравнение первого и последнего замера по каждому витамину (хронологически). */
@@ -231,6 +239,44 @@ export async function render(pageEl, { api, showAlert, route } = {}) {
     await render(pageEl, { api, showAlert, route });
   };
 
+  let testsPage = 1;
+  const renderTestsRows = () => {
+    const pg = paginate(tests, testsPage, 8);
+    const rows = pg.items
+      .map((t) => {
+        const markerComments = byTest.get(Number(t.id)) || [];
+        const docHtml = doctorCommentsForMarkerHtml(markerComments, "Комментарий врача к анализу");
+        return `
+      <tr id="vitamin-test-${t.id}">
+        <td>
+          <div class="fw-semibold">${t.vitamin_name || ""}</div>
+          <div class="text-muted small">${t.vitamin_unit_test || ""}</div>
+        </td>
+        <td>${t.test_value}</td>
+        <td>${statusBadge(t.status)}</td>
+        <td>${escapeHtml(formatTestDateRu(t.test_date))}</td>
+        <td class="text-end">
+          <button class="btn btn-sm btn-outline-primary me-2" data-action="edit" data-id="${t.id}">Изменить</button>
+          <button class="btn btn-sm btn-outline-danger" data-action="delete" data-id="${t.id}">Удалить</button>
+        </td>
+      </tr>
+      ${docHtml ? `<tr class="border-0"><td colspan="5" class="bg-transparent pt-4 pb-3 border-0">${docHtml}</td></tr>` : ""}`;
+      })
+      .join("");
+    return {
+      rows: rows || `<tr><td colspan="5" class="text-center text-muted py-4">Пока нет анализов</td></tr>`,
+      pager:
+        pg.pages > 1
+          ? `<div class="card-footer bg-white d-flex align-items-center justify-content-between">
+          <button class="btn btn-sm btn-outline-secondary" id="vt-prev" ${pg.page <= 1 ? "disabled" : ""}>Назад</button>
+          <span class="small text-muted">Страница ${pg.page} из ${pg.pages}</span>
+          <button class="btn btn-sm btn-outline-secondary" id="vt-next" ${pg.page >= pg.pages ? "disabled" : ""}>Вперед</button>
+        </div>`
+          : "",
+      pg,
+    };
+  };
+  const initialRows = renderTestsRows();
   pageEl.innerHTML = `
     <div class="app-page">
     <div class="app-page-header d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
@@ -295,47 +341,10 @@ export async function render(pageEl, { api, showAlert, route } = {}) {
               <th class="text-end">Действия</th>
             </tr>
           </thead>
-          <tbody>
-            ${
-              tests.length
-                ? tests
-                    .map((t) => {
-                      const markerComments = byTest.get(Number(t.id)) || [];
-                      const docHtml = doctorCommentsForMarkerHtml(
-                        markerComments,
-                        "Комментарий врача к анализу",
-                      );
-                      return `
-                <tr id="vitamin-test-${t.id}">
-                  <td>
-                    <div class="fw-semibold">${t.vitamin_name || ""}</div>
-                    <div class="text-muted small">${t.vitamin_unit_test || ""}</div>
-                  </td>
-                  <td>${t.test_value}</td>
-                  <td>${statusBadge(t.status)}</td>
-                  <td>${escapeHtml(formatTestDateRu(t.test_date))}</td>
-                  <td class="text-end">
-                    <button class="btn btn-sm btn-outline-primary me-2" data-action="edit" data-id="${t.id}">
-                      Изменить
-                    </button>
-                    <button class="btn btn-sm btn-outline-danger" data-action="delete" data-id="${t.id}">
-                      Удалить
-                    </button>
-                  </td>
-                </tr>
-                ${
-                  docHtml
-                    ? `<tr class="border-0"><td colspan="5" class="bg-transparent pt-4 pb-3 border-0">${docHtml}</td></tr>`
-                    : ""
-                }
-              `;
-                    })
-                    .join("")
-                : `<tr><td colspan="5" class="text-center text-muted py-4">Пока нет анализов</td></tr>`
-            }
-          </tbody>
+          <tbody id="vitamin-tests-body">${initialRows.rows}</tbody>
         </table>
       </div>
+      <div id="vitamin-tests-pager">${initialRows.pager}</div>
     </div>
 
     <div id="edit-modal" class="modal" tabindex="-1" style="display:none">
@@ -372,6 +381,20 @@ export async function render(pageEl, { api, showAlert, route } = {}) {
     </div>
     </div>
   `;
+  const repaintTests = () => {
+    const r = renderTestsRows();
+    pageEl.querySelector("#vitamin-tests-body").innerHTML = r.rows;
+    pageEl.querySelector("#vitamin-tests-pager").innerHTML = r.pager;
+    pageEl.querySelector("#vt-prev")?.addEventListener("click", () => {
+      testsPage = Math.max(1, testsPage - 1);
+      repaintTests();
+    });
+    pageEl.querySelector("#vt-next")?.addEventListener("click", () => {
+      testsPage = Math.min(r.pg.pages, testsPage + 1);
+      repaintTests();
+    });
+  };
+  repaintTests();
 
   const createForm = pageEl.querySelector("#create-form");
   const dateInput = createForm.querySelector('input[name="test_date"]');

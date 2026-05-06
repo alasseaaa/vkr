@@ -2,17 +2,17 @@ const TABS = [
   {
     key: "tests",
     label: "Анализы",
-    load: () => import("./vitaminTests.js?v=17"),
+    load: () => import("./vitaminTests.js?v=18"),
   },
   {
     key: "intake",
     label: "Приём добавок",
-    load: () => import("./vitaminIntake.js?v=5"),
+    load: () => import("./vitaminIntake.js?v=6"),
   },
   {
     key: "reference",
     label: "Справка",
-    load: () => import("./vitaminReference.js?v=2"),
+    load: () => import("./vitaminReference.js?v=3"),
   },
 ];
 

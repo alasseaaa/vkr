@@ -32,6 +32,14 @@ function oneLinePreview(text, max = 100) {
   return `${t.slice(0, max - 1)}…`;
 }
 
+function paginate(list, page, pageSize) {
+  const total = list.length;
+  const pages = Math.max(1, Math.ceil(total / pageSize));
+  const safePage = Math.min(Math.max(1, page), pages);
+  const start = (safePage - 1) * pageSize;
+  return { items: list.slice(start, start + pageSize), total, pages, page: safePage };
+}
+
 export async function render(pageEl, { api, showAlert, route }) {
   pageEl.innerHTML = `<div class="card"><div class="card-body">Формирование паспорта...</div></div>`;
 
@@ -52,10 +60,14 @@ export async function render(pageEl, { api, showAlert, route }) {
       byGenotype.get(k).push(c);
     }
 
-    const cards =
-      list.length === 0
-        ? `<div class="alert alert-light border text-muted">Нет сохранённых генотипов. Добавьте данные в разделе «Генетические данные».</div>`
-        : list
+    let page = 1;
+    const PAGE_SIZE = 8;
+    const renderCards = (src) => {
+      const pg = paginate(src, page, PAGE_SIZE);
+      const cards =
+        src.length === 0
+          ? `<div class="alert alert-light border text-muted">Нет сохранённых генотипов. Добавьте данные в разделе «Генетические данные».</div>`
+          : pg.items
             .map((g) => {
               const sym = escapeHtml((g.gene_symbol || "").trim() || "—");
               const fullName = (g.gene_full_name || "").trim();
@@ -117,11 +129,14 @@ export async function render(pageEl, { api, showAlert, route }) {
           </details>`;
             })
             .join("");
+      return { cards, pg };
+    };
 
     const wellnessBanner = getWithoutGeneticTestFlag()
       ? `<div class="alert alert-info border-0 bg-info bg-opacity-10 small mb-3">Режим «без генетического теста»: паспорт доступен по прямой ссылке. Настройка — в <a href="#/profile">профиле</a>.</div>`
       : "";
 
+    const initial = renderCards(list);
     pageEl.innerHTML = `
       <div class="app-page">
       ${wellnessBanner}
@@ -137,9 +152,35 @@ export async function render(pageEl, { api, showAlert, route }) {
         .passport-gene-chev { transition: transform 0.2s ease; display: inline-block; }
         .passport-gene-card summary:hover { background: rgba(0,0,0,0.02); }
       </style>
-      ${cards}
+      <div id="passport-list">${initial.cards}</div>
+      <div id="passport-pagination" class="d-flex align-items-center justify-content-between mt-3">
+        <button class="btn btn-sm btn-outline-secondary" id="passport-prev" ${initial.pg.page <= 1 ? "disabled" : ""}>Назад</button>
+        <span class="small text-muted">Страница ${initial.pg.page} из ${initial.pg.pages}</span>
+        <button class="btn btn-sm btn-outline-secondary" id="passport-next" ${initial.pg.page >= initial.pg.pages ? "disabled" : ""}>Вперед</button>
+      </div>
       </div>
     `;
+
+    const repaint = () => {
+      const r = renderCards(list);
+      const listEl = pageEl.querySelector("#passport-list");
+      const pagEl = pageEl.querySelector("#passport-pagination");
+      if (listEl) listEl.innerHTML = r.cards;
+      if (pagEl) {
+        pagEl.innerHTML = `<button class="btn btn-sm btn-outline-secondary" id="passport-prev" ${r.pg.page <= 1 ? "disabled" : ""}>Назад</button>
+          <span class="small text-muted">Страница ${r.pg.page} из ${r.pg.pages}</span>
+          <button class="btn btn-sm btn-outline-secondary" id="passport-next" ${r.pg.page >= r.pg.pages ? "disabled" : ""}>Вперед</button>`;
+        pagEl.querySelector("#passport-prev")?.addEventListener("click", () => {
+          page = Math.max(1, page - 1);
+          repaint();
+        });
+        pagEl.querySelector("#passport-next")?.addEventListener("click", () => {
+          page = Math.min(r.pg.pages, page + 1);
+          repaint();
+        });
+      }
+    };
+    repaint();
 
     const focusId = route?.focusGenotypeId;
     if (focusId != null) {

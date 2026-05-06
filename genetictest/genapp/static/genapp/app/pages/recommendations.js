@@ -251,6 +251,14 @@ function renderCategories(categories, favSet) {
     .join("");
 }
 
+function paginateEntries(entries, page, pageSize) {
+  const total = entries.length;
+  const pages = Math.max(1, Math.ceil(total / pageSize));
+  const safePage = Math.min(Math.max(1, page), pages);
+  const start = (safePage - 1) * pageSize;
+  return { items: entries.slice(start, start + pageSize), pages, page: safePage, total };
+}
+
 export async function render(pageEl, { api, showAlert, auth }) {
   pageEl.innerHTML = renderSkeleton();
 
@@ -356,6 +364,7 @@ export async function render(pageEl, { api, showAlert, auth }) {
     const catEl = pageEl.querySelector("#rec-category");
     const onlyFavEl = pageEl.querySelector("#rec-only-fav");
 
+    let page = 1;
     const paint = () => {
       if (!Object.keys(raw).length) {
         mount.innerHTML = renderEmptyState(false);
@@ -379,7 +388,25 @@ export async function render(pageEl, { api, showAlert, auth }) {
         mount.innerHTML = renderEmptyState(hasFilters);
         return;
       }
-      mount.innerHTML = renderCategories(filtered, favSet);
+      const sortedEntries = Object.entries(filtered).sort(categorySort);
+      const paged = paginateEntries(sortedEntries, page, 3);
+      mount.innerHTML =
+        renderCategories(Object.fromEntries(paged.items), favSet) +
+        (paged.pages > 1
+          ? `<div class="d-flex align-items-center justify-content-between mt-3">
+          <button class="btn btn-sm btn-outline-secondary" id="rec-prev" ${paged.page <= 1 ? "disabled" : ""}>Назад</button>
+          <span class="small text-muted">Страница ${paged.page} из ${paged.pages}</span>
+          <button class="btn btn-sm btn-outline-secondary" id="rec-next" ${paged.page >= paged.pages ? "disabled" : ""}>Вперед</button>
+        </div>`
+          : "");
+      mount.querySelector("#rec-prev")?.addEventListener("click", () => {
+        page = Math.max(1, page - 1);
+        paint();
+      });
+      mount.querySelector("#rec-next")?.addEventListener("click", () => {
+        page = Math.min(paged.pages, page + 1);
+        paint();
+      });
       const rawHash = String(window.location.hash || "");
       const query = rawHash.includes("?") ? rawHash.split("?")[1] : "";
       const params = new URLSearchParams(query);
@@ -423,10 +450,19 @@ export async function render(pageEl, { api, showAlert, auth }) {
     let debounce;
     searchEl.addEventListener("input", () => {
       clearTimeout(debounce);
-      debounce = setTimeout(paint, 220);
+      debounce = setTimeout(() => {
+        page = 1;
+        paint();
+      }, 220);
     });
-    catEl.addEventListener("change", paint);
-    onlyFavEl.addEventListener("change", paint);
+    catEl.addEventListener("change", () => {
+      page = 1;
+      paint();
+    });
+    onlyFavEl.addEventListener("change", () => {
+      page = 1;
+      paint();
+    });
   } catch (err) {
     showAlert("danger", err.message);
     pageEl.innerHTML = `<div class="alert alert-danger">${escapeHtml(err.message)}</div>`;

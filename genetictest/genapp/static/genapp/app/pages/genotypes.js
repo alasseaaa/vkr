@@ -216,6 +216,14 @@ function formatDateRu(value) {
   return raw;
 }
 
+function paginate(list, page, pageSize) {
+  const total = list.length;
+  const pages = Math.max(1, Math.ceil(total / pageSize));
+  const safePage = Math.min(Math.max(1, page), pages);
+  const start = (safePage - 1) * pageSize;
+  return { items: list.slice(start, start + pageSize), pages, page: safePage, total };
+}
+
 export async function render(
   pageEl,
   {
@@ -646,31 +654,10 @@ export async function render(
               <th class="text-end">Действия</th>
             </tr>
           </thead>
-          <tbody>
-            ${
-              genotypes.length
-                ? genotypes
-                    .map(
-                      (g, idx) => `
-                <tr>
-                  <td class="text-muted">${idx + 1}</td>
-                  <td>${escapeHtml(g.gene_symbol || "")}</td>
-                  <td>${escapeHtml(g.variant_genotype || "")}</td>
-                  <td>${escapeHtml(g.risk_type ? riskLabel(g.risk_type) : "")}</td>
-                  <td>${escapeHtml(formatDateRu(g.created_at))}</td>
-                  <td class="text-end">
-                    <button class="btn btn-sm btn-outline-primary me-2" data-action="edit" data-id="${g.id}">Изменить</button>
-                    <button class="btn btn-sm btn-outline-danger" data-action="delete" data-id="${g.id}">Удалить</button>
-                  </td>
-                </tr>
-              `,
-                    )
-                    .join("")
-                : `<tr><td colspan="6" class="text-center text-muted py-4">Пока нет данных</td></tr>`
-            }
-          </tbody>
+          <tbody id="saved-genotypes-tbody"></tbody>
         </table>
       </div>
+      <div class="card-footer bg-white" id="saved-genotypes-pager"></div>
     </div>
 
     <div id="edit-modal" class="modal" tabindex="-1" style="display:none">
@@ -709,6 +696,48 @@ export async function render(
   `;
 
   const pendingTbody = pageEl.querySelector("#pending-tbody");
+  const savedGenotypesTbody = pageEl.querySelector("#saved-genotypes-tbody");
+  const savedGenotypesPager = pageEl.querySelector("#saved-genotypes-pager");
+  let savedPage = 1;
+  const SAVED_PAGE_SIZE = 8;
+  const paintSavedGenotypes = () => {
+    const pg = paginate(genotypes, savedPage, SAVED_PAGE_SIZE);
+    savedGenotypesTbody.innerHTML = pg.items.length
+      ? pg.items
+          .map(
+            (g, idx) => `
+          <tr>
+            <td class="text-muted">${(pg.page - 1) * SAVED_PAGE_SIZE + idx + 1}</td>
+            <td>${escapeHtml(g.gene_symbol || "")}</td>
+            <td>${escapeHtml(g.variant_genotype || "")}</td>
+            <td>${escapeHtml(g.risk_type ? riskLabel(g.risk_type) : "")}</td>
+            <td>${escapeHtml(formatDateRu(g.created_at))}</td>
+            <td class="text-end">
+              <button class="btn btn-sm btn-outline-primary me-2" data-action="edit" data-id="${g.id}">Изменить</button>
+              <button class="btn btn-sm btn-outline-danger" data-action="delete" data-id="${g.id}">Удалить</button>
+            </td>
+          </tr>`,
+          )
+          .join("")
+      : `<tr><td colspan="6" class="text-center text-muted py-4">Пока нет данных</td></tr>`;
+    savedGenotypesPager.innerHTML =
+      pg.pages > 1
+        ? `<div class="d-flex align-items-center justify-content-between">
+        <button class="btn btn-sm btn-outline-secondary" id="saved-prev" ${pg.page <= 1 ? "disabled" : ""}>Назад</button>
+        <span class="small text-muted">Страница ${pg.page} из ${pg.pages}</span>
+        <button class="btn btn-sm btn-outline-secondary" id="saved-next" ${pg.page >= pg.pages ? "disabled" : ""}>Вперед</button>
+      </div>`
+        : "";
+    savedGenotypesPager.querySelector("#saved-prev")?.addEventListener("click", () => {
+      savedPage = Math.max(1, savedPage - 1);
+      paintSavedGenotypes();
+    });
+    savedGenotypesPager.querySelector("#saved-next")?.addEventListener("click", () => {
+      savedPage = Math.min(pg.pages, savedPage + 1);
+      paintSavedGenotypes();
+    });
+  };
+  paintSavedGenotypes();
   const btnSavePassport = pageEl.querySelector("#btn-save-passport");
   const btnAddPending = pageEl.querySelector("#btn-add-pending");
   const btnPickPdf = pageEl.querySelector("#btn-pick-pdf");

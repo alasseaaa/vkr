@@ -116,7 +116,7 @@ function buildIntakeSuggestionsCard(suggestedPayload, activeVitaminIds, escapeHt
         </div>
       </div>
     </div>
-    <div class="card-body py-0">${rows}</div>
+    <div class="card-body py-0" style="max-height:260px; overflow-y:auto">${rows}</div>
   </div>`;
 }
 

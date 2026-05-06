@@ -78,13 +78,49 @@ function renderArticleCards(list) {
     .join("");
 }
 
+function paginate(list, page, pageSize) {
+  const total = list.length;
+  const pages = Math.max(1, Math.ceil(total / pageSize));
+  const safePage = Math.min(Math.max(1, page), pages);
+  const start = (safePage - 1) * pageSize;
+  return { items: list.slice(start, start + pageSize), total, pages, page: safePage };
+}
+
+function paginationHtml(meta) {
+  return `<div class="d-flex align-items-center justify-content-between mt-3">
+    <button class="btn btn-sm btn-outline-secondary" id="articles-prev" ${meta.page <= 1 ? "disabled" : ""}>Назад</button>
+    <span class="small text-muted">Страница ${meta.page} из ${meta.pages}</span>
+    <button class="btn btn-sm btn-outline-secondary" id="articles-next" ${meta.page >= meta.pages ? "disabled" : ""}>Вперед</button>
+  </div>`;
+}
+
 async function renderList(pageEl, { api, showAlert, auth }) {
   pageEl.innerHTML = `<div class="app-page"><p class="text-muted">Загрузка статей…</p></div>`;
 
   const mount = (list, state) => {
     const { q, category, showWellnessHint } = state;
+    let currentPage = 1;
     const r = getEffectiveRole();
     const showMythBtn = isAuthed() && (r === "patient" || r === "admin");
+    const renderListPage = (src) => {
+      const pg = paginate(src, currentPage, 9);
+      const gridEl = pageEl.querySelector("#articles-grid");
+      const cnt = pageEl.querySelector("#articles-count");
+      if (cnt) cnt.textContent = String(pg.total);
+      gridEl.innerHTML = renderArticleCards(pg.items);
+      const pagEl = pageEl.querySelector("#articles-pagination");
+      if (pagEl) {
+        pagEl.innerHTML = pg.pages > 1 ? paginationHtml(pg) : "";
+        pagEl.querySelector("#articles-prev")?.addEventListener("click", () => {
+          currentPage = Math.max(1, currentPage - 1);
+          renderListPage(src);
+        });
+        pagEl.querySelector("#articles-next")?.addEventListener("click", () => {
+          currentPage = Math.min(pg.pages, currentPage + 1);
+          renderListPage(src);
+        });
+      }
+    };
     pageEl.innerHTML = `
       <div class="app-page">
         <div class="app-page-header d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
@@ -147,14 +183,16 @@ async function renderList(pageEl, { api, showAlert, auth }) {
           <span class="text-muted small">Найдено: <strong id="articles-count">${list.length}</strong></span>
         </div>
         <div class="row g-3" id="articles-grid">
-          ${renderArticleCards(list)}
+          ${renderArticleCards(paginate(list, 1, 9).items)}
         </div>
+        <div id="articles-pagination">${paginate(list, 1, 9).pages > 1 ? paginationHtml(paginate(list, 1, 9)) : ""}</div>
       </div>
     `;
 
     const qEl = pageEl.querySelector("#articles-q");
     const catEl = pageEl.querySelector("#articles-cat");
     const gridEl = pageEl.querySelector("#articles-grid");
+    renderListPage(list);
 
     const runFetch = async () => {
       const st = { q: qEl.value, category: catEl.value };
@@ -162,9 +200,8 @@ async function renderList(pageEl, { api, showAlert, auth }) {
       try {
         let next = await api.public.listArticles(articleParams(st.q, st.category));
         if (!Array.isArray(next)) next = [];
-        gridEl.innerHTML = renderArticleCards(next);
-        const cnt = pageEl.querySelector("#articles-count");
-        if (cnt) cnt.textContent = String(next.length);
+        currentPage = 1;
+        renderListPage(next);
       } catch (err) {
         showAlert("danger", err.message);
         gridEl.innerHTML = `<div class="col-12"><div class="alert alert-danger">${escapeHtml(err.message)}</div></div>`;

@@ -38,7 +38,20 @@ function filterList(all, q, categoryKey) {
   });
 }
 
-function mountList(mount, items, totalCount) {
+function paginate(items, page, pageSize) {
+  const total = Array.isArray(items) ? items.length : 0;
+  const pages = Math.max(1, Math.ceil(total / pageSize));
+  const safePage = Math.min(Math.max(1, page), pages);
+  const start = (safePage - 1) * pageSize;
+  return {
+    items: items.slice(start, start + pageSize),
+    page: safePage,
+    pages,
+    total,
+  };
+}
+
+function mountList(mount, items, totalCount, page, pages) {
   const shown = items.length;
   mount.innerHTML = `
     <p class="small text-muted mb-3">Показано: <strong>${shown}</strong> из <strong>${totalCount}</strong></p>
@@ -64,7 +77,16 @@ function mountList(mount, items, totalCount) {
         </div>`,
         )
         .join("")}
+    </div>
+    ${
+      pages > 1
+        ? `<div class="d-flex align-items-center justify-content-between gap-2 mt-3">
+      <button type="button" class="btn btn-sm btn-outline-secondary" id="vit-ref-prev" ${page <= 1 ? "disabled" : ""}>Назад</button>
+      <span class="small text-muted">Страница ${page} из ${pages}</span>
+      <button type="button" class="btn btn-sm btn-outline-secondary" id="vit-ref-next" ${page >= pages ? "disabled" : ""}>Вперед</button>
     </div>`
+        : ""
+    }`
     }`;
 }
 
@@ -100,20 +122,39 @@ export async function render(pageEl) {
     const filterEl = pageEl.querySelector("#vit-ref-filter");
     const mount = pageEl.querySelector("#vit-ref-mount");
 
+    let currentPage = 1;
+    const pageSize = 8;
+
     const paint = () => {
       const q = searchEl?.value || "";
       const cat = filterEl?.value || "__any__";
-      const items = filterList(all, q, cat);
-      mountList(mount, items, all.length);
+      const filtered = filterList(all, q, cat);
+      const pg = paginate(filtered, currentPage, pageSize);
+      currentPage = pg.page;
+      mountList(mount, pg.items, filtered.length, pg.page, pg.pages);
+      mount.querySelector("#vit-ref-prev")?.addEventListener("click", () => {
+        currentPage = Math.max(1, currentPage - 1);
+        paint();
+      });
+      mount.querySelector("#vit-ref-next")?.addEventListener("click", () => {
+        currentPage = Math.min(pg.pages, currentPage + 1);
+        paint();
+      });
     };
 
     paint();
     let t;
     searchEl?.addEventListener("input", () => {
       clearTimeout(t);
-      t = setTimeout(paint, 180);
+      t = setTimeout(() => {
+        currentPage = 1;
+        paint();
+      }, 180);
     });
-    filterEl?.addEventListener("change", paint);
+    filterEl?.addEventListener("change", () => {
+      currentPage = 1;
+      paint();
+    });
   } catch (err) {
     showAlert("danger", err.message || "Не удалось загрузить справочник.");
     pageEl.innerHTML = `<div class="alert alert-danger">${escapeHtml(err.message || "Ошибка")}</div>`;
